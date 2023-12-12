@@ -32,6 +32,10 @@ function Workspaces() {
         aria-expanded={open ? 'true' : undefined}
         onClick={handleClick}
         endIcon={<ExpandMoreIcon />}
+        sx={{
+          color: (theme) => (theme.palette.mode === 'dark' ? 'white' : 'primary.main'),
+          bgcolor: (theme) => (theme.palette.mode === 'dark' ? '#0b1723' : 'white')
+        }} 
       >
         Workspaces
       </Button>

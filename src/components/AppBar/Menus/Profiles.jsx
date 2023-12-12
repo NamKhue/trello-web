@@ -32,7 +32,22 @@ function Profiles() {
           aria-haspopup="true"
           aria-expanded={open ? 'true' : undefined}
         >
-          <Avatar alt="User" sx={{ width: 32, height: 32 }}>U</Avatar>
+          <Avatar 
+            alt="User" 
+            sx={{ 
+              width: 34, 
+              height: 34,
+              fontSize: 16,
+              '&.MuiAvatar-root': {
+                border: '2px solid',
+                color: (theme) => (theme.palette.mode === 'dark' ? 'white' : 'primary.main'),
+                borderColor: (theme) => (theme.palette.mode === 'dark' ? 'white' : 'primary.main'),
+                bgcolor: (theme) => (theme.palette.mode === 'dark' ? '' : 'white'),
+              },
+            }}
+          >
+            U
+          </Avatar>
         </IconButton>
       </Tooltip>
       <Menu

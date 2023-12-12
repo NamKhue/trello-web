@@ -1,4 +1,3 @@
-import { blueGrey, deepOrange, orange, teal } from '@mui/material/colors';
 import { experimental_extendTheme as extendTheme} from '@mui/material/styles';
 
 const theme = extendTheme({
@@ -6,17 +5,44 @@ const theme = extendTheme({
     appBarHeight: '58px',
     boardBarHeight: '60px',
   },
-  colorSchemes: {
-    light: {
-      palette: {
-        primary: teal,
-        secondary: deepOrange,
+  colorSchemes: {},
+  components: {
+    MuiCssBaseline: {
+      styleOverrides: {
+        body: {
+          '*::-webkit-scrollbar': {
+            height: '6px',
+          },
+          '*::-webkit-scrollbar-thumb': {
+            backgroundColor: '#bdc3c7',
+            borderRadius: '8px',
+          },
+          '*::-webkit-scrollbar-thumb:hover': {
+            backgroundColor: '#989a9c',
+          },
+        },
       },
     },
-    dark: {
-      palette: {
-        primary: blueGrey,
-        secondary: orange,
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          textTransform: 'none',
+          borderWidth: '0.5px',
+        },
+      },
+    },
+    MuiInputLabel: {
+      styleOverrides: {
+        root: {
+          fontSize: '0.875rem',
+        },
+      },
+    },
+    MuiOutlinedInput: {
+      styleOverrides: {
+        root: {
+          fontSize: '0.875rem',
+        },
       },
     },
   },

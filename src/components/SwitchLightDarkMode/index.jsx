@@ -17,14 +17,42 @@ function SwitchLightDarkMode() {
     };
   
     return (
-      <FormControl size="small" sx={{ minWidth: '120px' }}>
-        <InputLabel id="label-select-light-dark-mode">Mode</InputLabel>
+      <FormControl 
+        size="small" 
+        sx={{ minWidth: '120px' }}
+      >
+        <InputLabel 
+          id="label-select-light-dark-mode"
+          sx={{ 
+            color: (theme) => (theme.palette.mode === 'dark' ? 'white' : 'primary.main'),
+            '&.Mui-focused': {
+              color: (theme) => (theme.palette.mode === 'dark' ? 'white' : 'primary.main'),
+            },
+          }}
+        >
+          Mode
+        </InputLabel>
         <Select
           labelId="label-select-light-dark-mode"
           id="select-light-dark-mode"
           value={mode}
           label="Mode"
           onChange={handleChange}
+          sx={{
+            color: (theme) => (theme.palette.mode === 'dark' ? 'white' : 'primary.main'),
+            '& .MuiOutlinedInput-notchedOutline': {
+              borderColor: (theme) => (theme.palette.mode === 'dark' ? 'white' : 'primary.main'),
+            },
+            '&:hover .MuiOutlinedInput-notchedOutline': {
+              borderColor: (theme) => (theme.palette.mode === 'dark' ? 'white' : 'primary.main'),
+            },
+            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+              borderColor: (theme) => (theme.palette.mode === 'dark' ? 'white' : 'primary.main'),
+            },
+            '.MuiSvgIcon-root': {
+              color: (theme) => (theme.palette.mode === 'dark' ? 'white' : 'primary.main'),
+            },
+          }}
         >
           <MenuItem value="light">
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>

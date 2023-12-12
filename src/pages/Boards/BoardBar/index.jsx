@@ -12,16 +12,13 @@ import Button from '@mui/material/Button';
 import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt';
 
 const MENU_STYLES = {
-  color: 'primary.main',
-  // bgcolor: 'primary',
+  color: (theme) => (theme.palette.mode === 'dark' ? '' : 'primary.main'),
+  bgcolor: (theme) => (theme.palette.mode === 'dark' ? '' : '#6c6c6c14'),
   border: 'none',
   paddingX: 0.5,
   borderRadius: 0.5,
   '& .MuiSvgIcon-root': {
-    color: 'primary.main',
-  },
-  '&:hover': {
-    // bgcolor: 'primary.50',
+    color: (theme) => (theme.palette.mode === 'dark' ? '' : 'primary.main'),
   },
 };
 
@@ -36,9 +33,16 @@ function BoardBar() {
       gap: 2,
       paddingX: 2,
       overflowX: 'auto',
-      borderTop: '1px solid #00bfa5'
+      bgcolor: (theme) => (theme.palette.mode === 'dark' ? '#0b1723' : ''),
+      borderTop: (theme) => theme.palette.mode === 'dark' ? '1px solid #777777' : '1px solid #1976d2',
+      borderBottom: (theme) => theme.palette.mode === 'dark' ? '1px solid #777777' : '1px solid #1976d2',
     }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+      {/* left side */}
+      <Box sx={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        gap: 1,
+      }}>
         <Chip 
           sx={MENU_STYLES} 
           icon={<DashboardIcon />} 
@@ -71,8 +75,20 @@ function BoardBar() {
         />
       </Box>
       
+      {/* right side */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <Button variant="outlined">
+        <Button 
+          variant="outlined"
+          sx={{
+            color: (theme) => (theme.palette.mode === 'dark' ? 'white' : 'primary.main'),
+            '&.MuiButton-root': {
+              borderColor: (theme) => (theme.palette.mode === 'dark' ? '#cacaca' : 'primary.main'),
+            },
+            '&.MuiButton-root:hover': {
+              borderColor: (theme) => (theme.palette.mode === 'dark' ? 'white' : 'primary.main'),
+            },
+          }}
+        >
           <PersonAddAltIcon sx={{ mr: 1 }} />
           Invite
         </Button>
@@ -81,10 +97,16 @@ function BoardBar() {
           max={4}
           sx={{
             '& .MuiAvatar-root': {
+              border: '2px solid',
               width: 34,
               height: 34,
               fontSize: 16,
-            }
+              borderColor: (theme) => (theme.palette.mode === 'dark' ? '#d6d6d6' : 'primary.main'),
+            },
+            '& .MuiAvatar-circular': {
+              color: (theme) => (theme.palette.mode === 'dark' ? 'white' : 'primary.main'),
+              bgcolor: (theme) => (theme.palette.mode === 'dark' ? '' : 'white'),
+            },
           }}
         >
           <Tooltip title="cootanasy">
