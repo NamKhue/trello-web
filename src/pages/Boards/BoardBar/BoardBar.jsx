@@ -10,6 +10,7 @@ import AvatarGroup from '@mui/material/AvatarGroup';
 import { Tooltip } from '@mui/material';
 import Button from '@mui/material/Button';
 import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt';
+import { capitalizeFirstLetter } from '~/utils/formatters';
 
 const MENU_STYLES = {
   color: (theme) => (theme.palette.mode === 'dark' ? '' : 'primary.main'),
@@ -22,7 +23,8 @@ const MENU_STYLES = {
   },
 };
 
-function BoardBar() {
+function BoardBar({ board }) {
+
   return (
     <Box sx={{
       width: '100%',
@@ -46,13 +48,13 @@ function BoardBar() {
         <Chip 
           sx={MENU_STYLES} 
           icon={<DashboardIcon />} 
-          label="cootanasy" 
+          label={board?.title}
           onClick={() => {}}
         />
         <Chip 
           sx={MENU_STYLES} 
           icon={<LockPersonIcon />} 
-          label="Public/Private workspace" 
+          label={capitalizeFirstLetter(board?.type)}
           onClick={() => {}}
         />
         <Chip 
@@ -101,28 +103,28 @@ function BoardBar() {
               width: 34,
               height: 34,
               fontSize: 16,
-              borderColor: (theme) => (theme.palette.mode === 'dark' ? '#d6d6d6' : 'primary.main'),
+              borderColor: (theme) => (theme.palette.mode === 'dark' ? '#d6d6d6' : '#5399de'),
             },
             '& .MuiAvatar-circular': {
-              color: (theme) => (theme.palette.mode === 'dark' ? 'white' : 'primary.main'),
-              bgcolor: (theme) => (theme.palette.mode === 'dark' ? '' : 'white'),
+              color: (theme) => (theme.palette.mode === 'dark' ? '#0b1723' : 'white'),
+              bgcolor: (theme) => (theme.palette.mode === 'dark' ? '' : '#a4b0de'),
             },
           }}
         >
           <Tooltip title="cootanasy">
-            <Avatar alt="Remy Sharp" src="/static/images/avatar/1.jpg" />
+            <Avatar alt="Remy Sharp" />
           </Tooltip>
           <Tooltip title="cootanasy">
-            <Avatar alt="Travis Howard" src="/static/images/avatar/2.jpg" />
+            <Avatar alt="Travis Howard" />
           </Tooltip>
           <Tooltip title="cootanasy">
-            <Avatar alt="Cindy Baker" src="/static/images/avatar/3.jpg" />
+            <Avatar alt="Cindy Baker" />
           </Tooltip>
           <Tooltip title="cootanasy">
-            <Avatar alt="Agnes Walker" src="/static/images/avatar/4.jpg" />
+            <Avatar alt="Agnes Walker" />
           </Tooltip>
           <Tooltip title="cootanasy">
-            <Avatar alt="Trevor Henderson" src="/static/images/avatar/5.jpg" />
+            <Avatar alt="Trevor Henderson" />
           </Tooltip>
         </AvatarGroup>
       </Box>

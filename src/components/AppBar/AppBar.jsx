@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import Box from '@mui/material/Box';
-import SwitchLightDarkMode from '~/components/SwitchLightDarkMode/index'
+import SwitchLightDarkMode from '~/components/SwitchLightDarkMode/SwitchLightDarkMode'
 import AppsIcon from '@mui/icons-material/Apps';
 import SvgIcon from '@mui/material/SvgIcon';
 import { ReactComponent as TrelloIcon } from '~/assets/trello.svg'
