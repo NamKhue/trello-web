@@ -1,25 +1,25 @@
 import React from 'react'
-import Box from '@mui/material/Box';
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
-import ListItemIcon from '@mui/material/ListItemIcon';
-import Divider from '@mui/material/Divider';
-import Avatar from '@mui/material/Avatar';
-import Tooltip from '@mui/material/Tooltip';
-import IconButton from '@mui/material/IconButton';
-import PersonAdd from '@mui/icons-material/PersonAdd';
-import Settings from '@mui/icons-material/Settings';
-import Logout from '@mui/icons-material/Logout';
+import Box from '@mui/material/Box'
+import Menu from '@mui/material/Menu'
+import MenuItem from '@mui/material/MenuItem'
+import ListItemIcon from '@mui/material/ListItemIcon'
+import Divider from '@mui/material/Divider'
+import Avatar from '@mui/material/Avatar'
+import Tooltip from '@mui/material/Tooltip'
+import IconButton from '@mui/material/IconButton'
+import PersonAdd from '@mui/icons-material/PersonAdd'
+import Settings from '@mui/icons-material/Settings'
+import Logout from '@mui/icons-material/Logout'
 
 function Profiles() {
-  const [anchorEl, setAnchorEl] = React.useState(null);
-  const open = Boolean(anchorEl);
+  const [anchorEl, setAnchorEl] = React.useState(null)
+  const open = Boolean(anchorEl)
   const handleClick = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
+    setAnchorEl(event.currentTarget)
+  }
   const handleClose = () => {
-    setAnchorEl(null);
-  };
+    setAnchorEl(null)
+  }
 
   return (
     <Box>
@@ -40,9 +40,9 @@ function Profiles() {
               fontSize: 16,
               '&.MuiAvatar-root': {
                 border: '2px solid',
-                color: (theme) => (theme.palette.mode === 'dark' ? 'white' : 'primary.main'),
-                borderColor: (theme) => (theme.palette.mode === 'dark' ? 'white' : 'primary.main'),
-                bgcolor: (theme) => (theme.palette.mode === 'dark' ? '' : 'white'),
+                color: (theme) => (theme.palette.mode === 'dark' ? '#d6d6d6' : 'primary.main'),
+                borderColor: (theme) => (theme.palette.mode === 'dark' ? '#d6d6d6' : 'primary.main'),
+                bgcolor: (theme) => (theme.palette.mode === 'dark' ? '' : '#d6d6d6'),
               },
             }}
           >

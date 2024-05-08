@@ -1,16 +1,17 @@
-import Box from '@mui/material/Box';
-import Chip from '@mui/material/Chip';
-import DashboardIcon from '@mui/icons-material/Dashboard';
-import LockPersonIcon from '@mui/icons-material/LockPerson';
-import AddToDriveIcon from '@mui/icons-material/AddToDrive';
-import BoltIcon from '@mui/icons-material/Bolt';
-import FilterListIcon from '@mui/icons-material/FilterList';
-import Avatar from '@mui/material/Avatar';
-import AvatarGroup from '@mui/material/AvatarGroup';
-import { Tooltip } from '@mui/material';
-import Button from '@mui/material/Button';
-import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt';
-import { capitalizeFirstLetter } from '~/utils/formatters';
+import Box from '@mui/material/Box'
+import Chip from '@mui/material/Chip'
+import DashboardIcon from '@mui/icons-material/Dashboard'
+import LockPersonIcon from '@mui/icons-material/LockPerson'
+import AddToDriveIcon from '@mui/icons-material/AddToDrive'
+import BoltIcon from '@mui/icons-material/Bolt'
+import FilterListIcon from '@mui/icons-material/FilterList'
+import Avatar from '@mui/material/Avatar'
+import AvatarGroup from '@mui/material/AvatarGroup'
+import Tooltip from '@mui/material/Tooltip'
+import Button from '@mui/material/Button'
+import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt'
+
+import { capitalizeFirstLetter } from '~/utils/formatters'
 
 const MENU_STYLES = {
   color: (theme) => (theme.palette.mode === 'dark' ? '' : 'primary.main'),
@@ -21,7 +22,7 @@ const MENU_STYLES = {
   '& .MuiSvgIcon-root': {
     color: (theme) => (theme.palette.mode === 'dark' ? '' : 'primary.main'),
   },
-};
+}
 
 function BoardBar({ board }) {
 
@@ -45,19 +46,21 @@ function BoardBar({ board }) {
         alignItems: 'center', 
         gap: 1,
       }}>
-        <Chip 
-          sx={MENU_STYLES} 
-          icon={<DashboardIcon />} 
-          label={board?.title}
-          onClick={() => {}}
-        />
+        <Tooltip title={board?.description}>
+          <Chip 
+            sx={MENU_STYLES} 
+            icon={<DashboardIcon />} 
+            label={board?.title}
+            onClick={() => {}}
+          />
+        </Tooltip>
         <Chip 
           sx={MENU_STYLES} 
           icon={<LockPersonIcon />} 
           label={capitalizeFirstLetter(board?.type)}
           onClick={() => {}}
         />
-        <Chip 
+        {/* <Chip 
           sx={MENU_STYLES} 
           icon={<AddToDriveIcon />} 
           label="Add to google drive" 
@@ -74,7 +77,7 @@ function BoardBar({ board }) {
           icon={<FilterListIcon />} 
           label="Filters" 
           onClick={() => {}}
-        />
+        /> */}
       </Box>
       
       {/* right side */}

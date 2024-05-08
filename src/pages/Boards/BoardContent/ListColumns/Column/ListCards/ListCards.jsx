@@ -1,14 +1,21 @@
-import Box from '@mui/material/Box';
-import Card from './Card/Card';
+import Box from '@mui/material/Box'
+import Card from './Card/Card'
 
-import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 
 // { cards }
-function ListCards({ cards }) {
+function ListCards({
+  cards,
+  deleteCardDetails,
+  editCard,
+}) {
   return (
-    <SortableContext items={cards?.map(card => card._id)} strategy={verticalListSortingStrategy}>
+    <SortableContext
+      items={cards?.map(card => card._id)}
+      strategy={verticalListSortingStrategy}
+    >
       <Box sx={{
-        p: '0 5px',
+        p: '0 5px 5px 5px',
         m: '0 5px',
         color: (theme) => (theme.palette.mode === 'dark' ? 'white' : 'black'),
         display: 'flex',
@@ -35,7 +42,16 @@ function ListCards({ cards }) {
         },
       }}>
         {/* Card */}
-        {cards?.map(card => <Card key={card._id} card={card} />)}
+        {cards?.map(card => 
+          <Card
+            key={card._id}
+            cards={cards}
+            card={card}
+
+            deleteCardDetails={deleteCardDetails}
+            editCard={editCard}
+          />
+        )}
 
       </Box>
     </SortableContext>

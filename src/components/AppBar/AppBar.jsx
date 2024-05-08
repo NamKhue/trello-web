@@ -1,26 +1,28 @@
-import { useState } from 'react';
-import Box from '@mui/material/Box';
-import SwitchLightDarkMode from '~/components/SwitchLightDarkMode/SwitchLightDarkMode'
-import AppsIcon from '@mui/icons-material/Apps';
-import SvgIcon from '@mui/material/SvgIcon';
-import { ReactComponent as TrelloIcon } from '~/assets/trello.svg'
-import Typography from '@mui/material/Typography';
+import { useRef, useState } from 'react'
+import Box from '@mui/material/Box'
+import AppsIcon from '@mui/icons-material/Apps'
+import SvgIcon from '@mui/material/SvgIcon'
+import Typography from '@mui/material/Typography'
+import Button from '@mui/material/Button'
+import TextField from '@mui/material/TextField'
+import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone'
+import Badge from '@mui/material/Badge'
+import Tooltip from '@mui/material/Tooltip'
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline'
+import AddBoxIcon from '@mui/icons-material/AddBox'
+import CloseIcon from '@mui/icons-material/Close'
+
 import Workspaces from './Menus/Workspaces'
 import Recent from './Menus/Recent'
 import Starred from './Menus/Starred'
 import Templates from './Menus/Templates'
 import Profiles from './Menus/Profiles'
-import Button from '@mui/material/Button';
-import TextField from '@mui/material/TextField';
-import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone';
-import Badge from '@mui/material/Badge';
-import Tooltip from '@mui/material/Tooltip';
-import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
-import AddBoxIcon from '@mui/icons-material/AddBox';
-import CloseIcon from '@mui/icons-material/Close';
+import { ReactComponent as TrelloIcon } from '~/assets/trello.svg'
+import SwitchLightDarkMode from '~/components/SwitchLightDarkMode/SwitchLightDarkMode'
 
 function AppBar() {
-  const [searchValue, setSearchValue] = useState('');
+  const [searchValue, setSearchValue] = useState('')
+  const inputRef = useRef(null)
 
   return (
     <Box px={2} sx={{
@@ -53,10 +55,10 @@ function AppBar() {
         </Box>
 
         <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 1 }}>
-          <Workspaces />
+          {/* <Workspaces />
           <Recent />
           <Starred />
-          <Templates />
+          <Templates /> */}
           <Button 
             variant="outlined"
             sx={{
@@ -86,6 +88,7 @@ function AppBar() {
         gap: 2,
       }}>
         <TextField 
+          ref={inputRef}
           sx={{ 
             minWidth: '150px', 
             maxWidth: '200px',
@@ -116,6 +119,7 @@ function AppBar() {
           onChange={(e) => setSearchValue(e.target.value)} 
           size='small' 
           InputProps={{
+            // 64 - smt need to revise
             endAdornment: (
               <CloseIcon
                 fontSize='small'
@@ -123,7 +127,16 @@ function AppBar() {
                   color: searchValue ? '' : 'transparent',
                   cursor: searchValue ? 'pointer' : 'text'
                 }}
-                onClick={() => setSearchValue('')}
+                onClick={() => {
+                  if (!searchValue) {
+                    inputRef.current.children[1].children[0].focus()
+                  }
+                  else {
+                    setSearchValue('')
+
+                    inputRef.current.children[1].children[0].focus()
+                  }
+                }}
               />
             )
           }}
@@ -146,7 +159,7 @@ function AppBar() {
           </Badge>
         </Tooltip>
         
-        <Tooltip title="Help">
+        {/* <Tooltip title="Help">
           <Badge 
             sx={{ 
               cursor: 'pointer', 
@@ -155,7 +168,7 @@ function AppBar() {
           >
             <HelpOutlineIcon />
           </Badge>
-        </Tooltip>
+        </Tooltip> */}
 
         <Profiles />
       </Box>
