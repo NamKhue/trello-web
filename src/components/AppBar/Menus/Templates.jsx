@@ -1,27 +1,27 @@
 import React from 'react'
-import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
-import ListItemText from '@mui/material/ListItemText';
-import ListItemIcon from '@mui/material/ListItemIcon';
-import Typography from '@mui/material/Typography';
-import ContentCut from '@mui/icons-material/ContentCut';
-import ContentCopy from '@mui/icons-material/ContentCopy';
-import ContentPaste from '@mui/icons-material/ContentPaste';
-import Cloud from '@mui/icons-material/Cloud';
-import Divider from '@mui/material/Divider';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
+import Menu from '@mui/material/Menu'
+import MenuItem from '@mui/material/MenuItem'
+import ListItemText from '@mui/material/ListItemText'
+import ListItemIcon from '@mui/material/ListItemIcon'
+import Typography from '@mui/material/Typography'
+import ContentCut from '@mui/icons-material/ContentCut'
+import ContentCopy from '@mui/icons-material/ContentCopy'
+import ContentPaste from '@mui/icons-material/ContentPaste'
+import Cloud from '@mui/icons-material/Cloud'
+import Divider from '@mui/material/Divider'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 
 function Templates() {
-  const [anchorEl, setAnchorEl] = React.useState(null);
-  const open = Boolean(anchorEl);
+  const [anchorEl, setAnchorEl] = React.useState(null)
+  const open = Boolean(anchorEl)
   const handleClick = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
+    setAnchorEl(event.currentTarget)
+  }
   const handleClose = () => {
-    setAnchorEl(null);
-  };
+    setAnchorEl(null)
+  }
 
   return (
     <Box>
