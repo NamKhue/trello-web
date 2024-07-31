@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 
+// import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import ListItemText from "@mui/material/ListItemText";
@@ -19,9 +19,9 @@ import { toast } from "react-toastify";
 import { useConfirm } from "material-ui-confirm";
 // import { useModal } from "mui-modal-provider";
 
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import ListItemIcon from "@mui/material/ListItemIcon";
 // import EditIcon from "@mui/icons-material/Edit";
+import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
+import ListItemIcon from "@mui/material/ListItemIcon";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import CloseIcon from "@mui/icons-material/Close";
 import AddIcon from "@mui/icons-material/Add";
@@ -33,13 +33,15 @@ import ListCards from "./ListCards/ListCards";
 
 // { column }
 function Column({
-  cards,
+  // cards,
   column,
   // columns,
   createNewCard,
   deleteColumnDetails,
   deleteCardDetails,
-  openModalDetailsCard,
+  // openModalDetailsCard,
+
+  handleCardClick,
 }) {
   const [openNewCardForm, setOpenNewCardForm] = useState(false);
   const toggleOpenNewCardForm = () => setOpenNewCardForm(!openNewCardForm);
@@ -85,9 +87,9 @@ function Column({
   // };
 
   // new
-  const orderedCards = cards;
+  // const orderedCards = cards;
   // // old
-  // const orderedCards = column.cards;
+  const orderedCards = column.cards;
   // const orderedCards = mapOrder(column?.cards, column?.cardOrderIds, '_id')
 
   // tương lai dùng react-hook form
@@ -360,6 +362,7 @@ function Column({
       <Box
         {...listeners}
         sx={{
+          outline: "none",
           minWidth: "280px",
           maxWidth: "280px",
           bgcolor: (theme) =>
@@ -379,8 +382,8 @@ function Column({
         {/* header */}
         <Box
           sx={{
-            pl: 2,
-            pr: 2,
+            pl: 1.75,
+            pr: 1.5,
             color: (theme) =>
               theme.palette.mode === "dark" ? "white" : "black",
             height: (theme) => theme.trelloCustom.columnHeaderHeight,
@@ -389,6 +392,7 @@ function Column({
             justifyContent: "space-between",
           }}
         >
+          {/* title + input for changing title */}
           <TextField
             type="text"
             variant="outlined"
@@ -456,8 +460,9 @@ function Column({
 
           <Box data-no-dnd="true">
             <Tooltip title="More options">
-              <ExpandMoreIcon
+              <MoreHorizIcon
                 sx={{
+                  mt: 0.5,
                   color: (theme) =>
                     theme.palette.mode === "dark"
                       ? theme.trelloCustom.COLOR_D7D7D7
@@ -571,30 +576,32 @@ function Column({
           column={column}
           cards={orderedCards}
           deleteCardDetails={deleteCardDetails}
-          openModalDetailsCard={openModalDetailsCard}
+          // openModalDetailsCard={openModalDetailsCard}
+          handleCardClick={handleCardClick}
         />
 
         {/* footer */}
         <Box
           sx={{
-            pl: 2.1,
-            pr: 2.1,
-            pb: 0.25,
+            pl: 1.65,
+            pr: 1.65,
           }}
         >
           {!openNewCardForm ? (
             <Box
               sx={{
+                height: (theme) => theme.trelloCustom.columnFooterHeightActive,
                 display: "flex",
+                // alignItems: "center",
+                justifyContent: "center",
+                pt: 0.5,
               }}
             >
               <Button
                 sx={{
                   width: "100%",
                   height: (theme) =>
-                    theme.trelloCustom.columnFooterHeightUnactive,
-                  mt: 1,
-                  mb: 1.5,
+                    `calc(${theme.trelloCustom.columnFooterHeightActive} - 15px)`,
                   fontSize: "0.8rem",
                   fontWeight: "bold",
                   color: (theme) =>
@@ -754,14 +761,14 @@ function Column({
                       boxShadow: (theme) =>
                         theme.palette.mode === "dark"
                           ? "none"
-                          : "0px 2px 10px #DDDDDD",
+                          : `0px 2px 10px ${theme.trelloCustom.COLOR_DDDDDD}`,
                       "&:hover": {
                         color: (theme) => theme.trelloCustom.COLOR_D7D7D7,
                         bgcolor: (theme) => theme.trelloCustom.COLOR_818181,
                         boxShadow: (theme) =>
                           theme.palette.mode === "dark"
                             ? "none"
-                            : "0px 2px 10px #DDDDDD",
+                            : `0px 2px 10px ${theme.trelloCustom.COLOR_DDDDDD}`,
                       },
                     }}
                     onClick={toggleOpenNewCardForm}
@@ -791,14 +798,14 @@ function Column({
                       boxShadow: (theme) =>
                         theme.palette.mode === "dark"
                           ? "none"
-                          : "0px 2px 10px #C78FFF",
+                          : `0px 2px 10px ${theme.trelloCustom.COLOR_C78FFF}`,
                       "&:hover": {
                         color: "white",
                         bgcolor: (theme) => theme.trelloCustom.COLOR_8C25DE,
                         boxShadow: (theme) =>
                           theme.palette.mode === "dark"
                             ? "none"
-                            : "0px 2px 10px #C78FFF",
+                            : `0px 2px 10px ${theme.trelloCustom.COLOR_C78FFF}`,
                       },
                     }}
                     onClick={addNewCard}

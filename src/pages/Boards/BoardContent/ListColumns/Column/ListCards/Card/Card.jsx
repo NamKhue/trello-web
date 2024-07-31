@@ -1,34 +1,35 @@
 import { useState } from "react";
+
+import { useConfirm } from "material-ui-confirm";
+// import { useModal } from "mui-modal-provider";
+// import { toast } from "react-toastify";
+
+import Box from "@mui/material/Box";
 import { Card as MuiCard } from "@mui/material";
-import CardActions from "@mui/material/CardActions";
 import CardContent from "@mui/material/CardContent";
 import CardMedia from "@mui/material/CardMedia";
-import GroupIcon from "@mui/icons-material/Group";
-import CommentIcon from "@mui/icons-material/Comment";
-import AttachFileIcon from "@mui/icons-material/AttachFile";
 import Typography from "@mui/material/Typography";
-import Button from "@mui/material/Button";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
-import { useConfirm } from "material-ui-confirm";
-import TextField from "@mui/material/TextField";
-import Dialog from "@mui/material/Dialog";
-import DialogTitle from "@mui/material/DialogTitle";
-import DialogActions from "@mui/material/DialogActions";
-import { useModal } from "mui-modal-provider";
-import { toast } from "react-toastify";
+// import CardActions from "@mui/material/CardActions";
+// import Button from "@mui/material/Button";
+// import TextField from "@mui/material/TextField";
+
+import { TbFileDescription } from "react-icons/tb";
+import { CgAttachment } from "react-icons/cg";
+import { CiCalendar } from "react-icons/ci";
 
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { editCardDetailsAPI } from "~/apis";
 
 function Card({
   card,
-  cards,
-  column,
+  // cards,
+  // column,
 
   deleteCardDetails,
-  openModalDetailsCard,
+  // openModalDetailsCard,
+  handleCardClick,
 }) {
   // dnd kit
   const {
@@ -47,17 +48,38 @@ function Card({
     transform: CSS.Translate.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : undefined,
-    border: isDragging ? "2px solid #2ecc71" : undefined,
+    border: isDragging ? "2px solid #2ECC71" : undefined,
   };
 
-  const shouldShowCardActions = () => {
-    // return (
-    //   !!card?.memberIds?.length ||
-    //   !!card?.comments?.length ||
-    //   !!card?.attachments?.length
-    // );
+  // const shouldShowCardActions = () => {
+  //   return (
+  //     !!card?.memberIds?.length ||
+  //     !!card?.comments?.length ||
+  //     !!card?.attachments?.length
+  //   );
+  // };
 
-    return true;
+  const shouldShowLabel = () => {
+    return !!card?.status?.length || !!card?.priority?.length;
+  };
+
+  const shouldShowIconRepresenting = () => {
+    return !!card?.description?.length || !!card?.attachments?.length;
+  };
+
+  const shouldShowDateAndMember = () => {
+    // if (card?.title == "làm tài liệu báo cáo test 2") {
+    //   console.log(
+    //     'card?.deadlineAt.split(" ")[0].split("-") ',
+    //     card?.deadlineAt.split(" ")[0].split("-")
+    //   );
+    //   console.log(
+    //     'card?.deadlineAt.split(" ")[0].split("-")[2] ',
+    //     card?.deadlineAt.split(" ")[0].split("-")[2]
+    //   );
+    // }
+
+    return !!card?.deadlineAt?.length || !!card?.memberIds?.length;
   };
 
   // right click handle - click chUột phải để mở menu options
@@ -86,7 +108,7 @@ function Card({
           handleDeleteCard(contextMenu.item);
           break;
         case "Modify":
-          // openModalDetailsCard(contextMenu.item);
+          handleCardClick(contextMenu.item);
           break;
         default:
           break;
@@ -116,122 +138,6 @@ function Card({
       .catch(() => {});
   };
 
-  // sửa card
-  // eslint-disable-next-line no-unused-vars
-  // let newCardTitleEdit = "";
-
-  // const { showModal } = useModal();
-
-  // const handleEditCard = (card) => {
-  //   card.title = card.title.trim();
-  //   newCardTitleEdit = card.title;
-
-  //   // mở modal
-  //   const editCardModal = showModal(ConfirmationDialog, {
-  //     title: card.title,
-  //     // hàm onConfirm khong nên chứa > 1 tham số
-  //     // vì như vậy xử lý khá khó (tức là cần nghĩ thêm)
-  //     // tách bạch từng cái cho dễ ra hướng giải quyết
-  //     onConfirm: () => {
-  //       // xử lý khi click OK
-  //       newCardTitleEdit = newCardTitleEdit.trim();
-
-  //       // check sự tồn tại/trùng lặp của dữ liệu thông tin đã được thay đổi
-  //       // nếu tồn tại
-  //       if (!cards.map((card) => card.title).includes(newCardTitleEdit)) {
-  //         // set new data UI for card
-  //         card.title = newCardTitleEdit;
-
-  //         // call api update Board & DB
-  //         editCardDetailsAPI(card._id, { title: card.title }).then((res) => {
-  //           toast.success(res?.modifyCardResult);
-  //         });
-
-  //         editCardModal.hide();
-  //       } else {
-  //         // nếu dữ liệu y hệt
-  //         if (newCardTitleEdit === card.title) {
-  //           toast.info("This new infomation is the same as the old ones", {
-  //             position: "bottom-right",
-  //           });
-  //         } else {
-  //           toast.info("The infomation that you have been modified is existed");
-  //         }
-  //       }
-  //     },
-  //     onCancel: () => {
-  //       editCardModal.hide();
-  //     },
-  //   });
-  // };
-
-  // const ConfirmationDialog = ({ title, onCancel, onConfirm, ...props }) => (
-  //   <Dialog
-  //     sx={{
-  //       maxWidth: "false",
-  //     }}
-  //     {...props}
-  //   >
-  //     <div
-  //       style={{
-  //         width: 300,
-  //         paddingLeft: "30px",
-  //         paddingRight: "30px",
-  //       }}
-  //     >
-  //       <DialogTitle
-  //         style={{
-  //           paddingLeft: "0",
-  //         }}
-  //         sx={{
-  //           "& .MuiTypography-root": {
-  //             margin: "0 auto",
-  //           },
-  //         }}
-  //       >
-  //         Modify Card
-  //       </DialogTitle>
-
-  //       <TextField
-  //         sx={{
-  //           width: "100%",
-  //           "& .MuiOutlinedInput-root": {
-  //             padding: "5px",
-  //           },
-  //         }}
-  //         label="New title"
-  //         autoFocus
-  //         type="text"
-  //         size="small"
-  //         variant="outlined"
-  //         defaultValue={title}
-  //         onChange={(ev) => (newCardTitleEdit = ev.target.value)}
-  //         onKeyDown={(ev) => {
-  //           if (ev.key === "Enter") {
-  //             ev.preventDefault();
-
-  //             onConfirm();
-  //           }
-  //         }}
-  //       />
-
-  //       <DialogActions
-  //         sx={{
-  //           paddingLeft: 0,
-  //           paddingRight: 0,
-  //         }}
-  //       >
-  //         <Button onClick={onCancel} color="error">
-  //           Cancel
-  //         </Button>
-  //         <Button onClick={onConfirm} variant="outlined" color="info">
-  //           Confirm
-  //         </Button>
-  //       </DialogActions>
-  //     </div>
-  //   </Dialog>
-  // );
-
   return (
     <div>
       <div key={card} onContextMenu={handleContextMenu(card)}>
@@ -240,15 +146,19 @@ function Card({
           style={dndKitCardStyles}
           {...attributes}
           {...listeners}
-          onClick={() => openModalDetailsCard(column._id, card._id)}
+          // onClick={() => openModalDetailsCard(column._id, card._id)}
+          onClick={() => handleCardClick(card)}
           sx={{
+            outline: "none",
             cursor: "pointer",
             overflow: "unset",
             display: card?.FE_PlaceholderCard ? "none" : "block",
             borderRadius: "6px",
             border: "2px solid transparent",
             boxShadow: (theme) =>
-              theme.palette.mode === "dark" ? "none" : "0px 2px 10px #E0E0E0",
+              theme.palette.mode === "dark"
+                ? "none"
+                : `0px 2px 10px ${theme.trelloCustom.COLOR_E0E0E0}`,
             bgcolor: (theme) =>
               theme.palette.mode === "dark"
                 ? theme.trelloCustom.COLOR_281E38
@@ -261,7 +171,7 @@ function Card({
               boxShadow: (theme) =>
                 theme.palette.mode === "dark"
                   ? "0px 2px 10px #1E252A"
-                  : "0px 2px 10px #E0E0E0",
+                  : `0px 2px 10px ${theme.trelloCustom.COLOR_E0E0E0}`,
             },
           }}
         >
@@ -277,10 +187,150 @@ function Card({
               },
             }}
           >
+            {/* labels of status & priority */}
+            {shouldShowLabel() && (
+              <Box
+                sx={{
+                  mt: 0.25,
+                  mb: 1,
+                  display: "flex",
+                  gap: 1.5,
+                  height: "25px",
+                }}
+              >
+                {/* label status */}
+                {!!card?.status?.length && (
+                  <Box
+                    sx={{
+                      cursor: "pointer",
+                      width: "fit-content",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      px: 1.25,
+                      fontSize: "0.8rem",
+                      fontWeight: "bold",
+                      borderRadius: "4px",
+                      color: `${card?.statusTextColor}`,
+                      bgcolor: `${card?.statusBgColor}`,
+                    }}
+                  >
+                    {card?.status?.charAt(0).toUpperCase() +
+                      card?.status?.slice(1)}
+                  </Box>
+                )}
+
+                {/* label priority */}
+                {!!card?.priority?.length && (
+                  <Box
+                    sx={{
+                      cursor: "pointer",
+                      width: "fit-content",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      px: 1.25,
+                      fontSize: "0.8rem",
+                      fontWeight: "bold",
+                      borderRadius: "4px",
+                      color: `${card?.priorityTextColor}`,
+                      bgcolor: `${card?.priorityBgColor}`,
+                    }}
+                  >
+                    {card?.priority?.charAt(0).toUpperCase() +
+                      card?.priority?.slice(1)}
+                  </Box>
+                )}
+              </Box>
+            )}
+
+            {/* title */}
             <Typography>{card?.title}</Typography>
+
+            {/* icon representing for description & attachment */}
+            {shouldShowIconRepresenting() && (
+              <Box
+                sx={{
+                  mt: 0.5,
+                  height: "20px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 0.5,
+                }}
+              >
+                {!!card?.description?.length && (
+                  <TbFileDescription
+                    style={{
+                      marginLeft: "-3px",
+                    }}
+                  />
+                )}
+                {/* {!!card?.attachments?.length && <CgAttachment />} */}
+                <CgAttachment />
+              </Box>
+            )}
+
+            {/* icon representing for description & attachment */}
+            {shouldShowDateAndMember() && (
+              <Box
+                sx={{
+                  mt: 0.5,
+                  height: "20px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                }}
+              >
+                {/* date & time */}
+                {card?.deadlineAt?.length && (
+                  <Box
+                    sx={{
+                      // border: "1px solid",
+                      // borderRadius: "3px",
+                      // borderColor: (theme) => theme.trelloCustom.COLOR_8B8B8B,
+                      // px: 0.5,
+                      width: "fit-content",
+                      gap: 0.5,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-around",
+                      color: (theme) =>
+                        theme.palette.mode === "dark"
+                          ? theme.trelloCustom.COLOR_F8F8F8
+                          : theme.trelloCustom.COLOR_1C1B1F,
+                    }}
+                  >
+                    {/* icon */}
+                    <CiCalendar
+                      style={{
+                        marginTop: "-2px",
+                        marginLeft: "-1.5px",
+                        fontSize: "1rem",
+                        strokeWidth: 0.75,
+                      }}
+                    />
+
+                    {/* content date & time */}
+                    <Box
+                      sx={{
+                        fontSize: ".8rem",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      {`${card?.deadlineAt.split(" ")[0].split("-")[2]}.${
+                        card?.deadlineAt.split(" ")[0].split("-")[1]
+                      }.${card?.deadlineAt.split(" ")[0].split("-")[0]}`}
+                    </Box>
+                  </Box>
+                )}
+
+                {/* member */}
+                <Box></Box>
+              </Box>
+            )}
           </CardContent>
 
-          {shouldShowCardActions() && (
+          {/* {shouldShowCardActions() && (
             <CardActions sx={{ p: "0 4px 8px 4px" }}>
               {!!card?.memberIds?.length && (
                 <Button size="small" startIcon={<GroupIcon />}>
@@ -300,7 +350,7 @@ function Card({
                 </Button>
               )}
             </CardActions>
-          )}
+          )} */}
         </MuiCard>
       </div>
 
