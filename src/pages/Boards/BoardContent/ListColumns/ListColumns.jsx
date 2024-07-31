@@ -15,13 +15,15 @@ import AddIcon from "@mui/icons-material/Add";
 import Column from "./Column/Column";
 
 function ListColumns({
-  cards,
+  // cards,
   columns,
   createNewColumn,
   createNewCard,
   deleteColumnDetails,
   deleteCardDetails,
-  openModalDetailsCard,
+  // openModalDetailsCard,
+
+  handleCardClick,
 }) {
   const [openNewColumnForm, setOpenNewColumnForm] = useState(false);
   const toggleOpenNewColumnForm = () =>
@@ -69,6 +71,7 @@ function ListColumns({
       {/* list of columns */}
       <Box
         sx={{
+          outline: "none",
           bgcolor: "inherit",
           width: "100%",
           height: "100%",
@@ -82,13 +85,14 @@ function ListColumns({
         {columns?.map((column) => (
           <Column
             key={column._id}
-            cards={cards.filter((card) => card.columnId == column._id)}
+            // cards={cards.filter((card) => card.columnId == column._id)}
             columns={columns}
             column={column}
             createNewCard={createNewCard}
             deleteColumnDetails={deleteColumnDetails}
             deleteCardDetails={deleteCardDetails}
-            openModalDetailsCard={openModalDetailsCard}
+            // openModalDetailsCard={openModalDetailsCard}
+            handleCardClick={handleCardClick}
           />
         ))}
 
@@ -97,8 +101,8 @@ function ListColumns({
           <Box
             onClick={toggleOpenNewColumnForm}
             sx={{
-              minWidth: "300px",
-              maxWidth: "300px",
+              minWidth: "280px",
+              maxWidth: "280px",
               mx: 1,
               borderRadius: "10px",
               height: "46px",
@@ -267,14 +271,14 @@ function ListColumns({
                   boxShadow: (theme) =>
                     theme.palette.mode === "dark"
                       ? "none"
-                      : "0px 2px 10px #DDDDDD",
+                      : `0px 2px 10px ${theme.trelloCustom.COLOR_DDDDDD}`,
                   "&:hover": {
                     color: (theme) => theme.trelloCustom.COLOR_D7D7D7,
                     bgcolor: (theme) => theme.trelloCustom.COLOR_818181,
                     boxShadow: (theme) =>
                       theme.palette.mode === "dark"
                         ? "none"
-                        : "0px 2px 10px #DDDDDD",
+                        : `0px 2px 10px ${theme.trelloCustom.COLOR_DDDDDD}`,
                   },
                 }}
                 onClick={toggleOpenNewColumnForm}
@@ -304,14 +308,14 @@ function ListColumns({
                   boxShadow: (theme) =>
                     theme.palette.mode === "dark"
                       ? "none"
-                      : "0px 2px 10px #C78FFF",
+                      : `0px 2px 10px ${theme.trelloCustom.COLOR_C78FFF}`,
                   "&:hover": {
                     color: "white",
                     bgcolor: (theme) => theme.trelloCustom.COLOR_8C25DE,
                     boxShadow: (theme) =>
                       theme.palette.mode === "dark"
                         ? "none"
-                        : "0px 2px 10px #C78FFF",
+                        : `0px 2px 10px ${theme.trelloCustom.COLOR_C78FFF}`,
                   },
                 }}
                 onClick={addNewColumn}

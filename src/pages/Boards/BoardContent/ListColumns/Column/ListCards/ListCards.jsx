@@ -7,7 +7,14 @@ import {
 } from "@dnd-kit/sortable";
 
 // { cards }
-function ListCards({ column, cards, deleteCardDetails, openModalDetailsCard }) {
+function ListCards({
+  column,
+  cards,
+  deleteCardDetails,
+  // openModalDetailsCard,
+
+  handleCardClick,
+}) {
   return (
     <SortableContext
       items={cards?.map((card) => card._id)}
@@ -15,8 +22,9 @@ function ListCards({ column, cards, deleteCardDetails, openModalDetailsCard }) {
     >
       <Box
         sx={{
-          pl: 1.5,
-          pr: 1.5,
+          outline: "none",
+          pl: 1,
+          pr: 1,
           pb: 1,
           m: "0 5px",
           color: (theme) => (theme.palette.mode === "dark" ? "white" : "black"),
@@ -29,7 +37,7 @@ function ListCards({ column, cards, deleteCardDetails, openModalDetailsCard }) {
           ${theme.trelloCustom.boardContentHeight} - 
           ${theme.spacing(5)} - 
           ${theme.trelloCustom.columnHeaderHeight} - 
-          ${theme.trelloCustom.columnFooterHeight}
+          ${theme.trelloCustom.columnFooterHeightActive}
         )`,
 
           "&::-webkit-scrollbar": {
@@ -50,11 +58,16 @@ function ListCards({ column, cards, deleteCardDetails, openModalDetailsCard }) {
         {cards?.map((card) => (
           <Card
             key={card._id}
+            onClick={() => {
+              console.log("fsdf");
+              handleCardClick(card);
+            }}
             column={column}
             cards={cards}
             card={card}
             deleteCardDetails={deleteCardDetails}
-            openModalDetailsCard={openModalDetailsCard}
+            // openModalDetailsCard={openModalDetailsCard}
+            handleCardClick={handleCardClick}
           />
         ))}
       </Box>

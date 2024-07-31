@@ -60,7 +60,7 @@ const RichTextEditor = ({
             py: 0.75,
             fontSize: ".9rem",
             fontWeight: "bold",
-            borderRadius: "4px",
+            borderRadius: "5px",
             color: (theme) => theme.trelloCustom.COLOR_7115BA,
             bgcolor: (theme) => theme.trelloCustom.COLOR_C985FF,
             "&:hover": {
@@ -80,12 +80,20 @@ const RichTextEditor = ({
             py: 0.75,
             fontSize: ".9rem",
             fontWeight: "bold",
-            borderRadius: "4px",
-            color: (theme) => theme.trelloCustom.COLOR_49454E,
-            bgcolor: (theme) => theme.trelloCustom.COLOR_D7D7D7,
+            borderRadius: "5px",
+            color: (theme) =>
+              theme.palette.mode === "dark"
+                ? theme.trelloCustom.COLOR_D7D7D7
+                : theme.trelloCustom.COLOR_313131,
+            bgcolor: (theme) =>
+              theme.palette.mode === "dark"
+                ? theme.trelloCustom.COLOR_281E38
+                : theme.trelloCustom.COLOR_E6E6E6,
             "&:hover": {
-              color: (theme) => theme.trelloCustom.COLOR_D7D7D7,
-              bgcolor: (theme) => theme.trelloCustom.COLOR_818181,
+              bgcolor: (theme) =>
+                theme.palette.mode === "dark"
+                  ? theme.trelloCustom.COLOR_463666
+                  : theme.trelloCustom.COLOR_D7D7D7,
             },
           }}
         >
