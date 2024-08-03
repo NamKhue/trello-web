@@ -1,6 +1,11 @@
 import { useRef, useState } from "react";
 
-// import Typography from "@mui/material/Typography";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { toast } from "react-toastify";
+import { useConfirm } from "material-ui-confirm";
+// import { useModal } from "mui-modal-provider";
+
 import Box from "@mui/material/Box";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
@@ -9,27 +14,25 @@ import Divider from "@mui/material/Divider";
 import Tooltip from "@mui/material/Tooltip";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
+import InputAdornment from "@mui/material/InputAdornment";
+
 // import Dialog from "@mui/material/Dialog";
 // import DialogTitle from "@mui/material/DialogTitle";
 // import DialogActions from "@mui/material/DialogActions";
+// import Typography from "@mui/material/Typography";
 
-import { useSortable } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
-import { toast } from "react-toastify";
-import { useConfirm } from "material-ui-confirm";
-// import { useModal } from "mui-modal-provider";
-
-// import EditIcon from "@mui/icons-material/Edit";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import CloseIcon from "@mui/icons-material/Close";
 import AddIcon from "@mui/icons-material/Add";
 import AddCardIcon from "@mui/icons-material/AddCard";
+import EditIcon from "@mui/icons-material/Edit";
 
 import { updateColumnDetailsAPI } from "~/apis";
-import ListCards from "./ListCards/ListCards";
 // import { mapOrder } from '~/utils/sorts'
+
+import ListCards from "./ListCards/ListCards";
 
 // { column }
 function Column({
@@ -157,10 +160,15 @@ function Column({
   const handleRenameColumnDirectly = (column, newColumnTitleEdit) => {
     // set new data UI for column
     // and call api update Board & DB
-    if (column.title != newColumnTitleEdit.trim()) {
-      column.title = newColumnTitleEdit.trim();
+    if (newColumnTitleEdit.trim() != "") {
+      if (column.title != newColumnTitleEdit.trim()) {
+        column.title = newColumnTitleEdit.trim();
 
-      updateColumnDetailsAPI(column._id, { title: column.title });
+        updateColumnDetailsAPI(column._id, { title: column.title });
+      }
+    } else {
+      setNewColumnTitle(column.title);
+      toast.error("You can't let the title of column empty!");
     }
   };
 
@@ -357,6 +365,25 @@ function Column({
   //   </Dialog>
   // );
 
+  const [focusedOnTitleColumn, setFocusedOnTitleColumn] = useState(false);
+  const [isHoveredTitleColumn, setIsHoveredTitleColumn] = useState(false);
+  const handleMouseHoverTitleColumn = () => {
+    setIsHoveredTitleColumn(true);
+  };
+
+  const handleMouseLeaveTitleColumn = () => {
+    setIsHoveredTitleColumn(false);
+  };
+  // Create a ref for the TextField
+  const textFieldRefTitleColumn = useRef(null);
+
+  // Function to focus the TextField
+  const handleFieldsetClickTitleColumn = () => {
+    if (textFieldRefTitleColumn.current) {
+      textFieldRefTitleColumn.current.focus();
+    }
+  };
+
   return (
     <div ref={setNodeRef} style={dndKitColumnStyles} {...attributes}>
       <Box
@@ -365,35 +392,38 @@ function Column({
           outline: "none",
           minWidth: "280px",
           maxWidth: "280px",
-          bgcolor: (theme) =>
-            theme.palette.mode === "dark"
-              ? theme.trelloCustom.COLOR_13091B
-              : theme.trelloCustom.COLOR_F5F5F5,
-          ml: 1,
-          mr: 1,
-          borderRadius: "10px",
           height: "fit-content",
           maxHeight: (theme) =>
             `calc(${theme.trelloCustom.boardContentHeight} - ${theme.spacing(
               5
             )})`,
+          ml: 1,
+          mr: 1,
+          borderRadius: "10px",
+          bgcolor: (theme) =>
+            theme.palette.mode === "dark"
+              ? theme.trelloCustom.COLOR_13091B
+              : theme.trelloCustom.COLOR_F5F5F5,
         }}
       >
-        {/* header */}
+        {/* header of column */}
         <Box
           sx={{
             pl: 1.75,
             pr: 1.5,
-            color: (theme) =>
-              theme.palette.mode === "dark" ? "white" : "black",
-            height: (theme) => theme.trelloCustom.columnHeaderHeight,
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
+            color: (theme) =>
+              theme.palette.mode === "dark" ? "white" : "black",
+            height: (theme) => theme.trelloCustom.columnHeaderHeight,
           }}
         >
           {/* title + input for changing title */}
           <TextField
+            onMouseEnter={handleMouseHoverTitleColumn}
+            onMouseLeave={handleMouseLeaveTitleColumn}
+            inputRef={textFieldRefTitleColumn}
             type="text"
             variant="outlined"
             value={
@@ -406,19 +436,65 @@ function Column({
                 ev.target.blur();
               }
             }}
-            onBlur={() =>
-              handleRenameColumnDirectly(column, newColumnTitle.trim())
-            }
+            onFocus={() => setFocusedOnTitleColumn(true)}
+            onBlur={() => {
+              handleRenameColumnDirectly(column, newColumnTitle.trim());
+              setFocusedOnTitleColumn(false);
+            }}
+            InputProps={{
+              endAdornment: (
+                // edit btn
+                <InputAdornment
+                  position="end"
+                  onClick={handleFieldsetClickTitleColumn}
+                >
+                  {(isHoveredTitleColumn || focusedOnTitleColumn) && (
+                    <Box
+                      onClick={handleFieldsetClickTitleColumn}
+                      sx={{
+                        cursor: "pointer",
+                        width: "30px",
+                        height: "30px",
+                        px: 0.8,
+                        mr: 0.5,
+                        display: "flex",
+                        alignItems: "center",
+                        fontSize: "0.9rem",
+                        fontWeight: "bold",
+                        borderRadius: "6px",
+
+                        bgcolor: "transparent",
+                        color: (theme) =>
+                          theme.palette.mode === "dark"
+                            ? theme.trelloCustom.COLOR_D7D7D7
+                            : theme.trelloCustom.COLOR_313131,
+
+                        "&:hover": {
+                          bgcolor: (theme) =>
+                            theme.palette.mode === "dark"
+                              ? theme.trelloCustom.COLOR_281E38
+                              : theme.trelloCustom.COLOR_C0C0C0,
+                        },
+                      }}
+                    >
+                      <EditIcon sx={{ fontSize: "1.25rem", pr: 0.5 }} />
+                    </Box>
+                  )}
+                </InputAdornment>
+              ),
+            }}
             sx={{
               "& input": {
                 cursor: "pointer",
-                pt: 1.1,
-                pb: 1.1,
+                pt: 0.8,
+                pb: 0.8,
                 pl: 0,
                 height: "15px",
                 fontSize: "1rem",
                 fontWeight: "bold",
+                border: "2px solid",
                 borderRadius: "6px",
+                borderColor: "transparent",
                 bgcolor: "transparent",
                 color: (theme) =>
                   theme.palette.mode === "dark" ? "white" : "black",
@@ -427,7 +503,8 @@ function Column({
                 bgcolor: "transparent",
               },
               "& input:focus": {
-                pl: 1.75,
+                pl: 1.5,
+                pr: 1.5,
                 color: (theme) =>
                   theme.palette.mode === "dark"
                     ? "white"
@@ -436,10 +513,20 @@ function Column({
                   theme.palette.mode === "dark"
                     ? theme.trelloCustom.COLOR_281E38
                     : theme.trelloCustom.COLOR_F8F8F8,
+                borderColor: (theme) =>
+                  theme.palette.mode === "dark"
+                    ? theme.trelloCustom.COLOR_281E38
+                    : theme.trelloCustom.COLOR_313131,
+              },
+              "& .MuiInputBase-input": {
+                overflow: "hidden",
+                textOverflow: "ellipsis",
               },
 
               // border outline
               "& .MuiOutlinedInput-root": {
+                cursor: "pointer",
+                pr: 0,
                 "& fieldset": {
                   borderRadius: "6px",
                   borderWidth: "2px",
@@ -449,15 +536,17 @@ function Column({
                   borderColor: "transparent",
                 },
                 "&.Mui-focused fieldset": {
-                  borderColor: (theme) =>
-                    theme.palette.mode === "dark"
-                      ? theme.trelloCustom.COLOR_8A2DCB
-                      : theme.trelloCustom.COLOR_313131,
+                  borderColor: "transparent",
+                  // borderColor: (theme) =>
+                  //   theme.palette.mode === "dark"
+                  //     ? theme.trelloCustom.COLOR_8A2DCB
+                  //     : theme.trelloCustom.COLOR_313131,
                 },
               },
             }}
           />
 
+          {/* more options */}
           <Box data-no-dnd="true">
             <Tooltip title="More options">
               <MoreHorizIcon
@@ -580,7 +669,7 @@ function Column({
           handleCardClick={handleCardClick}
         />
 
-        {/* footer */}
+        {/* footer of column */}
         <Box
           sx={{
             pl: 1.65,

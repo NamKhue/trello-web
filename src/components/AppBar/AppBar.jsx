@@ -1,8 +1,8 @@
 import { useRef, useState } from "react";
+import { Link } from "react-router-dom";
 
 // import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
 import Badge from "@mui/material/Badge";
 import Tooltip from "@mui/material/Tooltip";
@@ -51,20 +51,25 @@ function AppBar() {
         }}
       >
         {/* <AppsIcon /> */}
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            gap: 0.5,
+        <Link
+          to="/"
+          style={{
+            textDecoration: "none",
           }}
         >
-          <Typography
-            variant="span"
-            sx={{ fontSize: "1.75rem", fontWeight: "bold" }}
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 0.5,
+              color: (theme) => theme.trelloCustom.COLOR_C200D3,
+              fontSize: "1.75rem",
+              fontWeight: "bold",
+            }}
           >
             Meelo
-          </Typography>
-        </Box>
+          </Box>
+        </Link>
 
         {/* <Box
           sx={{
@@ -130,7 +135,7 @@ function AppBar() {
                       ? searchValue
                         ? theme.trelloCustom.COLOR_B5BEC7
                         : "#b5bec757"
-                      : theme.trelloCustom.COLOR_790283,
+                      : theme.trelloCustom.COLOR_C200D3,
                 }}
               />
             ),
@@ -181,7 +186,7 @@ function AppBar() {
                 borderColor: (theme) =>
                   theme.palette.mode === "dark"
                     ? "#b5bec757"
-                    : theme.trelloCustom.COLOR_790283,
+                    : theme.trelloCustom.COLOR_C200D3,
               },
               "&:hover fieldset": {
                 borderColor: (theme) =>

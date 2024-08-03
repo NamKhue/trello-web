@@ -1,27 +1,38 @@
-import { RequireAuth } from "react-auth-kit";
-import { Route, Routes } from "react-router-dom";
+// import { Route, Routes } from "react-router-dom";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+// import { RequireAuth } from "react-auth-kit";
 
+// import Login from "~/components/Authen/Login/Login";
+import HomePage from "~/pages/Boards";
 import Board from "~/pages/Boards/_id";
-import Login from "~/components/Authen/Login/Login";
 
 function App() {
   return (
-    <>
-      {/* <Routes>
+    <Router>
+      <Routes>
         <Route
           path="/"
           element={
-            <RequireAuth loginPath="/login">
-              <Board />
-            </RequireAuth>
+            // <RequireAuth loginPath="/login">
+            <HomePage />
+            // </RequireAuth>
           }
-        ></Route>
-        <Route path="/login" element={<Login />}></Route>
-      </Routes> */}
+        />
 
-      <Board />
+        <Route
+          path="/board/:id"
+          element={
+            // <RequireAuth loginPath="/login">
+            <Board />
+            // </RequireAuth>
+          }
+        />
+
+        {/* <Route path="/login" element={<Login />}></Route> */}
+      </Routes>
+
       {/* <Login /> */}
-    </>
+    </Router>
   );
 }
 

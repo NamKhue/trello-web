@@ -5,6 +5,16 @@ import { API_ROOT } from "~/utils/constants";
 // interceptors - 61
 
 // boards
+export const fetchAllBoardsAPI = async () => {
+  const response = await axios.get(`${API_ROOT}/v1/boards`);
+  return response.data;
+};
+
+export const createNewBoardAPI = async (newBoardData) => {
+  const response = await axios.post(`${API_ROOT}/v1/boards`, newBoardData);
+  return response.data;
+};
+
 export const fetchBoardDetailsAPI = async (boardId) => {
   const response = await axios.get(`${API_ROOT}/v1/boards/${boardId}`);
   return response.data;

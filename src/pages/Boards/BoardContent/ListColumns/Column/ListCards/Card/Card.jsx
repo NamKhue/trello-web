@@ -158,11 +158,11 @@ function Card({
             boxShadow: (theme) =>
               theme.palette.mode === "dark"
                 ? "none"
-                : `0px 2px 10px ${theme.trelloCustom.COLOR_E0E0E0}`,
+                : `0px 2px 10px ${theme.trelloCustom.COLOR_CBCBCB}`,
             bgcolor: (theme) =>
               theme.palette.mode === "dark"
-                ? theme.trelloCustom.COLOR_281E38
-                : theme.trelloCustom.COLOR_FCFCFC,
+                ? theme.trelloCustom.COLOR_180F27
+                : "white",
             "&:hover": {
               borderColor: (theme) =>
                 theme.palette.mode === "dark"
@@ -170,8 +170,8 @@ function Card({
                   : theme.trelloCustom.COLOR_C985FF,
               boxShadow: (theme) =>
                 theme.palette.mode === "dark"
-                  ? "0px 2px 10px #1E252A"
-                  : `0px 2px 10px ${theme.trelloCustom.COLOR_E0E0E0}`,
+                  ? `0px 2px 10px ${theme.trelloCustom.COLOR_1E252A}`
+                  : `0px 2px 10px ${theme.trelloCustom.COLOR_CBCBCB}`,
             },
           }}
         >

@@ -53,6 +53,7 @@ const CardModal = ({ card, modifyCardDetails, onCloseModalCard }) => {
     try {
       // const response = await axios.put(`your-api-url/cards/${card._id}`, selectedCard);
       // onUpdate(response.data);
+
       onCloseModalCard();
       modifyCardDetails(selectedCard);
     } catch (error) {
@@ -107,19 +108,30 @@ const CardModal = ({ card, modifyCardDetails, onCloseModalCard }) => {
       const inputElement = titleRef.current.querySelector("input");
       if (inputElement) {
         inputElement.blur();
+
+        if (selectedCard.title == "") {
+          setSelectedCard((prev) => ({
+            ...prev,
+            title: originalCard.title,
+          }));
+
+          setChanges((prev) => ({
+            ...prev,
+            title: false,
+          }));
+
+          if (Object.keys(getChangedProperties()).length === 0) {
+            setIsModifyingCard(true);
+          }
+
+          toast.error("You can't let the title of card empty!");
+        }
       }
     }
   };
 
   // ============================================================================
   // lastest updated time
-  console.log(
-    "selectedCard.updatedAt ",
-    selectedCard.updatedAt == null
-      ? selectedCard.createdAt
-      : selectedCard.updatedAt
-  );
-
   const stringUpdatedTime = new Date(
     selectedCard.updatedAt == null
       ? selectedCard.createdAt
@@ -713,6 +725,7 @@ const CardModal = ({ card, modifyCardDetails, onCloseModalCard }) => {
             }}
             value={selectedCard?.title}
             onChange={(ev) => handleChangeTitle(ev)}
+            onBlur={() => handleUnfocus()}
             onKeyDown={(ev) => {
               if (ev.key === "Enter") {
                 handleEnterTitle(ev);
@@ -903,7 +916,7 @@ const CardModal = ({ card, modifyCardDetails, onCloseModalCard }) => {
             gap: 3,
           }}
         >
-          {/* right side */}
+          {/* left side */}
           <Box
             sx={{
               flex: 3,
@@ -1472,7 +1485,7 @@ const CardModal = ({ card, modifyCardDetails, onCloseModalCard }) => {
             </Box>
           </Box>
 
-          {/* left side */}
+          {/* right side */}
           <Box
             sx={{
               flex: 1.25,
