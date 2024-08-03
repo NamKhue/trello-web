@@ -1,14 +1,12 @@
 import { useEffect, useState } from "react";
 import { isEmpty } from "lodash";
 import { toast } from "react-toastify";
+import { useParams } from "react-router-dom";
 
 import Container from "@mui/material/Container";
 import Box from "@mui/material/Box";
 import CircularProgress from "@mui/material/CircularProgress";
 import Typography from "@mui/material/Typography";
-
-// import { useColorScheme } from "@mui/material/styles";
-// import { BorderRight } from "@mui/icons-material";
 
 import AppBar from "~/components/AppBar/AppBar";
 import BoardBar from "./BoardBar/BoardBar";
@@ -31,20 +29,17 @@ import {
   updateCardDetailsAPI,
 } from "~/apis";
 
-// import theme from "~/theme";
 import "../../assets/css/Card/Dropdown.css";
 
 function Board() {
+  // ============================================================================
+  const { id } = useParams();
   // ============================================================================
   // ============================================================================
   const [board, setBoard] = useState(null);
 
   // const [loading, setLoading] = useState(true);
   // const [error, setError] = useState(null);
-
-  // ============================================================================
-  // fix cứng tạm thời boardId - 61
-  // tương lai dùng react-router-dom
 
   // new solution
   // useEffect(() => {
@@ -126,8 +121,14 @@ function Board() {
   // }, []);
 
   // old solution
+  // ============================================================================
+  // fix cứng tạm thời boardId - 61
+  // tương lai dùng react-router-dom
   useEffect(() => {
-    const boardId = "65dd549752af25f9410efe69";
+    // const boardId = "65dd549752af25f9410efe69";
+    const boardId = id;
+
+    // console.log("boardId ", boardId);
 
     // call api
     fetchBoardDetailsAPI(boardId).then((board) => {
@@ -147,14 +148,14 @@ function Board() {
         }
       });
 
-      // console.log('board:', board)
+      // console.log("board:", board);
 
       setBoard(board);
     });
-  }, []);
+  }, [id]);
 
   // ============================================================================
-  // func này có nhiệm vụ gọi API tạo mới Column và làm lại dữ liệu State Board
+  // gọi API tạo mới Column và làm lại dữ liệu State Board
   const createNewColumn = async (newColumnData) => {
     const createdColumn = await createNewColumnAPI({
       ...newColumnData,
@@ -174,7 +175,24 @@ function Board() {
   };
 
   // ============================================================================
-  // func này có nhiệm vụ gọi API tạo mới Card và làm lại dữ liệu State Board
+  // call api to update details of board
+  const modifyBoardDetails = async (newBoardData) => {
+    // cập nhật state của board
+    const newBoard = { ...board };
+
+    console.log("new ", { ...newBoard, newBoardData });
+
+    setBoard({ ...newBoard, newBoardData });
+
+    // call api
+    updateBoardDetailsAPI(board._id, newBoardData).then((res) => {
+      // có thể đặt trong interceptors
+      toast.success(res?.modifyBoardResult);
+    });
+  };
+
+  // ============================================================================
+  // gọi API tạo mới Card và làm lại dữ liệu State Board
   const createNewCard = async (newCardData) => {
     const createdCard = await createNewCardAPI({
       ...newCardData,
@@ -472,7 +490,7 @@ function Board() {
             }}
           >
             {/* <BoardBar board={mockData?.board} /> */}
-            <BoardBar board={board} />
+            <BoardBar board={board} modifyBoardDetails={modifyBoardDetails} />
           </Box>
 
           {/* ============================================================================ */}

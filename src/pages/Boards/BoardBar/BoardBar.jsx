@@ -6,19 +6,10 @@ import TextField from "@mui/material/TextField";
 
 import PersonAddAltIcon from "@mui/icons-material/PersonAddAlt";
 import GroupIcon from "@mui/icons-material/Group";
+import EditIcon from "@mui/icons-material/Edit";
+import { toast } from "react-toastify";
 
 // import { capitalizeFirstLetter } from "~/utils/formatters";
-
-// const MENU_STYLES = {
-//   color: "white",
-//   bgcolor: (theme) => (theme.palette.mode === "dark" ? "" : "#6c6c6c14"),
-//   border: "none",
-//   paddingX: 0.5,
-//   borderRadius: 0.5,
-//   "& .MuiSvgIcon-root": {
-//     color: "white",
-//   },
-// };
 
 const BUTTON_BOARD_BAR_STYLE = {
   borderRadius: "4px",
@@ -34,18 +25,32 @@ const BUTTON_BOARD_BAR_STYLE = {
   },
 };
 
-function BoardBar({ board }) {
+function BoardBar({ board, modifyBoardDetails }) {
   const [newBoardTitle, setNewBoardTitle] = useState(board?.title);
 
-  // đổi tên (title) của col
+  // đổi tên (title) của board
   const handleRenameBoardDirectly = (board, newBoardTitleEdit) => {
     // set new data UI for board
     // and call api update Board & DB
-    if (board.title != newBoardTitleEdit.trim()) {
-      board.title = newBoardTitleEdit.trim();
+    if (newBoardTitleEdit.trim() != "") {
+      if (board.title != newBoardTitleEdit.trim()) {
+        board.title = newBoardTitleEdit.trim();
 
-      // updateBoardDetailsAPI(board._id, { title: board.title });
+        modifyBoardDetails(board);
+      }
+    } else {
+      setNewBoardTitle(board.title);
+      toast.error("You can't let the title of board empty!");
     }
+  };
+
+  const [isHoveredTitleBoard, setIsHoveredTitleBoard] = useState(false);
+  const handleMouseHoverTitleBoard = () => {
+    setIsHoveredTitleBoard(true);
+  };
+
+  const handleMouseLeaveTitleBoard = () => {
+    setIsHoveredTitleBoard(false);
   };
 
   return (
@@ -78,6 +83,8 @@ function BoardBar({ board }) {
       >
         <TextField
           // ref={inputNewColumnTitleRef}
+          onMouseEnter={handleMouseHoverTitleBoard}
+          onMouseLeave={handleMouseLeaveTitleBoard}
           type="text"
           variant="outlined"
           value={board?.title != newBoardTitle ? newBoardTitle : board?.title}
@@ -89,30 +96,69 @@ function BoardBar({ board }) {
             }
           }}
           onBlur={() => handleRenameBoardDirectly(board, newBoardTitle)}
+          InputProps={{
+            endAdornment: (
+              // edit btn
+              <Box>
+                {isHoveredTitleBoard && (
+                  <Box
+                    sx={{
+                      cursor: "pointer",
+                      width: "fit-content",
+                      height: "30px",
+                      px: 1,
+                      display: "flex",
+                      alignItems: "center",
+                      fontWeight: "bold",
+
+                      bgcolor: "transparent",
+                      color: (theme) =>
+                        theme.palette.mode === "dark"
+                          ? theme.trelloCustom.COLOR_D7D7D7
+                          : theme.trelloCustom.COLOR_F8F8F8,
+                    }}
+                  >
+                    <EditIcon sx={{ fontSize: "1.5rem", pr: 0.5 }} />
+                  </Box>
+                )}
+              </Box>
+            ),
+          }}
           sx={{
             "& input": {
               cursor: "pointer",
               pt: 1.25,
               pb: 1.25,
+              pr: 1.75,
               height: "15px",
-              fontSize: "1rem",
+              fontSize: "1.3rem",
               fontWeight: "bold",
+              border: "2px solid transparent",
               borderRadius: "6px",
               bgcolor: "transparent",
-              color: "white",
+              color: (theme) => theme.trelloCustom.COLOR_F8F8F8,
             },
             "& input:hover": {
-              bgcolor: (theme) => theme.trelloCustom.COLOR_6A2D96,
+              bgcolor: (theme) => theme.trelloCustom.COLOR_7236AE,
+              borderColor: (theme) => theme.trelloCustom.COLOR_7236AE,
             },
             "& input:focus": {
               color: (theme) =>
                 theme.palette.mode === "dark"
-                  ? "white"
-                  : theme.trelloCustom.COLOR_8025C0,
+                  ? theme.trelloCustom.COLOR_D7D7D7
+                  : theme.trelloCustom.COLOR_F8F8F8,
               bgcolor: (theme) =>
                 theme.palette.mode === "dark"
                   ? theme.trelloCustom.COLOR_281E38
-                  : theme.trelloCustom.COLOR_F5F5F5,
+                  : theme.trelloCustom.COLOR_7236AE,
+              borderColor: (theme) =>
+                theme.palette.mode === "dark"
+                  ? theme.trelloCustom.COLOR_C0C0C0
+                  : theme.trelloCustom.COLOR_D7D7D7,
+            },
+            "& .MuiInputBase-input": {
+              overflow: "hidden",
+              textOverflow: "ellipsis",
             },
 
             // border outline
@@ -126,10 +172,11 @@ function BoardBar({ board }) {
                 borderColor: "transparent",
               },
               "&.Mui-focused fieldset": {
-                borderColor: (theme) =>
-                  theme.palette.mode === "dark"
-                    ? theme.trelloCustom.COLOR_8A2DCB
-                    : theme.trelloCustom.COLOR_313131,
+                borderColor: "transparent",
+                // borderColor: (theme) =>
+                //   theme.palette.mode === "dark"
+                //     ? theme.trelloCustom.COLOR_8A2DCB
+                //     : theme.trelloCustom.COLOR_313131,
               },
             },
           }}
