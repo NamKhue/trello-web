@@ -1,4 +1,6 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
+
 import Box from "@mui/material/Box";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
@@ -7,18 +9,38 @@ import Divider from "@mui/material/Divider";
 import Avatar from "@mui/material/Avatar";
 import Tooltip from "@mui/material/Tooltip";
 import IconButton from "@mui/material/IconButton";
-import PersonAdd from "@mui/icons-material/PersonAdd";
-import Settings from "@mui/icons-material/Settings";
-import Logout from "@mui/icons-material/Logout";
+
+import PermIdentityIcon from "@mui/icons-material/PermIdentity";
+
+import SwitchLightDarkMode from "~/components/SwitchLightDarkMode/SwitchLightDarkMode";
+
+import { useAuth } from "~/hooks/useAuth";
 
 function Profiles() {
+  const navigate = useNavigate();
+
+  const { logOutAccount, loggedInUser } = useAuth();
+
   const [anchorEl, setAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);
+
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
   };
+
   const handleClose = () => {
     setAnchorEl(null);
+  };
+
+  const handleOpenProfilePage = () => {
+    console.log("access profile");
+
+    // navigate("/profile");
+  };
+
+  const handleLogOutAccount = async () => {
+    await logOutAccount();
+    navigate("/login");
   };
 
   return (
@@ -70,10 +92,11 @@ function Profiles() {
               },
             }}
           >
-            U
+            {loggedInUser?.username.charAt(0).toUpperCase()}
           </Avatar>
         </IconButton>
       </Tooltip>
+
       <Menu
         id="basic-menu-profiles"
         anchorEl={anchorEl}
@@ -83,29 +106,66 @@ function Profiles() {
           "aria-labelledby": "basic-button-profiles",
         }}
       >
-        <MenuItem onClick={handleClose}>
-          <Avatar sx={{ width: 30, height: 30, mr: 2 }} /> Profile
-        </MenuItem>
-        {/* <MenuItem onClick={handleClose}>
-          <Avatar sx={{ width: 30, height: 30, mr: 2 }} /> My account
-        </MenuItem> */}
+        <Box
+          sx={{
+            px: 2,
+            pt: 0.5,
+            pb: 1.25,
+            display: "flex",
+            flexDirection: "row",
+            alignItems: "center",
+          }}
+        >
+          <Avatar sx={{ width: 40, height: 40, mr: 2 }} />
+          <Box sx={{ fontSize: "1rem" }}>
+            {loggedInUser.username.charAt(0).toUpperCase() +
+              loggedInUser.username.slice(1)}
+          </Box>
+        </Box>
         <Divider />
-        {/* <MenuItem onClick={handleClose}>
+
+        <MenuItem onClick={() => handleOpenProfilePage()}>
           <ListItemIcon>
-            <PersonAdd fontSize="small" />
+            <PermIdentityIcon fontSize="medium" />
           </ListItemIcon>
-          Add another account
-        </MenuItem> */}
-        <MenuItem onClick={handleClose}>
-          <ListItemIcon sx={{ pl: 0.5, mr: 1 }}>
-            <Settings fontSize="small" />
-          </ListItemIcon>
-          Settings
+          Profile
         </MenuItem>
-        <MenuItem onClick={handleClose}>
-          <ListItemIcon sx={{ pl: 0.75, mr: 1 }}>
-            <Logout fontSize="small" />
-          </ListItemIcon>
+
+        <Divider
+          style={{
+            marginBlockStart: 0,
+            marginBlockEnd: 0,
+          }}
+        />
+
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            py: 1.5,
+          }}
+        >
+          <SwitchLightDarkMode />
+        </Box>
+
+        <Divider
+          style={{
+            marginBlockStart: 0,
+            marginBlockEnd: 0,
+          }}
+        />
+
+        <MenuItem
+          onClick={() => handleLogOutAccount()}
+          sx={{
+            mt: 1,
+            mx: 1,
+            borderRadius: "6px",
+            display: "flex",
+            justifyContent: "center",
+          }}
+        >
           Logout
         </MenuItem>
       </Menu>

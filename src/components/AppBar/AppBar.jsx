@@ -2,8 +2,8 @@ import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 
 // import Button from "@mui/material/Button";
-import Box from "@mui/material/Box";
 import TextField from "@mui/material/TextField";
+import Box from "@mui/material/Box";
 import Badge from "@mui/material/Badge";
 import Tooltip from "@mui/material/Tooltip";
 
@@ -18,7 +18,7 @@ import SearchIcon from "@mui/icons-material/Search";
 // import Workspaces from "./Menus/Workspaces";
 // import Recent from "./Menus/Recent";
 import Profiles from "./Menus/Profiles";
-import SwitchLightDarkMode from "~/components/SwitchLightDarkMode/SwitchLightDarkMode";
+// import SwitchLightDarkMode from "~/components/SwitchLightDarkMode/SwitchLightDarkMode";
 
 function AppBar() {
   const [searchValue, setSearchValue] = useState("");
@@ -45,6 +45,7 @@ function AppBar() {
       {/* left side */}
       <Box
         sx={{
+          width: "180px",
           display: "flex",
           alignItems: "center",
           gap: 2,
@@ -108,9 +109,13 @@ function AppBar() {
       </Box>
 
       {/* between */}
-      <Box
+      {/* <Box
         sx={{
-          paddingLeft: "100px",
+          width: {
+            sm: "200px",
+            md: "300px",
+            lg: "400px",
+          },
         }}
       >
         <TextField
@@ -164,8 +169,14 @@ function AppBar() {
             ),
           }}
           sx={{
-            minWidth: "300px",
-            maxWidth: "200px",
+            // minWidth: "300px",
+            // maxWidth: "200px",
+
+            width: {
+              sm: "200px",
+              md: "300px",
+              lg: "400px",
+            },
 
             // input
             "& .MuiInputBase-input": {
@@ -203,17 +214,18 @@ function AppBar() {
             },
           }}
         />
-      </Box>
+      </Box> */}
 
       {/* right side */}
       <Box
         sx={{
+          width: "180px",
           display: "flex",
           alignItems: "center",
           gap: 2,
         }}
       >
-        <SwitchLightDarkMode />
+        {/* <SwitchLightDarkMode /> */}
 
         <Tooltip title="Notification">
           <Badge

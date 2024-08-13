@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import Box from "@mui/material/Box";
 import { arrayMove } from "@dnd-kit/sortable";
 import { cloneDeep, isEmpty } from "lodash";
-// import { ConsoleLogger } from 'aws-amplify/utils'
+import { io } from "socket.io-client";
 
 import {
   DndContext,
@@ -25,6 +25,7 @@ import Column from "./ListColumns/Column/Column";
 import Card from "./ListColumns/Column/ListCards/Card/Card";
 import { MouseSensor, TouchSensor } from "~/customLibs/DndKitSensors";
 import { generatePlaceholderCard } from "~/utils/formatters";
+import { toast } from "react-toastify";
 // import { mapOrder } from '~/utils/sorts'
 
 const ACTIVE_DRAG_ITEM_TYPE = {
@@ -32,15 +33,19 @@ const ACTIVE_DRAG_ITEM_TYPE = {
   CARD: "ACTIVE_DRAG_ITEM_TYPE_CARD",
 };
 
+const socket = io.connect("http://localhost:8017");
+
 function BoardContent({
   board,
+  roleOfBoard,
   // cards,
   createNewColumn,
-  createNewCard,
+  modifyColumn,
+  deleteColumnDetails,
   moveColumns,
   moveCardInTheSameColumn,
   moveCardToDifferentColumn,
-  deleteColumnDetails,
+  createNewCard,
   deleteCardDetails,
   // openModalDetailsCard,
 
@@ -89,6 +94,17 @@ function BoardContent({
 
     setOrderedColumns(orderedColumns);
   }, [board]);
+
+  useEffect(() => {
+    socket.on("update-board", (updatedBoard) => {
+      console.log("vao day");
+      setOrderedColumns(updatedBoard.columns);
+    });
+
+    return () => {
+      socket.off("update-board");
+    };
+  }, []);
 
   // tìm 1 column theo cardId
   const findColumnByCardId = (cardId) => {
@@ -239,19 +255,23 @@ function BoardContent({
 
   // trigger khi bắt đầu việc kéo 1 phần tử => drag
   const handleDragStart = (event) => {
-    // console.log('handle drag start: ', event)
+    if (roleOfBoard != "member") {
+      // console.log('handle drag start: ', event)
 
-    setActiveDragItemId(event?.active?.id);
-    setActiveDragItemType(
-      event?.active?.data?.current?.columnId
-        ? "ACTIVE_DRAG_ITEM_TYPE_CARD"
-        : "ACTIVE_DRAG_ITEM_TYPE_COLUMN"
-    );
-    setActiveDragItemData(event?.active?.data?.current);
+      setActiveDragItemId(event?.active?.id);
+      setActiveDragItemType(
+        event?.active?.data?.current?.columnId
+          ? ACTIVE_DRAG_ITEM_TYPE.CARD
+          : ACTIVE_DRAG_ITEM_TYPE.COLUMN
+      );
+      setActiveDragItemData(event?.active?.data?.current);
 
-    // nếu là kéo card thì mới thực hiện hành động set giá trị oldColumn
-    if (event?.active?.data?.current?.columnId) {
-      setOldColumnWhenDraggingCard(findColumnByCardId(event?.active?.id));
+      // nếu là kéo card thì mới thực hiện hành động set giá trị oldColumn
+      if (event?.active?.data?.current?.columnId) {
+        setOldColumnWhenDraggingCard(findColumnByCardId(event?.active?.id));
+      }
+    } else {
+      toast.error("Stop. You don't have enough permissions to do this action.");
     }
   };
 
@@ -568,8 +588,8 @@ function BoardContent({
       // tự custom nâng cao thuật toán phát hiện va chạm (37)
       collisionDetection={collisionDetectionStrategy}
       onDragStart={handleDragStart}
-      onDragOver={handleDragOver}
-      onDragEnd={handleDragEnd}
+      onDragOver={roleOfBoard != "member" ? handleDragOver : null}
+      onDragEnd={roleOfBoard != "member" ? handleDragEnd : null}
     >
       <Box
         sx={{
@@ -588,17 +608,21 @@ function BoardContent({
       >
         {/* box column */}
         <ListColumns
+          roleOfBoard={roleOfBoard}
           // cards={cards}
           columns={orderedColumns}
           createNewColumn={createNewColumn}
-          createNewCard={createNewCard}
+          modifyColumn={modifyColumn}
           deleteColumnDetails={deleteColumnDetails}
+          createNewCard={createNewCard}
           deleteCardDetails={deleteCardDetails}
           // openModalDetailsCard={openModalDetailsCard}
           handleCardClick={handleCardClick}
         />
 
-        <DragOverlay dropAnimation={customDropAnimation}>
+        <DragOverlay
+          dropAnimation={roleOfBoard != "member" ? customDropAnimation : null}
+        >
           {!activeDragItemType && null}
 
           {/* đang kéo column */}

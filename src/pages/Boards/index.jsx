@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { useMediaQuery } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 
-import { Link } from "react-router-dom";
 import Container from "@mui/material/Container";
 import Box from "@mui/material/Box";
 import CircularProgress from "@mui/material/CircularProgress";
@@ -17,7 +17,15 @@ import FilterListIcon from "@mui/icons-material/FilterList";
 
 import AppBar from "~/components/AppBar/AppBar";
 
-import { fetchAllBoardsAPI, createNewBoardAPI } from "~/apis";
+import {
+  fetchAllBoardsAPI,
+  fetchMyBoardsAPI,
+  fetchOwnerBoardsAPI,
+  fetchMemberBoardsAPI,
+  createNewBoardAPI,
+} from "~/apis";
+
+import { useAuth } from "~/hooks/useAuth";
 
 // ============================================================================
 //
@@ -42,50 +50,49 @@ const gridListHeight = `calc(100vh - ${paddingTop} - ${paddingBottom} - ${appBar
 // ============================================================================
 
 // ============================================================================
-// const fakeAllBoards = [
-//   { _id: 1, title: "To Do", createdAt: new Date(), updatedAt: null },
-//   { _id: 2, title: "Doing", createdAt: new Date(), updatedAt: null },
-//   { _id: 3, title: "Done", createdAt: new Date(), updatedAt: null },
-//   { _id: 4, title: "To Do", createdAt: new Date(), updatedAt: null },
-//   { _id: 5, title: "Doing", createdAt: new Date(), updatedAt: null },
-//   { _id: 6, title: "Done", createdAt: new Date(), updatedAt: null },
-//   { _id: 7, title: "To Do", createdAt: new Date(), updatedAt: null },
-//   { _id: 8, title: "Doing", createdAt: new Date(), updatedAt: null },
-//   { _id: 9, title: "Done", createdAt: new Date(), updatedAt: null },
-//   { _id: 10, title: "To Do", createdAt: new Date(), updatedAt: null },
-//   { _id: 11, title: "Doing", createdAt: new Date(), updatedAt: null },
-//   { _id: 12, title: "Done", createdAt: new Date(), updatedAt: null },
-//   { _id: 13, title: "To Do", createdAt: new Date(), updatedAt: null },
-//   { _id: 14, title: "Doing", createdAt: new Date(), updatedAt: null },
-//   { _id: 15, title: "Done", createdAt: new Date(), updatedAt: null },
-//   { _id: 16, title: "To Do", createdAt: new Date(), updatedAt: null },
-//   { _id: 17, title: "Doing", createdAt: new Date(), updatedAt: null },
-//   { _id: 18, title: "Done", createdAt: new Date(), updatedAt: null },
-//   { _id: 19, title: "To Do", createdAt: new Date(), updatedAt: null },
-//   { _id: 20, title: "Doing", createdAt: new Date(), updatedAt: null },
-//   { _id: 21, title: "Done", createdAt: new Date(), updatedAt: null },
-//   { _id: 22, title: "To Do", createdAt: new Date(), updatedAt: null },
-//   { _id: 23, title: "Doing", createdAt: new Date(), updatedAt: null },
-// ];
-// ============================================================================
-
-// ============================================================================
 function HomePage() {
+  // ============================================================================
+  const { loggedInUser } = useAuth();
+  // const [userDetails, setUserDetails] = useState(loggedInUser);
+  // ============================================================================
+  const navigate = useNavigate();
   // ============================================================================
   // ============================================================================
   const [loadedCount, setLoadedCount] = useState(0);
+  // const [loading, setLoading] = useState(true);
 
   // load data
   useEffect(() => {
-    // call api
-    fetchAllBoardsAPI().then((board) => {
-      if (loadedCount < 1) {
+    if (loadedCount < 1) {
+      // call api to get data of all boards
+      fetchAllBoardsAPI().then(async (board) => {
         setLoadedCount(loadedCount + 1);
+
+        // set for all boards
+        setAllBoards(sortListViaCreatedOrUpdatedTime(board));
+
+        // first set boards be all boards with ALL ROLES
         setBoards(sortListViaCreatedOrUpdatedTime(board));
 
+        // setLoading(false);
         // console.log("sdfsdf ", sortListViaCreatedOrUpdatedTime(board));
-      }
-    });
+      });
+
+      // set boards with ROLE `CREATOR`
+      fetchMyBoardsAPI().then(async (board) => {
+        setMyBoards(sortListViaCreatedOrUpdatedTime(board));
+      });
+
+      // set boards with ROLE `OWNER` - đồng sáng lập or cùng sở hữu
+      fetchOwnerBoardsAPI().then(async (board) => {
+        setOwnerBoards(sortListViaCreatedOrUpdatedTime(board));
+      });
+
+      // set boards with ROLE `MEMBER`
+      fetchMemberBoardsAPI().then(async (board) => {
+        setMemberBoards(sortListViaCreatedOrUpdatedTime(board));
+      });
+    }
   }, [loadedCount]);
   // ============================================================================
 
@@ -93,6 +100,19 @@ function HomePage() {
 
   const [boards, setBoards] = useState([]);
 
+  const [allBoards, setAllBoards] = useState([]);
+  const [myBoards, setMyBoards] = useState([]);
+  const [ownerBoards, setOwnerBoards] = useState([]);
+  const [memberBoards, setMemberBoards] = useState([]);
+
+  const TYPE_OF_BOARDS = {
+    ALL_BOARDS: "All boards",
+    MY_BOARDS: "My boards",
+    OWNER_BOARDS: "Owner boards",
+    MEMBER_BOARDS: "Member boards",
+  };
+
+  const [boardTypeHomePage, setBoardTypeHomePage] = useState("All boards");
   const [page, setPage] = useState(1);
   const [columns, setColumns] = useState(4);
   // const [rows, setRows] = useState(4);
@@ -207,23 +227,65 @@ function HomePage() {
 
       const newBoard = {
         title: newBoardTitle.trim(),
+        // description: newBoardDes.trim(),
       };
 
       // call api to save into mongodb
-      await createNewBoardAPI(newBoard);
+      const newBoardAfterSaveIntoDB = await createNewBoardAPI(newBoard);
+
+      // update data of ALL boards
+      fetchAllBoardsAPI().then(async (board) => {
+        setAllBoards(sortListViaCreatedOrUpdatedTime(board));
+      });
 
       // update UI
-      setBoards((prevBoards) => [newBoard, ...prevBoards]);
+      setMyBoards((prevBoards) => [newBoardAfterSaveIntoDB, ...prevBoards]);
+      setBoards((prevBoards) => [newBoardAfterSaveIntoDB, ...prevBoards]);
+
+      // reset form data
       setNewBoardTitle("");
-      setPage(1); // back to the 1st pagination page
+
+      // back to the 1st pagination page
+      setPage(1);
+
+      // close modal create new board
       handleCloseModalBoardTitle();
 
-      // notify on screen
+      // display notification
       toast.success("Successfully created new board!");
     } else {
       toast.error("You should enter the title of new board!");
     }
   };
+
+  const handleChooseBoard = (board) => {
+    navigate(`/board/${board._id}`);
+  };
+
+  const handleChooseMyBoards = () => {
+    setPage(1);
+    setBoards(myBoards);
+    setBoardTypeHomePage(TYPE_OF_BOARDS.MY_BOARDS);
+  };
+
+  const handleChooseAllBoards = () => {
+    setPage(1);
+    setBoards(allBoards);
+    setBoardTypeHomePage(TYPE_OF_BOARDS.ALL_BOARDS);
+  };
+
+  const handleChooseOwnerBoards = () => {
+    setPage(1);
+    setBoards(ownerBoards);
+    setBoardTypeHomePage(TYPE_OF_BOARDS.OWNER_BOARDS);
+  };
+
+  const handleChooseMemberBoards = () => {
+    setPage(1);
+    setBoards(memberBoards);
+    setBoardTypeHomePage(TYPE_OF_BOARDS.MEMBER_BOARDS);
+  };
+
   // ============================================================================
 
   // ============================================================================
@@ -231,7 +293,8 @@ function HomePage() {
   return (
     <div>
       {/* loading page */}
-      {!(boards.length > 0) ? (
+      {/* {!(boards.length > 0) ? ( */}
+      {!loggedInUser ? (
         <Box
           sx={{
             display: "flex",
@@ -300,7 +363,7 @@ function HomePage() {
             >
               {/* my boards button */}
               <Box
-                onClick={() => console.log("show my board")}
+                onClick={() => handleChooseAllBoards()}
                 sx={{
                   height: "50px",
                   cursor: "pointer",
@@ -328,12 +391,12 @@ function HomePage() {
                   },
                 }}
               >
-                My board
+                {TYPE_OF_BOARDS.ALL_BOARDS}
               </Box>
 
               {/* all boards button */}
               <Box
-                onClick={() => console.log("show all boards")}
+                onClick={() => handleChooseMyBoards()}
                 sx={{
                   height: "50px",
                   cursor: "pointer",
@@ -361,12 +424,12 @@ function HomePage() {
                   },
                 }}
               >
-                All boards
+                {TYPE_OF_BOARDS.MY_BOARDS}
               </Box>
 
-              {/* invited boards button */}
+              {/* owner boards button */}
               <Box
-                onClick={() => console.log("show invited boards")}
+                onClick={() => handleChooseOwnerBoards()}
                 sx={{
                   height: "50px",
                   cursor: "pointer",
@@ -394,7 +457,40 @@ function HomePage() {
                   },
                 }}
               >
-                Invited boards
+                Co-founder boards
+              </Box>
+
+              {/* member boards button */}
+              <Box
+                onClick={() => handleChooseMemberBoards()}
+                sx={{
+                  height: "50px",
+                  cursor: "pointer",
+                  px: 3,
+                  display: "flex",
+                  alignItems: "center",
+                  borderRadius: "4px",
+                  color: (theme) =>
+                    theme.palette.mode === "dark"
+                      ? theme.trelloCustom.COLOR_E6E6E6
+                      : theme.trelloCustom.COLOR_790283,
+                  bgcolor: (theme) =>
+                    theme.palette.mode === "dark"
+                      ? theme.trelloCustom.COLOR_51247C
+                      : theme.trelloCustom.COLOR_DDADF0,
+                  "&:hover": {
+                    color: (theme) =>
+                      theme.palette.mode === "dark"
+                        ? theme.trelloCustom.COLOR_E6E6E6
+                        : theme.trelloCustom.COLOR_F8F8F8,
+                    bgcolor: (theme) =>
+                      theme.palette.mode === "dark"
+                        ? theme.trelloCustom.COLOR_1E0734
+                        : theme.trelloCustom.COLOR_9357CF,
+                  },
+                }}
+              >
+                {TYPE_OF_BOARDS.MEMBER_BOARDS}
               </Box>
             </Box>
 
@@ -446,7 +542,7 @@ function HomePage() {
                           : theme.trelloCustom.COLOR_790283,
                     }}
                   >
-                    My board
+                    {boardTypeHomePage}
                   </Box>
 
                   <Box
@@ -494,40 +590,42 @@ function HomePage() {
                     </Box>
 
                     {/* create new board button */}
-                    <Box
-                      onClick={handleOpenModalBoardTitle}
-                      sx={{
-                        height: "100%",
-                        cursor: "pointer",
-                        pl: 1.25,
-                        pr: 2,
-                        display: "flex",
-                        alignItems: "center",
-                        borderRadius: "4px",
+                    {boardTypeHomePage === TYPE_OF_BOARDS.MY_BOARDS && (
+                      <Box
+                        onClick={handleOpenModalBoardTitle}
+                        sx={{
+                          height: "100%",
+                          cursor: "pointer",
+                          pl: 1.25,
+                          pr: 2,
+                          display: "flex",
+                          alignItems: "center",
+                          borderRadius: "4px",
 
-                        color: (theme) =>
-                          theme.palette.mode === "dark"
-                            ? theme.trelloCustom.COLOR_E6E6E6
-                            : theme.trelloCustom.COLOR_790283,
-                        bgcolor: (theme) =>
-                          theme.palette.mode === "dark"
-                            ? theme.trelloCustom.COLOR_51247C
-                            : theme.trelloCustom.COLOR_DDADF0,
-                        "&:hover": {
                           color: (theme) =>
                             theme.palette.mode === "dark"
                               ? theme.trelloCustom.COLOR_E6E6E6
-                              : theme.trelloCustom.COLOR_F8F8F8,
+                              : theme.trelloCustom.COLOR_790283,
                           bgcolor: (theme) =>
                             theme.palette.mode === "dark"
-                              ? theme.trelloCustom.COLOR_1E0734
-                              : theme.trelloCustom.COLOR_9357CF,
-                        },
-                      }}
-                    >
-                      <AddIcon sx={{ mr: 0.5 }} />
-                      New board
-                    </Box>
+                              ? theme.trelloCustom.COLOR_51247C
+                              : theme.trelloCustom.COLOR_DDADF0,
+                          "&:hover": {
+                            color: (theme) =>
+                              theme.palette.mode === "dark"
+                                ? theme.trelloCustom.COLOR_E6E6E6
+                                : theme.trelloCustom.COLOR_F8F8F8,
+                            bgcolor: (theme) =>
+                              theme.palette.mode === "dark"
+                                ? theme.trelloCustom.COLOR_1E0734
+                                : theme.trelloCustom.COLOR_9357CF,
+                          },
+                        }}
+                      >
+                        <AddIcon sx={{ mr: 0.5 }} />
+                        New board
+                      </Box>
+                    )}
                   </Box>
                 </Box>
 
@@ -552,46 +650,54 @@ function HomePage() {
                     }}
                   >
                     {currentListItems.map((board) => (
-                      <Grid item xs={12 / columns} key={board._id}>
-                        <Link
-                          to={`/board/${board._id}`}
-                          style={{
-                            textDecoration: "none",
+                      <Grid
+                        item
+                        xs={12 / columns}
+                        key={board._id}
+                        onClick={() => handleChooseBoard(board)}
+                      >
+                        <Box
+                          sx={{
+                            cursor: "pointer",
+                            height: "100px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            borderRadius: "8px",
+                            px: 2,
+                            py: 1,
+
+                            color: (theme) =>
+                              theme.palette.mode === "dark"
+                                ? theme.trelloCustom.COLOR_E6E6E6
+                                : theme.trelloCustom.COLOR_790283,
+                            bgcolor: (theme) =>
+                              theme.palette.mode === "dark"
+                                ? theme.trelloCustom.COLOR_51247C
+                                : theme.trelloCustom.COLOR_DDADF0,
+                            "&:hover": {
+                              color: (theme) =>
+                                theme.palette.mode === "dark"
+                                  ? theme.trelloCustom.COLOR_E6E6E6
+                                  : theme.trelloCustom.COLOR_F8F8F8,
+                              bgcolor: (theme) =>
+                                theme.palette.mode === "dark"
+                                  ? theme.trelloCustom.COLOR_1E0734
+                                  : theme.trelloCustom.COLOR_9357CF,
+                            },
                           }}
                         >
                           <Box
                             sx={{
-                              cursor: "pointer",
-                              height: "100px",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              borderRadius: "8px",
-                              fontSize: "1.2rem",
-
-                              color: (theme) =>
-                                theme.palette.mode === "dark"
-                                  ? theme.trelloCustom.COLOR_E6E6E6
-                                  : theme.trelloCustom.COLOR_790283,
-                              bgcolor: (theme) =>
-                                theme.palette.mode === "dark"
-                                  ? theme.trelloCustom.COLOR_51247C
-                                  : theme.trelloCustom.COLOR_DDADF0,
-                              "&:hover": {
-                                color: (theme) =>
-                                  theme.palette.mode === "dark"
-                                    ? theme.trelloCustom.COLOR_E6E6E6
-                                    : theme.trelloCustom.COLOR_F8F8F8,
-                                bgcolor: (theme) =>
-                                  theme.palette.mode === "dark"
-                                    ? theme.trelloCustom.COLOR_1E0734
-                                    : theme.trelloCustom.COLOR_9357CF,
-                              },
+                              fontSize: "1.1rem",
+                              textAlign: "center",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
                             }}
                           >
                             {board.title}
                           </Box>
-                        </Link>
+                        </Box>
                       </Grid>
                     ))}
                   </Grid>
@@ -670,6 +776,10 @@ function HomePage() {
                           theme.palette.mode === "dark"
                             ? theme.trelloCustom.COLOR_1E0734
                             : theme.trelloCustom.COLOR_9357CF,
+                        boxShadow: (theme) =>
+                          theme.palette.mode === "dark"
+                            ? `0 0 10px ${theme.trelloCustom.COLOR_1E252A}`
+                            : `0 0 10px ${theme.trelloCustom.COLOR_9357CF}`,
                       },
                   }}
                 />
@@ -723,6 +833,7 @@ function HomePage() {
                 onChange={(e) => setNewBoardTitle(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key == "Enter") {
+                    e.preventDefault();
                     setNewBoardTitle(e.target.value);
                     handleCreateNewBoard();
                   }

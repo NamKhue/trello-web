@@ -1,13 +1,23 @@
-import { useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import { toast } from "react-toastify";
 
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
+import Tooltip from "@mui/material/Tooltip";
+import { Divider } from "@mui/material";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
 
 import PersonAddAltIcon from "@mui/icons-material/PersonAddAlt";
 import GroupIcon from "@mui/icons-material/Group";
 import EditIcon from "@mui/icons-material/Edit";
-import { toast } from "react-toastify";
+import CloseIcon from "@mui/icons-material/Close";
+import IconButton from "@mui/material/IconButton";
+import ClearIcon from "@mui/icons-material/Clear";
+import EmailIcon from "@mui/icons-material/Email";
+import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
+import PersonRemoveAlt1Icon from "@mui/icons-material/PersonRemoveAlt1";
 
 // import { capitalizeFirstLetter } from "~/utils/formatters";
 
@@ -25,18 +35,34 @@ const BUTTON_BOARD_BAR_STYLE = {
   },
 };
 
-function BoardBar({ board, modifyBoardDetails }) {
-  const [newBoardTitle, setNewBoardTitle] = useState(board?.title);
+const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,63}$/;
 
-  // đổi tên (title) của board
+function BoardBar({
+  board,
+  allMembersInBoard,
+  roleOfBoard,
+  modifyBoardDetails,
+  inviteMember,
+  removeMemberOutOfBoard,
+  changeRoleOfMember,
+}) {
+  // ================================================================================================
+  const [newBoardTitle, setNewBoardTitle] = useState(board?.title);
+  // ================================================================================================
+  // RENAME TITLE FOR BOARD
   const handleRenameBoardDirectly = (board, newBoardTitleEdit) => {
+    newBoardTitleEdit = newBoardTitleEdit.trim();
+    setNewBoardTitle(newBoardTitleEdit);
+
     // set new data UI for board
     // and call api update Board & DB
     if (newBoardTitleEdit.trim() != "") {
       if (board.title != newBoardTitleEdit.trim()) {
         board.title = newBoardTitleEdit.trim();
 
-        modifyBoardDetails(board);
+        const newBoardData = { ...board, title: board.title };
+
+        modifyBoardDetails(newBoardData);
       }
     } else {
       setNewBoardTitle(board.title);
@@ -53,136 +79,329 @@ function BoardBar({ board, modifyBoardDetails }) {
     setIsHoveredTitleBoard(false);
   };
 
+  // ================================================================================================
+  // INVITE MEMBER
+  const [openModalInviteMember, setOpenModalInviteMember] = useState(false);
+  const [recipientEmail, setRecipientEmail] = useState("");
+
+  const checkModalMembersInBoardIsClose = () => {
+    if (openModalMembersInBoard) {
+      handleCloseModalMembersInBoard();
+    }
+  };
+
+  const handleOpenModalInviteMember = () => {
+    checkModalMembersInBoardIsClose();
+    setOpenModalInviteMember(true);
+  };
+
+  const handleCloseModalInviteMember = () => {
+    setOpenModalInviteMember(false);
+  };
+
+  const handleChangeRecipientEmail = (event) => {
+    setRecipientEmail(event.target.value);
+  };
+
+  const checkIsRecipientEmailValid = (email) => {
+    return EMAIL_REGEX.test(email);
+  };
+
+  const handleInviteMember = async () => {
+    // check if the email is valid
+    if (checkIsRecipientEmailValid(recipientEmail)) {
+      const invitation = {
+        boardId: board._id,
+        email: recipientEmail.trim(),
+      };
+
+      inviteMember(invitation);
+
+      setRecipientEmail("");
+      handleCloseModalInviteMember();
+    } else {
+      toast.error("Please check the email again.");
+    }
+  };
+
+  // ================================================================================================
+  // MEMBERS IN BOARD
+  const [openModalMembersInBoard, setOpenModalMembersInBoard] = useState(false);
+  const [searchQueryMembersInBoard, setSearchQueryMembersInBoard] =
+    useState("");
+
+  const checkModalInviteMemberIsClose = () => {
+    if (openModalInviteMember) {
+      handleCloseModalInviteMember();
+    }
+  };
+
+  const handleOpenModalMembersInBoard = () => {
+    checkModalInviteMemberIsClose();
+    setOpenModalMembersInBoard(true);
+  };
+
+  const handleCloseModalMembersInBoard = () => {
+    setOpenModalMembersInBoard(false);
+  };
+
+  const handleChangeSearchMemberInBoard = (event) => {
+    setSearchQueryMembersInBoard(event.target.value);
+  };
+
+  // search query for members in board
+  const [filteredMembers, setFilteredMembers] = useState([]);
+  useEffect(() => {
+    if (allMembersInBoard.length > 0 && searchQueryMembersInBoard.length > 0) {
+      const filteredMembers = allMembersInBoard.filter(
+        (member) =>
+          member.userDetails.username
+            .toLowerCase()
+            .includes(searchQueryMembersInBoard.toLowerCase()) ||
+          member.userDetails.email
+            .toLowerCase()
+            .includes(searchQueryMembersInBoard.toLowerCase())
+      );
+      setFilteredMembers(filteredMembers);
+    } else {
+      setFilteredMembers(allMembersInBoard);
+    }
+  }, [allMembersInBoard, searchQueryMembersInBoard]);
+
+  //
+  const [isHoveredUserBoardArea, setIsHoveredUserBoardArea] = useState(null);
+
+  const handleEnterUserBoardArea = (user) => {
+    setIsHoveredUserBoardArea(user._id);
+  };
+
+  const handleLeaveUserBoardArea = () => {
+    setIsHoveredUserBoardArea(null);
+  };
+
+  const handleRemoveUserFromBoard = (user) => {
+    setFilteredMembers((prevList) =>
+      prevList.filter((member) => member.userId !== user.userId)
+    );
+    removeMemberOutOfBoard(user.userId);
+  };
+
+  // ================================================================================================
+  // CONTEXT MENU FOR UPGRADING THE ROLE OF MEMBER
+  const [anchorEl, setAnchorEl] = useState(null);
+  const menuRef = useRef(null);
+
+  // Open the menu
+  const handleOpenMenuChangingRoleOfMember = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  // Close the menu
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  // Handle clicks outside of the menu
+  const handleClickOutside = (event) => {
+    if (menuRef.current && !menuRef.current.contains(event.target)) {
+      handleClose();
+    }
+  };
+
+  useEffect(() => {
+    // Add the event listener when the component mounts
+    document.addEventListener("mousedown", handleClickOutside);
+
+    // Clean up the event listener when the component unmounts
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  //
+  const handleChooseRoleTypeMemberForMember = (user) => {
+    const roleChangeData = {
+      boardId: board._id,
+      userId: user.userId,
+      role: "member",
+    };
+
+    changeRoleOfMember(roleChangeData);
+
+    handleClose();
+  };
+
+  const handleChooseRoleTypeOwnerForMember = (user) => {
+    const roleChangeData = {
+      boardId: board._id,
+      userId: user.userId,
+      role: "owner",
+    };
+
+    changeRoleOfMember(roleChangeData);
+
+    handleClose();
+  };
+
+  // ================================================================================================
+  // ================================================================================================
   return (
     <Box
       sx={{
         width: "calc(100% - 40px)",
-        height: (theme) => `calc(${theme.trelloCustom.boardBarHeight} - 25px)`,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        gap: 2,
-        paddingX: 2.5,
-        marginY: 1.5,
-        marginX: 2.5,
-        overflowX: "auto",
-        bgcolor: (theme) =>
-          theme.palette.mode === "dark"
-            ? theme.trelloCustom.COLOR_51247C
-            : theme.trelloCustom.COLOR_9357CF,
-        borderRadius: "6px",
       }}
     >
-      {/* left side */}
       <Box
         sx={{
+          width: "100%",
+          height: (theme) =>
+            `calc(${theme.trelloCustom.boardBarHeight} - 25px)`,
           display: "flex",
           alignItems: "center",
-          gap: 1,
+          justifyContent: "space-between",
+          gap: 2,
+          paddingX: 2.5,
+          marginY: 1.5,
+          marginX: 2.5,
+          overflowX: "auto",
+          bgcolor: (theme) =>
+            theme.palette.mode === "dark"
+              ? theme.trelloCustom.COLOR_51247C
+              : theme.trelloCustom.COLOR_9357CF,
+          borderRadius: "6px",
         }}
       >
-        <TextField
-          // ref={inputNewColumnTitleRef}
-          onMouseEnter={handleMouseHoverTitleBoard}
-          onMouseLeave={handleMouseLeaveTitleBoard}
-          type="text"
-          variant="outlined"
-          value={board?.title != newBoardTitle ? newBoardTitle : board?.title}
-          onChange={(e) => setNewBoardTitle(e.target.value)}
-          onKeyDown={(ev) => {
-            if (ev.key === "Enter") {
-              ev.preventDefault();
-              ev.target.blur();
-            }
-          }}
-          onBlur={() => handleRenameBoardDirectly(board, newBoardTitle)}
-          InputProps={{
-            endAdornment: (
-              // edit btn
-              <Box>
-                {isHoveredTitleBoard && (
-                  <Box
-                    sx={{
-                      cursor: "pointer",
-                      width: "fit-content",
-                      height: "30px",
-                      px: 1,
-                      display: "flex",
-                      alignItems: "center",
-                      fontWeight: "bold",
-
-                      bgcolor: "transparent",
-                      color: (theme) =>
-                        theme.palette.mode === "dark"
-                          ? theme.trelloCustom.COLOR_D7D7D7
-                          : theme.trelloCustom.COLOR_F8F8F8,
-                    }}
-                  >
-                    <EditIcon sx={{ fontSize: "1.5rem", pr: 0.5 }} />
-                  </Box>
-                )}
-              </Box>
-            ),
-          }}
+        {/* left side */}
+        <Box
           sx={{
-            "& input": {
-              cursor: "pointer",
-              pt: 1.25,
-              pb: 1.25,
-              pr: 1.75,
-              height: "15px",
-              fontSize: "1.3rem",
-              fontWeight: "bold",
-              border: "2px solid transparent",
-              borderRadius: "6px",
-              bgcolor: "transparent",
-              color: (theme) => theme.trelloCustom.COLOR_F8F8F8,
-            },
-            "& input:hover": {
-              bgcolor: (theme) => theme.trelloCustom.COLOR_7236AE,
-              borderColor: (theme) => theme.trelloCustom.COLOR_7236AE,
-            },
-            "& input:focus": {
-              color: (theme) =>
-                theme.palette.mode === "dark"
-                  ? theme.trelloCustom.COLOR_D7D7D7
-                  : theme.trelloCustom.COLOR_F8F8F8,
-              bgcolor: (theme) =>
-                theme.palette.mode === "dark"
-                  ? theme.trelloCustom.COLOR_281E38
-                  : theme.trelloCustom.COLOR_7236AE,
-              borderColor: (theme) =>
-                theme.palette.mode === "dark"
-                  ? theme.trelloCustom.COLOR_C0C0C0
-                  : theme.trelloCustom.COLOR_D7D7D7,
-            },
-            "& .MuiInputBase-input": {
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-            },
-
-            // border outline
-            "& .MuiOutlinedInput-root": {
-              "& fieldset": {
-                borderRadius: "6px",
-                borderWidth: "2px",
-                borderColor: "transparent",
-              },
-              "&:hover fieldset": {
-                borderColor: "transparent",
-              },
-              "&.Mui-focused fieldset": {
-                borderColor: "transparent",
-                // borderColor: (theme) =>
-                //   theme.palette.mode === "dark"
-                //     ? theme.trelloCustom.COLOR_8A2DCB
-                //     : theme.trelloCustom.COLOR_313131,
-              },
-            },
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
           }}
-        />
+        >
+          {roleOfBoard === "creator" || roleOfBoard === "owner" ? (
+            <TextField
+              onMouseEnter={handleMouseHoverTitleBoard}
+              onMouseLeave={handleMouseLeaveTitleBoard}
+              type="text"
+              variant="outlined"
+              value={
+                board?.title != newBoardTitle ? newBoardTitle : board?.title
+              }
+              onChange={(e) => setNewBoardTitle(e.target.value)}
+              onKeyDown={(ev) => {
+                if (ev.key === "Enter") {
+                  ev.preventDefault();
+                  ev.target.blur();
+                  // ev.target.value.trim();
+                  handleRenameBoardDirectly(board, newBoardTitle);
+                }
+              }}
+              onBlur={(ev) => {
+                ev.preventDefault();
+                ev.target.blur();
+                // ev.target.value.trim();
+                handleRenameBoardDirectly(board, newBoardTitle);
+              }}
+              InputProps={{
+                endAdornment: (
+                  // edit btn
+                  <Box>
+                    {isHoveredTitleBoard && (
+                      <Box
+                        sx={{
+                          cursor: "pointer",
+                          width: "fit-content",
+                          height: "30px",
+                          px: 1,
+                          display: "flex",
+                          alignItems: "center",
+                          fontWeight: "bold",
 
-        {/* </Tooltip>
+                          bgcolor: "transparent",
+                          color: (theme) =>
+                            theme.palette.mode === "dark"
+                              ? theme.trelloCustom.COLOR_D7D7D7
+                              : theme.trelloCustom.COLOR_F8F8F8,
+                        }}
+                      >
+                        <EditIcon sx={{ fontSize: "1.5rem", pr: 0.5 }} />
+                      </Box>
+                    )}
+                  </Box>
+                ),
+              }}
+              sx={{
+                "& input": {
+                  cursor: "pointer",
+                  pt: 1.25,
+                  pb: 1.25,
+                  pr: 1.75,
+                  height: "15px",
+                  fontSize: "1.3rem",
+                  fontWeight: "bold",
+                  border: "2px solid transparent",
+                  borderRadius: "6px",
+                  bgcolor: "transparent",
+                  color: (theme) => theme.trelloCustom.COLOR_F8F8F8,
+                },
+                "& input:hover": {
+                  bgcolor: (theme) => theme.trelloCustom.COLOR_7236AE,
+                  borderColor: (theme) => theme.trelloCustom.COLOR_7236AE,
+                },
+                "& input:focus": {
+                  color: (theme) =>
+                    theme.palette.mode === "dark"
+                      ? theme.trelloCustom.COLOR_D7D7D7
+                      : theme.trelloCustom.COLOR_F8F8F8,
+                  bgcolor: (theme) =>
+                    theme.palette.mode === "dark"
+                      ? theme.trelloCustom.COLOR_281E38
+                      : theme.trelloCustom.COLOR_7236AE,
+                  borderColor: (theme) =>
+                    theme.palette.mode === "dark"
+                      ? theme.trelloCustom.COLOR_C0C0C0
+                      : theme.trelloCustom.COLOR_D7D7D7,
+                },
+                "& .MuiInputBase-input": {
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                },
+
+                // border outline
+                "& .MuiOutlinedInput-root": {
+                  "& fieldset": {
+                    borderRadius: "6px",
+                    borderWidth: "2px",
+                    borderColor: "transparent",
+                  },
+                  "&:hover fieldset": {
+                    borderColor: "transparent",
+                  },
+                  "&.Mui-focused fieldset": {
+                    borderColor: "transparent",
+                    // borderColor: (theme) =>
+                    //   theme.palette.mode === "dark"
+                    //     ? theme.trelloCustom.COLOR_8A2DCB
+                    //     : theme.trelloCustom.COLOR_313131,
+                  },
+                },
+              }}
+            />
+          ) : (
+            <Box
+              sx={{
+                color: (theme) => theme.trelloCustom.COLOR_F8F8F8,
+                fontSize: "1.3rem",
+                fontWeight: "bold",
+                pl: 2,
+              }}
+            >
+              {board?.title}
+            </Box>
+          )}
+
+          {/* </Tooltip>
         <Chip
           sx={MENU_STYLES}
           icon={<LockPersonIcon />}
@@ -207,62 +426,513 @@ function BoardBar({ board, modifyBoardDetails }) {
           label="Filters" 
           onClick={() => {}}
         /> */}
-      </Box>
+        </Box>
 
-      {/* right side */}
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-        <Button
-          variant="outlined"
-          sx={BUTTON_BOARD_BAR_STYLE}
-          // onClick={openModalMembers}
-        >
-          <PersonAddAltIcon sx={{ mr: 1 }} />
-          Invite
-        </Button>
-
-        {/* <ModalForm isOpen={isModalOpen} onClose={closeModal} /> */}
-
-        <Button variant="outlined" sx={BUTTON_BOARD_BAR_STYLE}>
-          <GroupIcon sx={{ mr: 1 }} />
-          Members
-        </Button>
-
-        {/* <AvatarGroup
-          max={4}
+        {/* right side */}
+        <Box
           sx={{
-            "& .MuiAvatar-root": {
-              border: "2px solid",
-              width: 34,
-              height: 34,
-              fontSize: 16,
-              borderColor: (theme) =>
-                theme.palette.mode === "dark" ? "#d6d6d6" : "#5399de",
-            },
-            "& .MuiAvatar-circular": {
-              color: (theme) =>
-                theme.palette.mode === "dark" ? "#0b1723" : "white",
-              bgcolor: (theme) =>
-                theme.palette.mode === "dark" ? "" : "#a4b0de",
-            },
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
           }}
         >
-          <Tooltip title="cootanasy">
-            <Avatar alt="Remy Sharp" />
-          </Tooltip>
-          <Tooltip title="cootanasy">
-            <Avatar alt="Travis Howard" />
-          </Tooltip>
-          <Tooltip title="cootanasy">
-            <Avatar alt="Cindy Baker" />
-          </Tooltip>
-          <Tooltip title="cootanasy">
-            <Avatar alt="Agnes Walker" />
-          </Tooltip>
-          <Tooltip title="cootanasy">
-            <Avatar alt="Trevor Henderson" />
-          </Tooltip>
-        </AvatarGroup> */}
+          {(roleOfBoard === "creator" || roleOfBoard === "owner") && (
+            <Box
+              sx={{
+                display: "flex",
+              }}
+            >
+              <Button
+                variant="outlined"
+                sx={BUTTON_BOARD_BAR_STYLE}
+                onClick={() => handleOpenModalInviteMember()}
+              >
+                <PersonAddAltIcon sx={{ mr: 1 }} />
+                Invite
+              </Button>
+            </Box>
+          )}
+
+          <Button
+            onClick={() => handleOpenModalMembersInBoard()}
+            variant="outlined"
+            sx={BUTTON_BOARD_BAR_STYLE}
+          >
+            <GroupIcon sx={{ mr: 1 }} />
+            Members
+          </Button>
+        </Box>
       </Box>
+
+      {/* modal invite */}
+      {openModalInviteMember && (
+        <Box
+          sx={{
+            zIndex: "999",
+            right: "20px",
+            top: "110px",
+            position: "absolute",
+            width: "300px",
+            gap: 1.25,
+            px: 2,
+            py: 1.5,
+            borderRadius: "8px",
+            bgcolor: (theme) =>
+              theme.palette.mode === "dark"
+                ? theme.trelloCustom.COLOR_13091B
+                : theme.trelloCustom.COLOR_F8F8F8,
+            boxShadow: (theme) =>
+              theme.palette.mode === "dark"
+                ? `0px 2px 10px ${theme.trelloCustom.COLOR_411A61}`
+                : `0px 2px 10px ${theme.trelloCustom.COLOR_313131}`,
+          }}
+        >
+          {/* title & close btn */}
+          <Box
+            sx={{
+              mb: 1.5,
+              width: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            {/* fake component */}
+            <Box sx={{ width: "30px" }}></Box>
+
+            {/* title */}
+            <Box sx={{ fontSize: "1.2rem", fontWeight: "bold" }}>Invite</Box>
+
+            {/* close btn */}
+            <Box
+              onClick={() => handleCloseModalInviteMember()}
+              sx={{
+                height: "30px",
+                width: "30px",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                // py: 0.5,
+                // px: 0.5,
+                borderRadius: "6px",
+                "&:hover": {
+                  bgcolor: (theme) =>
+                    theme.palette.mode === "dark"
+                      ? theme.trelloCustom.COLOR_281E38
+                      : theme.trelloCustom.COLOR_D7D7D7,
+                },
+              }}
+            >
+              <CloseIcon />
+            </Box>
+          </Box>
+
+          {/* input search + invite other member */}
+          <TextField
+            id="filled-search"
+            label="Email of member"
+            variant="filled"
+            value={recipientEmail}
+            onChange={handleChangeRecipientEmail}
+            InputProps={{
+              endAdornment: recipientEmail && (
+                <IconButton onClick={() => setRecipientEmail("")}>
+                  <ClearIcon />
+                </IconButton>
+              ),
+            }}
+            sx={{
+              width: "100%",
+              mb: 1.5,
+              "& .MuiFormLabel-root": {
+                "&.MuiInputLabel-root": {
+                  color: (theme) =>
+                    theme.palette.mode === "dark"
+                      ? theme.trelloCustom.COLOR_D7D7D7
+                      : theme.trelloCustom.COLOR_313131,
+                },
+              },
+              "& .MuiInputBase-root": {
+                "&.MuiFilledInput-root::after": {
+                  borderColor: (theme) =>
+                    theme.palette.mode === "dark"
+                      ? theme.trelloCustom.COLOR_D7D7D7
+                      : theme.trelloCustom.COLOR_313131,
+                },
+              },
+            }}
+          />
+
+          {/* invite button */}
+          {checkIsRecipientEmailValid(recipientEmail) && (
+            <Box
+              onClick={() => handleInviteMember()}
+              sx={{
+                cursor: "pointer",
+                width: "100%",
+                height: "35px",
+                gap: 0.75,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                borderRadius: "6px",
+                bgcolor: (theme) =>
+                  theme.palette.mode === "dark"
+                    ? theme.trelloCustom.COLOR_281E38
+                    : theme.trelloCustom.COLOR_E6E6E6,
+                "&:hover": {
+                  bgcolor: (theme) =>
+                    theme.palette.mode === "dark"
+                      ? theme.trelloCustom.COLOR_463666
+                      : theme.trelloCustom.COLOR_D7D7D7,
+                },
+              }}
+            >
+              <EmailIcon />
+              Send
+            </Box>
+          )}
+        </Box>
+      )}
+
+      {/* modal members */}
+      {openModalMembersInBoard && (
+        <Box
+          sx={{
+            zIndex: "999",
+            right: "20px",
+            top: "110px",
+            position: "absolute",
+            width: "360px",
+            gap: 1.25,
+            px: 2,
+            py: 1.5,
+            borderRadius: "8px",
+            bgcolor: (theme) =>
+              theme.palette.mode === "dark"
+                ? theme.trelloCustom.COLOR_13091B
+                : theme.trelloCustom.COLOR_F8F8F8,
+            boxShadow: (theme) =>
+              theme.palette.mode === "dark"
+                ? `0px 2px 10px ${theme.trelloCustom.COLOR_411A61}`
+                : `0px 2px 10px ${theme.trelloCustom.COLOR_313131}`,
+          }}
+        >
+          {/* title & close btn */}
+          <Box
+            sx={{
+              mb: 1.5,
+              width: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            {/* fake component */}
+            <Box sx={{ width: "30px" }}></Box>
+
+            {/* title */}
+            <Box sx={{ fontSize: "1.2rem", fontWeight: "bold" }}>Members</Box>
+
+            {/* close btn */}
+            <Box
+              onClick={() => handleCloseModalMembersInBoard()}
+              sx={{
+                height: "30px",
+                width: "30px",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                borderRadius: "6px",
+                "&:hover": {
+                  bgcolor: (theme) =>
+                    theme.palette.mode === "dark"
+                      ? theme.trelloCustom.COLOR_281E38
+                      : theme.trelloCustom.COLOR_D7D7D7,
+                },
+              }}
+            >
+              <CloseIcon />
+            </Box>
+          </Box>
+
+          {/* input search + invite other member */}
+          <TextField
+            id="filled-search"
+            label="Search member"
+            variant="filled"
+            value={searchQueryMembersInBoard}
+            onChange={handleChangeSearchMemberInBoard}
+            InputProps={{
+              endAdornment: searchQueryMembersInBoard && (
+                <IconButton onClick={() => setSearchQueryMembersInBoard("")}>
+                  <ClearIcon />
+                </IconButton>
+              ),
+            }}
+            sx={{
+              width: "100%",
+              mb: 1.5,
+              "& .MuiFormLabel-root": {
+                "&.MuiInputLabel-root": {
+                  color: (theme) =>
+                    theme.palette.mode === "dark"
+                      ? theme.trelloCustom.COLOR_D7D7D7
+                      : theme.trelloCustom.COLOR_313131,
+                },
+              },
+              "& .MuiInputBase-root": {
+                "&.MuiFilledInput-root::after": {
+                  borderColor: (theme) =>
+                    theme.palette.mode === "dark"
+                      ? theme.trelloCustom.COLOR_D7D7D7
+                      : theme.trelloCustom.COLOR_313131,
+                },
+              },
+            }}
+          />
+
+          <Box
+            sx={{
+              maxHeight: "380px",
+              overflow: "auto",
+            }}
+          >
+            {/* list members of board */}
+            {filteredMembers.length > 0 && (
+              <Box>
+                {/* title */}
+                <Divider />
+
+                {/* list of members of board */}
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "start",
+                    justifyContent: "start",
+                    pt: 1,
+                  }}
+                >
+                  {filteredMembers.map((user) => (
+                    <Box
+                      key={user._id}
+                      onMouseEnter={() => handleEnterUserBoardArea(user)}
+                      onMouseLeave={() => handleLeaveUserBoardArea()}
+                      sx={{
+                        width: "100%",
+                        height: "60px",
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          width: "100%",
+                          height: "60px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          px: 1.5,
+                          // mb: 1,
+                          borderRadius: "6px",
+
+                          "&:hover": {
+                            bgcolor: (theme) =>
+                              theme.palette.mode === "dark"
+                                ? theme.trelloCustom.COLOR_281E38
+                                : theme.trelloCustom.COLOR_E6E6E6,
+                          },
+                        }}
+                      >
+                        {/* avatar & short name of user */}
+                        <Box
+                          sx={{
+                            width: "40px",
+                            height: "40px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            borderRadius: "50%",
+                            color: (theme) =>
+                              theme.palette.mode === "dark"
+                                ? theme.trelloCustom.COLOR_F8F8F8
+                                : theme.trelloCustom.COLOR_F8F8F8,
+                            bgcolor: (theme) =>
+                              theme.palette.mode === "dark"
+                                ? theme.trelloCustom.COLOR_C200D3
+                                : theme.trelloCustom.COLOR_C0C0C0,
+                          }}
+                        >
+                          {/* A */}
+                          {user.userDetails.username.charAt(0).toUpperCase()}
+                        </Box>
+
+                        {/* email + username + button add */}
+                        <Box
+                          sx={{
+                            width: `calc(100% - 40px)`,
+                            height: "100%",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                          }}
+                        >
+                          {/* email and username */}
+                          <Box
+                            sx={{
+                              px: 2,
+                              display: "flex",
+                              flexDirection: "column",
+                              alignItems: "start",
+                            }}
+                          >
+                            {/* username */}
+                            <Box
+                              sx={{
+                                color: (theme) =>
+                                  theme.palette.mode === "dark"
+                                    ? theme.trelloCustom.COLOR_D7D7D7
+                                    : theme.trelloCustom.COLOR_313131,
+                                fontSize: "1.05rem",
+                              }}
+                            >
+                              {user.userDetails.username
+                                .charAt(0)
+                                .toUpperCase() +
+                                user.userDetails.username.slice(1)}
+                            </Box>
+
+                            {/* @ email */}
+                            <Tooltip title={user.userDetails.email}>
+                              <Box
+                                sx={{
+                                  maxWidth:
+                                    isHoveredUserBoardArea === user._id
+                                      ? "150px"
+                                      : "200px",
+                                  textOverflow: "ellipsis",
+                                  whiteSpace: "nowrap",
+                                  overflow: "hidden",
+                                  fontWeight: "bold",
+                                  fontSize: ".85rem",
+                                  color: (theme) =>
+                                    theme.palette.mode === "dark"
+                                      ? theme.trelloCustom.COLOR_D7D7D7
+                                      : theme.trelloCustom.COLOR_313131,
+                                }}
+                              >
+                                {user.userDetails.email}
+                              </Box>
+                            </Tooltip>
+                          </Box>
+
+                          {/* button info and remove  */}
+                          {isHoveredUserBoardArea === user._id &&
+                            user.role != "creator" &&
+                            roleOfBoard !== "member" && (
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "space-between",
+                                  gap: 0.5,
+                                }}
+                              >
+                                <Tooltip title="Change the role of this user in board">
+                                  <Box
+                                    onClick={handleOpenMenuChangingRoleOfMember}
+                                    sx={{
+                                      cursor: "pointer",
+                                      px: 0.5,
+                                      py: 0.5,
+                                      mr: 0.5,
+                                      display: "flex",
+                                      alignItems: "center",
+                                      justifyContent: "center",
+                                      borderRadius: "8px",
+                                      "&:hover": {
+                                        bgcolor: (theme) =>
+                                          theme.palette.mode === "dark"
+                                            ? theme.trelloCustom.COLOR_463666
+                                            : theme.trelloCustom.COLOR_C0C0C0,
+                                      },
+                                    }}
+                                  >
+                                    <ManageAccountsIcon />
+                                  </Box>
+                                </Tooltip>
+
+                                <Tooltip
+                                  title="Remove user out of this board"
+                                  PopperProps={{
+                                    style: { marginTop: "-12px" },
+                                  }}
+                                  sx={{
+                                    ".MuiTooltip-popper": {
+                                      inset: "-25px auto 0px auto",
+                                    },
+                                  }}
+                                >
+                                  <Box
+                                    onClick={() =>
+                                      handleRemoveUserFromBoard(user)
+                                    }
+                                    sx={{
+                                      cursor: "pointer",
+                                      px: 0.5,
+                                      py: 0.5,
+                                      mr: 0.5,
+                                      display: "flex",
+                                      alignItems: "center",
+                                      justifyContent: "center",
+                                      borderRadius: "8px",
+                                      "&:hover": {
+                                        bgcolor: (theme) =>
+                                          theme.palette.mode === "dark"
+                                            ? theme.trelloCustom.COLOR_463666
+                                            : theme.trelloCustom.COLOR_C0C0C0,
+                                      },
+                                    }}
+                                  >
+                                    <PersonRemoveAlt1Icon />
+                                  </Box>
+                                </Tooltip>
+                              </Box>
+                            )}
+                        </Box>
+                      </Box>
+
+                      <Menu
+                        id="menu"
+                        anchorEl={anchorEl}
+                        open={Boolean(anchorEl)}
+                        onClose={handleClose}
+                        ref={menuRef}
+                      >
+                        <MenuItem
+                          onClick={() =>
+                            handleChooseRoleTypeOwnerForMember(user)
+                          }
+                        >
+                          Owner
+                        </MenuItem>
+                        <MenuItem
+                          onClick={() =>
+                            handleChooseRoleTypeMemberForMember(user)
+                          }
+                        >
+                          Member
+                        </MenuItem>
+                      </Menu>
+                    </Box>
+                  ))}
+                </Box>
+              </Box>
+            )}
+          </Box>
+        </Box>
+      )}
     </Box>
   );
 }

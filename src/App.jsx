@@ -1,37 +1,54 @@
-// import { Route, Routes } from "react-router-dom";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-// import { RequireAuth } from "react-auth-kit";
 
-// import Login from "~/components/Authen/Login/Login";
+import Login from "~/pages/Authen/Login";
+import Register from "~/pages/Authen/Register";
+
 import HomePage from "~/pages/Boards";
 import Board from "~/pages/Boards/_id";
+
+import ProtectedRoute from "~/components/authen/ProtectedRoute";
 
 function App() {
   return (
     <Router>
       <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+
+        <Route
+          path="/meelo"
+          element={
+            <ProtectedRoute>
+              <HomePage />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/"
           element={
-            // <RequireAuth loginPath="/login">
-            <HomePage />
-            // </RequireAuth>
+            <ProtectedRoute>
+              <HomePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/homepage"
+          element={
+            <ProtectedRoute>
+              <HomePage />
+            </ProtectedRoute>
           }
         />
 
         <Route
           path="/board/:id"
           element={
-            // <RequireAuth loginPath="/login">
-            <Board />
-            // </RequireAuth>
+            <ProtectedRoute>
+              <Board />
+            </ProtectedRoute>
           }
         />
-
-        {/* <Route path="/login" element={<Login />}></Route> */}
       </Routes>
-
-      {/* <Login /> */}
     </Router>
   );
 }
