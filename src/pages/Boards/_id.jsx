@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { isEmpty } from "lodash";
 import { toast } from "react-toastify";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+import { io } from "socket.io-client";
 
 import Container from "@mui/material/Container";
 import Box from "@mui/material/Box";
@@ -11,7 +12,6 @@ import Typography from "@mui/material/Typography";
 import AppBar from "~/components/AppBar/AppBar";
 import BoardBar from "./BoardBar/BoardBar";
 import BoardContent from "./BoardContent/BoardContent";
-
 import CardModal from "~/components/Card/CardModal/CardModal";
 
 // import { mockData } from '~/apis/mock-data'
@@ -19,6 +19,8 @@ import { generatePlaceholderCard } from "~/utils/formatters";
 import { mapOrder } from "~/utils/sorts";
 import {
   fetchBoardDetailsAPI,
+  fetchRoleOfBoardsAPI,
+  fetchAllMembersAPI,
   createNewCardAPI,
   createNewColumnAPI,
   updateBoardDetailsAPI,
@@ -27,165 +29,203 @@ import {
   deleteColumnDetailsAPI,
   deleteCardDetailsAPI,
   updateCardDetailsAPI,
+  inviteMemberAPI,
+  removeMemberAPI,
+  changeRoleOfMemberAPI,
 } from "~/apis";
 
 import "../../assets/css/Card/Dropdown.css";
 
+import { useAuth } from "~/hooks/useAuth";
+
+const socket = io.connect("http://localhost:8017");
+
 function Board() {
   // ============================================================================
+  const navigate = useNavigate();
+  // ============================================================================
+  const { loggedInUser } = useAuth();
+  // ============================================================================
   const { id } = useParams();
+  const boardId = id;
   // ============================================================================
   // ============================================================================
+  const [boardLoadedCount, setBoardLoadedCount] = useState(0);
+  const [loadedOtherDataCount, setLoadedOtherDataCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+
   const [board, setBoard] = useState(null);
+  const [roleOfBoard, setRoleOfBoard] = useState("");
+  const [allMembersInBoard, setAllMembersInBoard] = useState([]);
 
   // const [loading, setLoading] = useState(true);
   // const [error, setError] = useState(null);
 
-  // new solution
-  // useEffect(() => {
-  //   const boardId = "65dd549752af25f9410efe69";
-
-  //   const fetchData = async () => {
-  //     let success = false;
-  //     let retryCount = 0;
-  //     const maxRetries = 5;
-  //     const retryDelay = 1000; // 1 second
-
-  //     while (!success && retryCount < maxRetries) {
-  //       // call api
-  //       fetchBoardDetailsAPI(boardId)
-  //         .then((board) => {
-  //           // sắp xếp dữ liệu columns
-  //           board.columns = mapOrder(
-  //             board.columns,
-  //             board.columnOrderIds,
-  //             "_id"
-  //           );
-  //           // console.log('board:', board)
-
-  //           board.columns.forEach((column) => {
-  //             // cần xử lý vấn đề kéo thả khi đưa vào 1 column rỗng
-  //             if (isEmpty(column.cards)) {
-  //               column.cards = [generatePlaceholderCard(column)];
-  //               column.cardOrderIds = [generatePlaceholderCard(column)._id];
-  //             } else {
-  //               // sắp xếp dữ liệu cards
-  //               column.cards = mapOrder(
-  //                 column.cards,
-  //                 column.cardOrderIds,
-  //                 "_id"
-  //               );
-  //               // console.log('column.cards:', column.cards)
-  //             }
-  //           });
-
-  //           // console.log('board:', board)
-
-  //           setBoard(board);
-
-  //           // setup for list of cards
-  //           let listCards = [];
-
-  //           board.columns.forEach((column) => {
-  //             column.cards.forEach((card) => {
-  //               listCards.push(card);
-  //             });
-  //           });
-
-  //           setListCards(listCards);
-
-  //           success = true;
-  //           setLoading(false);
-  //         })
-  //         // .catch((error) => {
-  //         //   retryCount += 1;
-  //         //   setError(
-  //         //     `Error fetching data: ${error.message}. Retrying (${retryCount}/${maxRetries})...`
-  //         //   );
-  //         //   return new Promise((resolve) => setTimeout(resolve, retryDelay));
-  //         // })
-  //         .finally(() => {
-  //           retryCount += 1;
-
-  //           return new Promise((resolve) => setTimeout(resolve, retryDelay));
-  //         });
-  //     }
-
-  //     if (!success) {
-  //       setLoading(false);
-  //       setError("Failed to fetch data after multiple attempts.");
-  //     }
-  //   };
-
-  //   fetchData();
-  // }, []);
-
-  // old solution
   // ============================================================================
-  // fix cứng tạm thời boardId - 61
-  // tương lai dùng react-router-dom
+  // load data of board
   useEffect(() => {
-    // const boardId = "65dd549752af25f9410efe69";
-    const boardId = id;
+    if (boardLoadedCount < 1) {
+      setBoardLoadedCount(boardLoadedCount + 1);
 
-    // console.log("boardId ", boardId);
+      fetchBoardDetailsAPI(boardId)
+        .then((board) => {
+          // sắp xếp dữ liệu columns
+          board.columns = mapOrder(board.columns, board.columnOrderIds, "_id");
+          // console.log('board:', board)
 
-    // call api
-    fetchBoardDetailsAPI(boardId).then((board) => {
-      // sắp xếp dữ liệu columns
-      board.columns = mapOrder(board.columns, board.columnOrderIds, "_id");
-      // console.log('board:', board)
+          board.columns.forEach((column) => {
+            // cần xử lý vấn đề kéo thả khi đưa vào 1 column rỗng
+            if (isEmpty(column.cards)) {
+              column.cards = [generatePlaceholderCard(column)];
+              column.cardOrderIds = [generatePlaceholderCard(column)._id];
+            } else {
+              // sắp xếp dữ liệu cards
+              column.cards = mapOrder(column.cards, column.cardOrderIds, "_id");
+              // console.log('column.cards:', column.cards)
+            }
+          });
 
-      board.columns.forEach((column) => {
-        // cần xử lý vấn đề kéo thả khi đưa vào 1 column rỗng
-        if (isEmpty(column.cards)) {
-          column.cards = [generatePlaceholderCard(column)];
-          column.cardOrderIds = [generatePlaceholderCard(column)._id];
-        } else {
-          // sắp xếp dữ liệu cards
-          column.cards = mapOrder(column.cards, column.cardOrderIds, "_id");
-          // console.log('column.cards:', column.cards)
-        }
+          // console.log("board:", board);
+
+          setBoard(board);
+        })
+        .catch((error) => {
+          toast.error(error.response.data.message);
+          navigate("/homepage");
+        });
+    }
+  }, [boardLoadedCount, boardId, roleOfBoard, board, navigate]);
+
+  // load more other data
+  useEffect(() => {
+    if (loadedOtherDataCount < 1 && board != null) {
+      setLoadedOtherDataCount(loadedOtherDataCount + 1);
+
+      // load role of user in board
+      // lấy dữ liệu vai trò của bảng từ boardUser qua api
+      // get the user's role in current board
+      fetchRoleOfBoardsAPI(board._id).then((res) => {
+        setRoleOfBoard(res);
       });
 
-      // console.log("board:", board);
+      // load all members in board
+      fetchAllMembersAPI(board._id).then((res) => {
+        setAllMembersInBoard(res);
+      });
 
-      setBoard(board);
-    });
-  }, [id]);
+      setLoading(false);
+    }
+  }, [loadedOtherDataCount, board]);
+
+  // ============================================================================
+  // socket when board is change
+  useEffect(() => {
+    if (loggedInUser) {
+      socket.emit("access-board", loggedInUser.username, boardId);
+
+      socket.on("update-board", (updatedBoard) => {
+        if (updatedBoard._id === boardId) {
+          setBoard(updatedBoard);
+        }
+      });
+    }
+
+    return () => {
+      socket.off("update-board");
+    };
+  }, [boardId, loggedInUser]);
+
+  // ============================================================================
+  // remove no need properties
+  const excludeProperties = (data, propertiesToExclude) => {
+    return Object.keys(data)
+      .filter((key) => !propertiesToExclude.includes(key))
+      .reduce((obj, key) => {
+        obj[key] = data[key];
+        return obj;
+      }, {});
+  };
 
   // ============================================================================
   // gọi API tạo mới Column và làm lại dữ liệu State Board
   const createNewColumn = async (newColumnData) => {
-    const createdColumn = await createNewColumnAPI({
-      ...newColumnData,
-      boardId: board._id,
-    });
+    try {
+      const createdColumn = await createNewColumnAPI(board._id, {
+        ...newColumnData,
+        boardId: board._id,
+      });
 
-    createdColumn.cards = [generatePlaceholderCard(createdColumn)];
-    createdColumn.cardOrderIds = [generatePlaceholderCard(createdColumn)._id];
+      // console.log("createdColumn ", createdColumn);
 
-    // cập nhật state của board
-    // FE set đúng lại state cho board => khong cần tới fetchBoardDetailsAPI nữa
-    //
+      createdColumn.cards = [generatePlaceholderCard(createdColumn)];
+      createdColumn.cardOrderIds = [generatePlaceholderCard(createdColumn)._id];
+
+      // cập nhật state của board
+      // FE set đúng lại state cho board => khong cần tới fetchBoardDetailsAPI nữa
+      //
+      const newBoard = { ...board };
+      newBoard.columns.push(createdColumn);
+      newBoard.columnOrderIds.push(createdColumn._id);
+
+      setBoard(newBoard);
+      socket.emit("update-board", board._id, newBoard);
+    } catch (error) {
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.message
+      ) {
+        toast.error(error.response.data.message);
+        return error.response.data.message;
+      } else {
+        toast.error("An unexpected error occurred. Please try again.");
+        return "An unexpected error occurred. Please try again.";
+      }
+    }
+  };
+
+  // ============================================================================
+  // call api to modify column
+  const modifyColumn = async (columnId, newDataOfColumn, newColumn) => {
     const newBoard = { ...board };
-    newBoard.columns.push(createdColumn);
-    newBoard.columnOrderIds.push(createdColumn._id);
+
+    const columnToModify = newBoard.columns.findIndex(
+      (col) => col._id === columnId
+    );
+    newBoard.columns[columnToModify] = newColumn;
+
     setBoard(newBoard);
+    socket.emit("update-board", board._id, newBoard);
+
+    try {
+      const res = await updateColumnDetailsAPI(columnId, newDataOfColumn);
+      toast.success(res.modifyColumnResult);
+    } catch (error) {
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.message
+      ) {
+        toast.error(error.response.data.message);
+        return error.response.data.message;
+      } else {
+        toast.error("An unexpected error occurred. Please try again.");
+        return "An unexpected error occurred. Please try again.";
+      }
+    }
   };
 
   // ============================================================================
   // call api to update details of board
-  const modifyBoardDetails = async (newBoardData) => {
+  const modifyBoardDetails = async (newBoard) => {
     // cập nhật state của board
-    const newBoard = { ...board };
+    // const newBoard = { ...board };
 
-    console.log("new ", { ...newBoard, newBoardData });
-
-    setBoard({ ...newBoard, newBoardData });
+    setBoard(newBoard);
+    socket.emit("update-board", board._id, newBoard);
 
     // call api
-    updateBoardDetailsAPI(board._id, newBoardData).then((res) => {
+    updateBoardDetailsAPI(board._id, newBoard).then((res) => {
       // có thể đặt trong interceptors
       toast.success(res?.modifyBoardResult);
     });
@@ -194,7 +234,7 @@ function Board() {
   // ============================================================================
   // gọi API tạo mới Card và làm lại dữ liệu State Board
   const createNewCard = async (newCardData) => {
-    const createdCard = await createNewCardAPI({
+    const createdCard = await createNewCardAPI(board._id, {
       ...newCardData,
       boardId: board._id,
     });
@@ -229,6 +269,7 @@ function Board() {
     // console.log('columnToUpdate:', columnToUpdate)
 
     setBoard(newBoard);
+    socket.emit("update-board", board._id, newBoard);
   };
 
   // ============================================================================
@@ -242,6 +283,7 @@ function Board() {
     newBoard.columnOrderIds = dndOrderedColumnsIds;
 
     setBoard(newBoard);
+    socket.emit("update-board", board._id, newBoard);
 
     // gọi API update Board
     updateBoardDetailsAPI(newBoard._id, {
@@ -271,6 +313,7 @@ function Board() {
     }
 
     setBoard(newBoard);
+    socket.emit("update-board", board._id, newBoard);
 
     // gọi API update Board
     updateColumnDetailsAPI(columnId, {
@@ -297,6 +340,7 @@ function Board() {
     newBoard.columnOrderIds = dndOrderedColumnsIds;
 
     setBoard(newBoard);
+    socket.emit("update-board", board._id, newBoard);
 
     // gọi API để xử lý data
     let prevCardOrderIds = dndOrderedColumns.find(
@@ -312,7 +356,20 @@ function Board() {
     ) {
       prevCardOrderIds = [];
     }
-    // console.log(prevCardOrderIds)
+
+    // console.log("prevCardOrderIds ", prevCardOrderIds);
+
+    // let nextCardOrderIds = dndOrderedColumns.find(
+    //   (col) => col._id === nextColumnId
+    // )?.cardOrderIds;
+
+    // moveCardToDifferentColumnAPI({
+    //   currentCardId,
+    //   prevColumnId,
+    //   prevCardOrderIds,
+    //   nextColumnId,
+    //   nextCardOrderIds,
+    // });
 
     moveCardToDifferentColumnAPI({
       currentCardId,
@@ -330,11 +387,18 @@ function Board() {
   const deleteColumnDetails = (columnId) => {
     // cập nhật state của board
     const newBoard = { ...board };
+
+    console.log("newBoard ", newBoard);
+
     newBoard.columns = newBoard.columns.filter((col) => col._id !== columnId);
     newBoard.columnOrderIds = newBoard.columnOrderIds.filter(
       (_id) => _id !== columnId
     );
+
+    console.log("newBoard ", newBoard);
+
     setBoard(newBoard);
+    socket.emit("update-board", board._id, newBoard);
 
     // call api xử lý data
     deleteColumnDetailsAPI(columnId).then((res) => {
@@ -371,6 +435,7 @@ function Board() {
     }
 
     setBoard(newBoard);
+    socket.emit("update-board", board._id, newBoard);
 
     // call api xử lý data
     deleteCardDetailsAPI(cardId).then((res) => {
@@ -381,30 +446,111 @@ function Board() {
 
   // ============================================================================
   // sửa đổi thẻ
-  const modifyCardDetails = (modifiedCard) => {
-    // cập nhật state của board
-    const newBoard = { ...board };
+  const modifyCardDetails = async (modifiedCard) => {
+    try {
+      // remove property `sortable`
+      modifiedCard = excludeProperties(modifiedCard, "sortable");
 
-    const columnToModifyCard = newBoard.columns.findIndex(
-      (col) => col._id === modifiedCard.columnId
-    );
+      // cập nhật state của board
+      const newBoard = { ...board };
 
-    const cardToModify = newBoard.columns[columnToModifyCard].cards.findIndex(
-      (card) => card._id === modifiedCard._id
-    );
+      const columnToModifyCard = newBoard.columns.findIndex(
+        (col) => col._id === modifiedCard.columnId
+      );
 
-    newBoard.columns[columnToModifyCard].cards[cardToModify] = modifiedCard;
+      const cardToModify = newBoard.columns[columnToModifyCard].cards.findIndex(
+        (card) => card._id === modifiedCard._id
+      );
 
-    setBoard(newBoard);
+      newBoard.columns[columnToModifyCard].cards[cardToModify] = modifiedCard;
 
-    // call api
-    updateCardDetailsAPI(
-      modifiedCard._id,
-      newBoard.columns[columnToModifyCard].cards[cardToModify]
-    ).then((res) => {
-      // có thể đặt trong interceptors
-      toast.success(res?.modifyCardResult);
-    });
+      setBoard(newBoard);
+      socket.emit("update-board", board._id, newBoard);
+
+      const res = await updateCardDetailsAPI(modifiedCard._id, modifiedCard);
+      toast.success(res.modifyCardResult);
+    } catch (error) {
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.message
+      ) {
+        toast.error(error.response.data.message);
+        return error.response.data.message;
+      } else {
+        toast.error("An unexpected error occurred. Please try again.");
+        return "An unexpected error occurred. Please try again.";
+      }
+    }
+  };
+
+  // ============================================================================
+  // invite other members into board
+  const inviteMember = async (invitation) => {
+    try {
+      const res = await inviteMemberAPI(invitation);
+
+      toast.success(res.inviteUserResult);
+    } catch (error) {
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.message
+      ) {
+        toast.error(error.response.data.message);
+        return error.response.data.message;
+      } else {
+        toast.error("An unexpected error occurred. Please try again.");
+        return "An unexpected error occurred. Please try again.";
+      }
+    }
+  };
+
+  // ============================================================================
+  // invite other members into board
+  const removeMemberOutOfBoard = async (userId) => {
+    try {
+      const res = await removeMemberAPI({
+        userId: userId,
+        boardId: board._id,
+      });
+
+      toast.success(res.removeUserResult);
+    } catch (error) {
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.message
+      ) {
+        toast.error(error.response.data.message);
+        return error.response.data.message;
+      } else {
+        toast.error("An unexpected error occurred. Please try again.");
+        return "An unexpected error occurred. Please try again.";
+      }
+    }
+  };
+
+  // ============================================================================
+  // change the role of member in the board
+  const changeRoleOfMember = async (roleChangeData) => {
+    try {
+      const res = await changeRoleOfMemberAPI(roleChangeData);
+
+      toast.success(res.upgradedRoleUserResult);
+    } catch (error) {
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.message
+      ) {
+        toast.error(error.response.data.message);
+        return error.response.data.message;
+      } else {
+        toast.error("An unexpected error occurred. Please try again.");
+        return "An unexpected error occurred. Please try again.";
+      }
+    }
   };
 
   // ============================================================================
@@ -452,7 +598,8 @@ function Board() {
   // ============================================================================
   return (
     <div>
-      {!board ? (
+      {/* {!board ? ( */}
+      {loading ? (
         <Box
           sx={{
             display: "flex",
@@ -490,7 +637,15 @@ function Board() {
             }}
           >
             {/* <BoardBar board={mockData?.board} /> */}
-            <BoardBar board={board} modifyBoardDetails={modifyBoardDetails} />
+            <BoardBar
+              board={board}
+              roleOfBoard={roleOfBoard}
+              allMembersInBoard={allMembersInBoard}
+              modifyBoardDetails={modifyBoardDetails}
+              inviteMember={inviteMember}
+              removeMemberOutOfBoard={removeMemberOutOfBoard}
+              changeRoleOfMember={changeRoleOfMember}
+            />
           </Box>
 
           {/* ============================================================================ */}
@@ -499,12 +654,14 @@ function Board() {
             // board={mockData?.board}
 
             board={board}
+            roleOfBoard={roleOfBoard}
             createNewColumn={createNewColumn}
-            createNewCard={createNewCard}
+            modifyColumn={modifyColumn}
+            deleteColumnDetails={deleteColumnDetails}
             moveColumns={moveColumns}
             moveCardInTheSameColumn={moveCardInTheSameColumn}
             moveCardToDifferentColumn={moveCardToDifferentColumn}
-            deleteColumnDetails={deleteColumnDetails}
+            createNewCard={createNewCard}
             deleteCardDetails={deleteCardDetails}
             // openModalDetailsCard={openModalDetailsCard}
             handleCardClick={handleCardClick}
@@ -513,6 +670,8 @@ function Board() {
           {/* MODAL CARD */}
           {popupModal && selectedCard && (
             <CardModal
+              roleOfBoard={roleOfBoard}
+              allMembersInBoard={allMembersInBoard}
               card={selectedCard}
               modifyCardDetails={modifyCardDetails}
               onCloseModalCard={() => setPopupModalCard(false)}

@@ -23,6 +23,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
 function Card({
+  roleOfBoard,
   card,
   // cards,
   // column,
@@ -143,7 +144,7 @@ function Card({
       <div key={card} onContextMenu={handleContextMenu(card)}>
         <MuiCard
           ref={setNodeRef}
-          style={dndKitCardStyles}
+          style={roleOfBoard != "member" ? dndKitCardStyles : null}
           {...attributes}
           {...listeners}
           // onClick={() => openModalDetailsCard(column._id, card._id)}

@@ -5,7 +5,7 @@ import Switch from "./Switch";
 
 function SwitchLightDarkMode() {
   return (
-    <Box sx={{ display: "flex" }}>
+    <Box sx={{ display: "flex", gap: 0.75 }}>
       <SunIcon />
       <Switch />
       <MoonIcon />

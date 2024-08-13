@@ -8,6 +8,7 @@ import {
 
 // { cards }
 function ListCards({
+  roleOfBoard,
   column,
   cards,
   deleteCardDetails,
@@ -41,7 +42,7 @@ function ListCards({
         )`,
 
           "&::-webkit-scrollbar": {
-            width: "5px",
+            width: "4px",
             height: "5px",
           },
           "&::-webkit-scrollbar-thumb": {
@@ -58,6 +59,7 @@ function ListCards({
         {cards?.map((card) => (
           <Card
             key={card._id}
+            roleOfBoard={roleOfBoard}
             onClick={() => {
               console.log("fsdf");
               handleCardClick(card);

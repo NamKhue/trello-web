@@ -14,9 +14,8 @@ import { ConfirmProvider } from "material-ui-confirm";
 import ModalProvider from "mui-modal-provider";
 
 // authen
-import { BrowserRouter } from "react-router-dom";
-import { AuthProvider } from "react-auth-kit";
 import reportWebVitals from "./reportWebVitals";
+import { AuthProvider } from "./contexts/AuthContext";
 
 // date time picker
 
@@ -36,18 +35,11 @@ ReactDOM.createRoot(document.getElementById("root")).render(
     >
       <CssBaseline />
 
-      {/* <AuthProvider
-        authType={"cookie"}
-        authName={"_auth"}
-        cookieDomain={window.location.hostname}
-        cookieSecure={false}
-      > */}
       <ModalProvider>
-        {/* <BrowserRouter> */}
-        <App />
-        {/* </BrowserRouter> */}
+        <AuthProvider>
+          <App />
+        </AuthProvider>
       </ModalProvider>
-      {/* </AuthProvider> */}
 
       <ToastContainer position="bottom-left" theme="colored" />
     </ConfirmProvider>

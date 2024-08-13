@@ -5,6 +5,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { toast } from "react-toastify";
 import { useConfirm } from "material-ui-confirm";
 // import { useModal } from "mui-modal-provider";
+// import { io } from "socket.io-client";
 
 import Box from "@mui/material/Box";
 import Menu from "@mui/material/Menu";
@@ -29,18 +30,20 @@ import AddIcon from "@mui/icons-material/Add";
 import AddCardIcon from "@mui/icons-material/AddCard";
 import EditIcon from "@mui/icons-material/Edit";
 
-import { updateColumnDetailsAPI } from "~/apis";
+// import { updateColumnDetailsAPI } from "~/apis";
 // import { mapOrder } from '~/utils/sorts'
 
 import ListCards from "./ListCards/ListCards";
 
 // { column }
 function Column({
+  roleOfBoard,
   // cards,
   column,
   // columns,
   createNewCard,
   deleteColumnDetails,
+  modifyColumn,
   deleteCardDetails,
   // openModalDetailsCard,
 
@@ -82,6 +85,24 @@ function Column({
   const handleClose = () => {
     setAnchorEl(null);
   };
+
+  // ============================================================================
+  // socket when board is change
+  // useEffect(() => {
+  //   socket.on("update-column", (updatedColumn) => {
+  //     console.log("here 1");
+
+  //     if (updatedColumn._id === column._id) {
+  //       console.log("here 2");
+
+  //       setColumn(updatedColumn);
+  //     }
+  //   });
+
+  //   return () => {
+  //     socket.off("update-column");
+  //   };
+  // }, [column]);
 
   // const handleDoubleClick = (event, column) => {
   //   if (event.detail === 2) {
@@ -163,8 +184,11 @@ function Column({
     if (newColumnTitleEdit.trim() != "") {
       if (column.title != newColumnTitleEdit.trim()) {
         column.title = newColumnTitleEdit.trim();
+        setNewColumnTitle(column.title);
 
-        updateColumnDetailsAPI(column._id, { title: column.title });
+        const newColumn = { ...column, title: column.title };
+
+        modifyColumn(column._id, { title: column.title }, newColumn);
       }
     } else {
       setNewColumnTitle(column.title);
@@ -385,7 +409,11 @@ function Column({
   };
 
   return (
-    <div ref={setNodeRef} style={dndKitColumnStyles} {...attributes}>
+    <div
+      ref={setNodeRef}
+      style={roleOfBoard != "member" ? dndKitColumnStyles : null}
+      {...attributes}
+    >
       <Box
         {...listeners}
         sx={{
@@ -400,6 +428,7 @@ function Column({
           ml: 1,
           mr: 1,
           borderRadius: "10px",
+          overflow: "hidden",
           bgcolor: (theme) =>
             theme.palette.mode === "dark"
               ? theme.trelloCustom.COLOR_13091B
@@ -420,175 +449,192 @@ function Column({
           }}
         >
           {/* title + input for changing title */}
-          <TextField
-            onMouseEnter={handleMouseHoverTitleColumn}
-            onMouseLeave={handleMouseLeaveTitleColumn}
-            inputRef={textFieldRefTitleColumn}
-            type="text"
-            variant="outlined"
-            value={
-              column?.title != newColumnTitle ? newColumnTitle : column?.title
-            }
-            onChange={(e) => setNewColumnTitle(e.target.value)}
-            onKeyDown={(ev) => {
-              if (ev.key === "Enter") {
-                ev.preventDefault();
-                ev.target.blur();
+          {roleOfBoard != "member" ? (
+            <TextField
+              onMouseEnter={handleMouseHoverTitleColumn}
+              onMouseLeave={handleMouseLeaveTitleColumn}
+              inputRef={textFieldRefTitleColumn}
+              type="text"
+              variant="outlined"
+              value={
+                column?.title != newColumnTitle ? newColumnTitle : column?.title
               }
-            }}
-            onFocus={() => setFocusedOnTitleColumn(true)}
-            onBlur={() => {
-              handleRenameColumnDirectly(column, newColumnTitle.trim());
-              setFocusedOnTitleColumn(false);
-            }}
-            InputProps={{
-              endAdornment: (
-                // edit btn
-                <InputAdornment
-                  position="end"
-                  onClick={handleFieldsetClickTitleColumn}
-                >
-                  {(isHoveredTitleColumn || focusedOnTitleColumn) && (
-                    <Box
-                      onClick={handleFieldsetClickTitleColumn}
-                      sx={{
-                        cursor: "pointer",
-                        width: "30px",
-                        height: "30px",
-                        px: 0.8,
-                        mr: 0.5,
-                        display: "flex",
-                        alignItems: "center",
-                        fontSize: "0.9rem",
-                        fontWeight: "bold",
-                        borderRadius: "6px",
+              onChange={(e) => setNewColumnTitle(e.target.value)}
+              onKeyDown={(ev) => {
+                if (ev.key === "Enter") {
+                  ev.preventDefault();
+                  ev.target.blur();
+                }
+              }}
+              onFocus={() => setFocusedOnTitleColumn(true)}
+              onBlur={() => {
+                handleRenameColumnDirectly(column, newColumnTitle.trim());
+                setFocusedOnTitleColumn(false);
+              }}
+              InputProps={{
+                endAdornment: (
+                  // edit btn
+                  <InputAdornment
+                    position="end"
+                    onClick={handleFieldsetClickTitleColumn}
+                  >
+                    {(isHoveredTitleColumn || focusedOnTitleColumn) && (
+                      <Box
+                        onClick={handleFieldsetClickTitleColumn}
+                        sx={{
+                          cursor: "pointer",
+                          width: "30px",
+                          height: "30px",
+                          px: 0.8,
+                          mr: 0.5,
+                          display: "flex",
+                          alignItems: "center",
+                          fontSize: "0.9rem",
+                          fontWeight: "bold",
+                          borderRadius: "6px",
 
-                        bgcolor: "transparent",
-                        color: (theme) =>
-                          theme.palette.mode === "dark"
-                            ? theme.trelloCustom.COLOR_D7D7D7
-                            : theme.trelloCustom.COLOR_313131,
-
-                        "&:hover": {
-                          bgcolor: (theme) =>
+                          bgcolor: "transparent",
+                          color: (theme) =>
                             theme.palette.mode === "dark"
-                              ? theme.trelloCustom.COLOR_281E38
-                              : theme.trelloCustom.COLOR_C0C0C0,
-                        },
-                      }}
-                    >
-                      <EditIcon sx={{ fontSize: "1.25rem", pr: 0.5 }} />
-                    </Box>
-                  )}
-                </InputAdornment>
-              ),
-            }}
-            sx={{
-              "& input": {
-                cursor: "pointer",
-                pt: 0.8,
-                pb: 0.8,
-                pl: 0,
-                height: "15px",
+                              ? theme.trelloCustom.COLOR_D7D7D7
+                              : theme.trelloCustom.COLOR_313131,
+
+                          "&:hover": {
+                            bgcolor: (theme) =>
+                              theme.palette.mode === "dark"
+                                ? theme.trelloCustom.COLOR_281E38
+                                : theme.trelloCustom.COLOR_C0C0C0,
+                          },
+                        }}
+                      >
+                        <EditIcon sx={{ fontSize: "1.25rem", pr: 0.5 }} />
+                      </Box>
+                    )}
+                  </InputAdornment>
+                ),
+              }}
+              sx={{
+                "& input": {
+                  cursor: "pointer",
+                  pt: 0.8,
+                  pb: 0.8,
+                  pl: 0,
+                  height: "15px",
+                  fontSize: "1rem",
+                  fontWeight: "bold",
+                  border: "2px solid",
+                  borderRadius: "6px",
+                  borderColor: "transparent",
+                  bgcolor: "transparent",
+                  color: (theme) =>
+                    theme.palette.mode === "dark" ? "white" : "black",
+                },
+                "& input:hover": {
+                  bgcolor: "transparent",
+                },
+                "& input:focus": {
+                  pl: 1.5,
+                  pr: 1.5,
+                  color: (theme) =>
+                    theme.palette.mode === "dark"
+                      ? "white"
+                      : theme.trelloCustom.COLOR_8025C0,
+                  bgcolor: (theme) =>
+                    theme.palette.mode === "dark"
+                      ? theme.trelloCustom.COLOR_281E38
+                      : theme.trelloCustom.COLOR_F8F8F8,
+                  borderColor: (theme) =>
+                    theme.palette.mode === "dark"
+                      ? theme.trelloCustom.COLOR_281E38
+                      : theme.trelloCustom.COLOR_313131,
+                },
+                "& .MuiInputBase-input": {
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                },
+
+                // border outline
+                "& .MuiOutlinedInput-root": {
+                  cursor: "pointer",
+                  pr: 0,
+                  "& fieldset": {
+                    borderRadius: "6px",
+                    borderWidth: "2px",
+                    borderColor: "transparent",
+                  },
+                  "&:hover fieldset": {
+                    borderColor: "transparent",
+                  },
+                  "&.Mui-focused fieldset": {
+                    borderColor: "transparent",
+                    // borderColor: (theme) =>
+                    //   theme.palette.mode === "dark"
+                    //     ? theme.trelloCustom.COLOR_8A2DCB
+                    //     : theme.trelloCustom.COLOR_313131,
+                  },
+                },
+              }}
+            />
+          ) : (
+            <Box
+              sx={{
                 fontSize: "1rem",
                 fontWeight: "bold",
-                border: "2px solid",
-                borderRadius: "6px",
-                borderColor: "transparent",
                 bgcolor: "transparent",
                 color: (theme) =>
                   theme.palette.mode === "dark" ? "white" : "black",
-              },
-              "& input:hover": {
-                bgcolor: "transparent",
-              },
-              "& input:focus": {
-                pl: 1.5,
-                pr: 1.5,
-                color: (theme) =>
-                  theme.palette.mode === "dark"
-                    ? "white"
-                    : theme.trelloCustom.COLOR_8025C0,
-                bgcolor: (theme) =>
-                  theme.palette.mode === "dark"
-                    ? theme.trelloCustom.COLOR_281E38
-                    : theme.trelloCustom.COLOR_F8F8F8,
-                borderColor: (theme) =>
-                  theme.palette.mode === "dark"
-                    ? theme.trelloCustom.COLOR_281E38
-                    : theme.trelloCustom.COLOR_313131,
-              },
-              "& .MuiInputBase-input": {
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-              },
-
-              // border outline
-              "& .MuiOutlinedInput-root": {
-                cursor: "pointer",
-                pr: 0,
-                "& fieldset": {
-                  borderRadius: "6px",
-                  borderWidth: "2px",
-                  borderColor: "transparent",
-                },
-                "&:hover fieldset": {
-                  borderColor: "transparent",
-                },
-                "&.Mui-focused fieldset": {
-                  borderColor: "transparent",
-                  // borderColor: (theme) =>
-                  //   theme.palette.mode === "dark"
-                  //     ? theme.trelloCustom.COLOR_8A2DCB
-                  //     : theme.trelloCustom.COLOR_313131,
-                },
-              },
-            }}
-          />
-
-          {/* more options */}
-          <Box data-no-dnd="true">
-            <Tooltip title="More options">
-              <MoreHorizIcon
-                sx={{
-                  mt: 0.5,
-                  color: (theme) =>
-                    theme.palette.mode === "dark"
-                      ? theme.trelloCustom.COLOR_D7D7D7
-                      : theme.trelloCustom.COLOR_49454E,
-                  cursor: "pointer",
-                }}
-                id="basic-column-dropdown"
-                aria-controls={open ? "basic-menu-column-dropdown" : undefined}
-                aria-haspopup="true"
-                aria-expanded={open ? "true" : undefined}
-                onClick={handleClick}
-              />
-            </Tooltip>
-
-            <Menu
-              id="basic-menu-column-dropdown"
-              anchorEl={anchorEl}
-              open={open}
-              onClose={handleClose}
-              onClick={handleClose}
-              MenuListProps={{
-                "aria-labelledby": "basic-column-dropdown",
-              }}
-              sx={{
-                "& .MuiPaper-root": {
-                  borderRadius: "8px",
-                },
-                "& .MuiMenu-list": {
-                  "& .MuiMenuItem-root": {
-                    borderRadius: "6px",
-                  },
-                  paddingLeft: "6px",
-                  paddingRight: "6px",
-                },
               }}
             >
-              {/* <MenuItem
+              {column?.title}
+            </Box>
+          )}
+
+          {/* more options */}
+          {roleOfBoard != "member" && (
+            <Box data-no-dnd="true">
+              <Tooltip title="More options">
+                <MoreHorizIcon
+                  sx={{
+                    mt: 0.5,
+                    color: (theme) =>
+                      theme.palette.mode === "dark"
+                        ? theme.trelloCustom.COLOR_D7D7D7
+                        : theme.trelloCustom.COLOR_49454E,
+                    cursor: "pointer",
+                  }}
+                  id="basic-column-dropdown"
+                  aria-controls={
+                    open ? "basic-menu-column-dropdown" : undefined
+                  }
+                  aria-haspopup="true"
+                  aria-expanded={open ? "true" : undefined}
+                  onClick={handleClick}
+                />
+              </Tooltip>
+
+              <Menu
+                id="basic-menu-column-dropdown"
+                anchorEl={anchorEl}
+                open={open}
+                onClose={handleClose}
+                onClick={handleClose}
+                MenuListProps={{
+                  "aria-labelledby": "basic-column-dropdown",
+                }}
+                sx={{
+                  "& .MuiPaper-root": {
+                    borderRadius: "8px",
+                  },
+                  "& .MuiMenu-list": {
+                    "& .MuiMenuItem-root": {
+                      borderRadius: "6px",
+                    },
+                    paddingLeft: "6px",
+                    paddingRight: "6px",
+                  },
+                }}
+              >
+                {/* <MenuItem
                 onClick={() => handleRenameColumn()}
                 sx={{
                   "&:hover": {
@@ -605,63 +651,65 @@ function Column({
                 <ListItemText>Rename title</ListItemText>
               </MenuItem> */}
 
-              <MenuItem
-                onClick={() => {
-                  toggleOpenNewCardForm();
-                }}
-                sx={{
-                  "&:hover": {
-                    color: "success.light",
-                    "& .add-card-icon": {
+                <MenuItem
+                  onClick={() => {
+                    toggleOpenNewCardForm();
+                  }}
+                  sx={{
+                    "&:hover": {
                       color: "success.light",
+                      "& .add-card-icon": {
+                        color: "success.light",
+                      },
                     },
-                  },
-                }}
-              >
-                <ListItemIcon>
-                  <AddCardIcon className="add-card-icon" fontSize="small" />
-                </ListItemIcon>
-                {!openNewCardForm ? (
-                  <ListItemText>Add new card</ListItemText>
-                ) : (
-                  <ListItemText>Close Add new card</ListItemText>
-                )}
-              </MenuItem>
+                  }}
+                >
+                  <ListItemIcon>
+                    <AddCardIcon className="add-card-icon" fontSize="small" />
+                  </ListItemIcon>
+                  {!openNewCardForm ? (
+                    <ListItemText>Add new card</ListItemText>
+                  ) : (
+                    <ListItemText>Close Add new card</ListItemText>
+                  )}
+                </MenuItem>
 
-              <Divider />
+                <Divider />
 
-              <MenuItem
-                onClick={handleDeleteColumn}
-                sx={{
-                  "&:hover": {
-                    color: "warning.dark",
-                    "& .delete-forever-icon": {
+                <MenuItem
+                  onClick={handleDeleteColumn}
+                  sx={{
+                    "&:hover": {
                       color: "warning.dark",
+                      "& .delete-forever-icon": {
+                        color: "warning.dark",
+                      },
                     },
-                  },
-                }}
-              >
-                <ListItemIcon>
-                  <DeleteForeverIcon
-                    className="delete-forever-icon"
-                    fontSize="small"
-                  />
-                </ListItemIcon>
-                <ListItemText>Remove column</ListItemText>
-              </MenuItem>
+                  }}
+                >
+                  <ListItemIcon>
+                    <DeleteForeverIcon
+                      className="delete-forever-icon"
+                      fontSize="small"
+                    />
+                  </ListItemIcon>
+                  <ListItemText>Remove column</ListItemText>
+                </MenuItem>
 
-              {/* <MenuItem onClick={handleClose}>
+                {/* <MenuItem onClick={handleClose}>
                 <ListItemIcon>
                   <Cloud fontSize="small" />
                 </ListItemIcon>
                 <ListItemText>Archive this column</ListItemText>
               </MenuItem> */}
-            </Menu>
-          </Box>
+              </Menu>
+            </Box>
+          )}
         </Box>
 
         {/* list card */}
         <ListCards
+          roleOfBoard={roleOfBoard}
           column={column}
           cards={orderedCards}
           deleteCardDetails={deleteCardDetails}
@@ -670,242 +718,250 @@ function Column({
         />
 
         {/* footer of column */}
-        <Box
-          sx={{
-            pl: 1.65,
-            pr: 1.65,
-          }}
-        >
-          {!openNewCardForm ? (
-            <Box
-              sx={{
-                height: (theme) => theme.trelloCustom.columnFooterHeightActive,
-                display: "flex",
-                // alignItems: "center",
-                justifyContent: "center",
-                pt: 0.5,
-              }}
-            >
-              <Button
-                sx={{
-                  width: "100%",
-                  height: (theme) =>
-                    `calc(${theme.trelloCustom.columnFooterHeightActive} - 15px)`,
-                  fontSize: "0.8rem",
-                  fontWeight: "bold",
-                  color: (theme) =>
-                    theme.palette.mode === "dark"
-                      ? theme.trelloCustom.COLOR_818181
-                      : theme.trelloCustom.COLOR_7115BA,
-                  border: "2px solid",
-                  borderColor: (theme) =>
-                    theme.palette.mode === "dark"
-                      ? theme.trelloCustom.COLOR_565656
-                      : theme.trelloCustom.COLOR_C985FF,
-                  "&:hover": {
-                    borderColor: "transparent",
-                    color: (theme) =>
-                      theme.palette.mode === "dark"
-                        ? theme.trelloCustom.COLOR_B5BEC7
-                        : theme.trelloCustom.COLOR_EBD2FF,
-                    bgcolor: (theme) =>
-                      theme.palette.mode === "dark"
-                        ? ""
-                        : theme.trelloCustom.COLOR_7115BA,
-                  },
-                }}
-                startIcon={<AddIcon />}
-                onClick={toggleOpenNewCardForm}
-              >
-                Add new card
-              </Button>
-            </Box>
-          ) : (
-            <Box
-              sx={{
-                display: "flex",
-                mt: 1,
-              }}
-            >
+        {roleOfBoard != "member" ? (
+          <Box
+            sx={{
+              pl: 1.65,
+              pr: 1.65,
+            }}
+          >
+            {!openNewCardForm ? (
               <Box
                 sx={{
-                  width: "100%",
+                  height: (theme) =>
+                    theme.trelloCustom.columnFooterHeightActive,
                   display: "flex",
-                  flexDirection: "column",
-                  gap: 1,
-                  pb: 1.25,
-                  borderRadius: "6px",
-                  height: "fit-content",
+                  justifyContent: "center",
+                  pt: 0.75,
                 }}
               >
-                <TextField
-                  ref={inputNewCardTitleRef}
-                  label="Enter title of card"
-                  type="text"
-                  size="small"
-                  variant="outlined"
-                  autoFocus
-                  value={newCardTitle}
-                  onChange={(e) => setNewCardTitle(e.target.value)}
-                  onKeyDown={(ev) => {
-                    if (ev.key === "Enter") {
-                      // Do code here
-                      ev.preventDefault();
-
-                      addNewCard();
-                    }
-                  }}
-                  InputProps={{
-                    endAdornment: (
-                      <CloseIcon
-                        fontSize="small"
-                        sx={{
-                          color: newCardTitle
-                            ? (theme) =>
-                                theme.palette.mode === "dark"
-                                  ? "white"
-                                  : theme.trelloCustom.COLOR_818181
-                            : "transparent",
-                          cursor: newCardTitle ? "pointer" : "text",
-                        }}
-                        onClick={() => {
-                          if (!newCardTitle) {
-                            inputNewCardTitleRef.current.children[1].children[0].focus();
-                          } else {
-                            setNewCardTitle("");
-
-                            inputNewCardTitleRef.current.children[1].children[0].focus();
-                          }
-                        }}
-                      />
-                    ),
-                  }}
+                <Button
                   sx={{
-                    // label 'Search'
-                    "& label": {
+                    width: "100%",
+                    height: (theme) =>
+                      `calc(${theme.trelloCustom.columnFooterHeightActive} - 15px)`,
+                    fontSize: "0.8rem",
+                    fontWeight: "bold",
+                    color: (theme) =>
+                      theme.palette.mode === "dark"
+                        ? theme.trelloCustom.COLOR_818181
+                        : theme.trelloCustom.COLOR_7115BA,
+                    border: "2px solid",
+                    borderColor: (theme) =>
+                      theme.palette.mode === "dark"
+                        ? theme.trelloCustom.COLOR_565656
+                        : theme.trelloCustom.COLOR_C985FF,
+                    "&:hover": {
+                      borderColor: "transparent",
                       color: (theme) =>
                         theme.palette.mode === "dark"
-                          ? theme.trelloCustom.COLOR_D7D7D7
-                          : "black",
-                    },
-                    "& input": {
-                      fontSize: "1rem",
-                      color: (theme) =>
-                        theme.palette.mode === "dark" ? "white" : "black",
-                    },
-                    "& label.Mui-focused": {
-                      color: (theme) =>
+                          ? theme.trelloCustom.COLOR_B5BEC7
+                          : theme.trelloCustom.COLOR_EBD2FF,
+                      bgcolor: (theme) =>
                         theme.palette.mode === "dark"
-                          ? theme.trelloCustom.COLOR_D7D7D7
-                          : "black",
-                    },
-
-                    // border outline
-                    "& .MuiOutlinedInput-root": {
-                      "& fieldset": {
-                        borderWidth: "2px",
-                        borderColor: (theme) =>
-                          theme.palette.mode === "dark"
-                            ? theme.trelloCustom.COLOR_D7D7D7
-                            : theme.trelloCustom.COLOR_818181,
-                      },
-                      "&:hover fieldset": {
-                        borderColor: (theme) =>
-                          theme.palette.mode === "dark"
-                            ? theme.trelloCustom.COLOR_D7D7D7
-                            : theme.trelloCustom.COLOR_818181,
-                      },
-                      "&.Mui-focused fieldset": {
-                        borderColor: (theme) =>
-                          theme.palette.mode === "dark"
-                            ? theme.trelloCustom.COLOR_D7D7D7
-                            : theme.trelloCustom.COLOR_818181,
-                      },
+                          ? ""
+                          : theme.trelloCustom.COLOR_7115BA,
                     },
                   }}
-                />
-
+                  startIcon={<AddIcon />}
+                  onClick={toggleOpenNewCardForm}
+                >
+                  Add new card
+                </Button>
+              </Box>
+            ) : (
+              <Box
+                sx={{
+                  display: "flex",
+                  mt: 1,
+                }}
+              >
                 <Box
                   sx={{
-                    mt: 0.25,
+                    width: "100%",
                     display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
+                    flexDirection: "column",
+                    gap: 1,
+                    pb: 1.25,
+                    borderRadius: "6px",
+                    height: "fit-content",
                   }}
                 >
-                  <Button
-                    variant="contained"
-                    size="medium"
+                  <TextField
+                    ref={inputNewCardTitleRef}
+                    label="Enter title of card"
+                    type="text"
+                    size="small"
+                    variant="outlined"
+                    autoFocus
+                    value={newCardTitle}
+                    onChange={(e) => setNewCardTitle(e.target.value)}
+                    onKeyDown={(ev) => {
+                      if (ev.key === "Enter") {
+                        // Do code here
+                        ev.preventDefault();
+
+                        addNewCard();
+                      }
+                    }}
+                    InputProps={{
+                      endAdornment: (
+                        <CloseIcon
+                          fontSize="small"
+                          sx={{
+                            color: newCardTitle
+                              ? (theme) =>
+                                  theme.palette.mode === "dark"
+                                    ? "white"
+                                    : theme.trelloCustom.COLOR_818181
+                              : "transparent",
+                            cursor: newCardTitle ? "pointer" : "text",
+                          }}
+                          onClick={() => {
+                            if (!newCardTitle) {
+                              inputNewCardTitleRef.current.children[1].children[0].focus();
+                            } else {
+                              setNewCardTitle("");
+
+                              inputNewCardTitleRef.current.children[1].children[0].focus();
+                            }
+                          }}
+                        />
+                      ),
+                    }}
                     sx={{
-                      width: "calc(150px - 30px)",
-                      pl: 2.5,
-                      pr: 2.5,
-                      pt: 0.25,
-                      pb: 0.25,
-                      fontSize: "1rem",
-                      fontWeight: "bold",
-                      borderRadius: "20px",
-                      color: (theme) => theme.trelloCustom.COLOR_49454E,
-                      bgcolor: (theme) => theme.trelloCustom.COLOR_D7D7D7,
-                      boxShadow: (theme) =>
-                        theme.palette.mode === "dark"
-                          ? "none"
-                          : `0px 2px 10px ${theme.trelloCustom.COLOR_DDDDDD}`,
-                      "&:hover": {
-                        color: (theme) => theme.trelloCustom.COLOR_D7D7D7,
-                        bgcolor: (theme) => theme.trelloCustom.COLOR_818181,
+                      // label 'Search'
+                      "& label": {
+                        color: (theme) =>
+                          theme.palette.mode === "dark"
+                            ? theme.trelloCustom.COLOR_D7D7D7
+                            : "black",
+                      },
+                      "& input": {
+                        fontSize: "1rem",
+                        color: (theme) =>
+                          theme.palette.mode === "dark" ? "white" : "black",
+                      },
+                      "& label.Mui-focused": {
+                        color: (theme) =>
+                          theme.palette.mode === "dark"
+                            ? theme.trelloCustom.COLOR_D7D7D7
+                            : "black",
+                      },
+
+                      // border outline
+                      "& .MuiOutlinedInput-root": {
+                        "& fieldset": {
+                          borderWidth: "2px",
+                          borderColor: (theme) =>
+                            theme.palette.mode === "dark"
+                              ? theme.trelloCustom.COLOR_D7D7D7
+                              : theme.trelloCustom.COLOR_818181,
+                        },
+                        "&:hover fieldset": {
+                          borderColor: (theme) =>
+                            theme.palette.mode === "dark"
+                              ? theme.trelloCustom.COLOR_D7D7D7
+                              : theme.trelloCustom.COLOR_818181,
+                        },
+                        "&.Mui-focused fieldset": {
+                          borderColor: (theme) =>
+                            theme.palette.mode === "dark"
+                              ? theme.trelloCustom.COLOR_D7D7D7
+                              : theme.trelloCustom.COLOR_818181,
+                        },
+                      },
+                    }}
+                  />
+
+                  <Box
+                    sx={{
+                      mt: 0.25,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <Button
+                      variant="contained"
+                      size="medium"
+                      sx={{
+                        width: "calc(150px - 30px)",
+                        pl: 2.5,
+                        pr: 2.5,
+                        pt: 0.25,
+                        pb: 0.25,
+                        fontSize: "1rem",
+                        fontWeight: "bold",
+                        borderRadius: "20px",
+                        color: (theme) => theme.trelloCustom.COLOR_49454E,
+                        bgcolor: (theme) => theme.trelloCustom.COLOR_D7D7D7,
                         boxShadow: (theme) =>
                           theme.palette.mode === "dark"
                             ? "none"
                             : `0px 2px 10px ${theme.trelloCustom.COLOR_DDDDDD}`,
-                      },
-                    }}
-                    onClick={toggleOpenNewCardForm}
-                  >
-                    Cancel
-                  </Button>
+                        "&:hover": {
+                          color: (theme) => theme.trelloCustom.COLOR_D7D7D7,
+                          bgcolor: (theme) => theme.trelloCustom.COLOR_818181,
+                          boxShadow: (theme) =>
+                            theme.palette.mode === "dark"
+                              ? "none"
+                              : `0px 2px 10px ${theme.trelloCustom.COLOR_DDDDDD}`,
+                        },
+                      }}
+                      onClick={toggleOpenNewCardForm}
+                    >
+                      Cancel
+                    </Button>
 
-                  <Button
-                    variant="contained"
-                    size="medium"
-                    sx={{
-                      width: "calc(150px - 30px)",
-                      pl: 2.5,
-                      pr: 2.5,
-                      pt: 0.25,
-                      pb: 0.25,
-                      fontSize: "1rem",
-                      fontWeight: "bold",
-                      borderRadius: "20px",
-                      color: (theme) =>
-                        theme.palette.mode === "dark"
-                          ? theme.trelloCustom.COLOR_7115BA
-                          : theme.trelloCustom.COLOR_7115BA,
-                      bgcolor: (theme) => theme.trelloCustom.COLOR_C985FF,
-                      borderColor: (theme) =>
-                        theme.palette.mode === "dark" ? "#555555" : "#1b71a7",
-                      boxShadow: (theme) =>
-                        theme.palette.mode === "dark"
-                          ? "none"
-                          : `0px 2px 10px ${theme.trelloCustom.COLOR_C78FFF}`,
-                      "&:hover": {
-                        color: "white",
-                        bgcolor: (theme) => theme.trelloCustom.COLOR_8C25DE,
+                    <Button
+                      variant="contained"
+                      size="medium"
+                      sx={{
+                        width: "calc(150px - 30px)",
+                        pl: 2.5,
+                        pr: 2.5,
+                        pt: 0.25,
+                        pb: 0.25,
+                        fontSize: "1rem",
+                        fontWeight: "bold",
+                        borderRadius: "20px",
+                        color: (theme) =>
+                          theme.palette.mode === "dark"
+                            ? theme.trelloCustom.COLOR_7115BA
+                            : theme.trelloCustom.COLOR_7115BA,
+                        bgcolor: (theme) => theme.trelloCustom.COLOR_C985FF,
+                        borderColor: (theme) =>
+                          theme.palette.mode === "dark" ? "#555555" : "#1b71a7",
                         boxShadow: (theme) =>
                           theme.palette.mode === "dark"
                             ? "none"
                             : `0px 2px 10px ${theme.trelloCustom.COLOR_C78FFF}`,
-                      },
-                    }}
-                    onClick={addNewCard}
-                  >
-                    Add
-                  </Button>
+                        "&:hover": {
+                          color: "white",
+                          bgcolor: (theme) => theme.trelloCustom.COLOR_8C25DE,
+                          boxShadow: (theme) =>
+                            theme.palette.mode === "dark"
+                              ? "none"
+                              : `0px 2px 10px ${theme.trelloCustom.COLOR_C78FFF}`,
+                        },
+                      }}
+                      onClick={addNewCard}
+                    >
+                      Add
+                    </Button>
+                  </Box>
                 </Box>
               </Box>
-            </Box>
-          )}
-        </Box>
+            )}
+          </Box>
+        ) : (
+          <Box
+            sx={{
+              pb: 0.5,
+            }}
+          ></Box>
+        )}
       </Box>
     </div>
   );
