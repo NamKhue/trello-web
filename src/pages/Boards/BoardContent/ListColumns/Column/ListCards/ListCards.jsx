@@ -12,7 +12,6 @@ function ListCards({
   column,
   cards,
   deleteCardDetails,
-  // openModalDetailsCard,
 
   handleCardClick,
 }) {
@@ -34,12 +33,19 @@ function ListCards({
           gap: 1,
           overflowX: "hidden",
           overflowY: "auto",
-          maxHeight: (theme) => `calc(
-          ${theme.trelloCustom.boardContentHeight} - 
-          ${theme.spacing(5)} - 
-          ${theme.trelloCustom.columnHeaderHeight} - 
-          ${theme.trelloCustom.columnFooterHeightActive}
-        )`,
+          maxHeight: (theme) =>
+            roleOfBoard !== "member"
+              ? `calc(
+              ${theme.trelloCustom.boardContentHeight} - 
+              ${theme.spacing(5)} - 
+              ${theme.trelloCustom.columnHeaderHeight} - 
+              ${theme.trelloCustom.columnFooterHeightActive}
+            )`
+              : `calc(
+              ${theme.trelloCustom.boardContentHeight} - 
+              ${theme.spacing(5)} - 
+              ${theme.trelloCustom.columnHeaderHeight}
+            )`,
 
           "&::-webkit-scrollbar": {
             width: "4px",
@@ -60,15 +66,14 @@ function ListCards({
           <Card
             key={card._id}
             roleOfBoard={roleOfBoard}
-            onClick={() => {
-              console.log("fsdf");
-              handleCardClick(card);
-            }}
+            // onClick={() => {
+            //   console.log("fsdf");
+            //   handleCardClick(card);
+            // }}
             column={column}
             cards={cards}
             card={card}
             deleteCardDetails={deleteCardDetails}
-            // openModalDetailsCard={openModalDetailsCard}
             handleCardClick={handleCardClick}
           />
         ))}

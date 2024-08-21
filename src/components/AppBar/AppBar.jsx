@@ -1,28 +1,25 @@
-import { useRef, useState } from "react";
+// import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 
-// import Button from "@mui/material/Button";
-import TextField from "@mui/material/TextField";
 import Box from "@mui/material/Box";
-import Badge from "@mui/material/Badge";
-import Tooltip from "@mui/material/Tooltip";
+// import TextField from "@mui/material/TextField";
+// import Button from "@mui/material/Button";
 
 // import AppsIcon from "@mui/icons-material/Apps";
 // import SvgIcon from "@mui/material/SvgIcon";
 // import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 // import AddBoxIcon from "@mui/icons-material/AddBox";
-import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
-import CloseIcon from "@mui/icons-material/Close";
-import SearchIcon from "@mui/icons-material/Search";
+// import CloseIcon from "@mui/icons-material/Close";
+// import SearchIcon from "@mui/icons-material/Search";
 
 // import Workspaces from "./Menus/Workspaces";
 // import Recent from "./Menus/Recent";
 import Profiles from "./Menus/Profiles";
-// import SwitchLightDarkMode from "~/components/SwitchLightDarkMode/SwitchLightDarkMode";
+import Notification from "./Notification";
 
 function AppBar() {
-  const [searchValue, setSearchValue] = useState("");
-  const inputRef = useRef(null);
+  // const [searchValue, setSearchValue] = useState("");
+  // const inputRef = useRef(null);
 
   return (
     <Box
@@ -45,13 +42,12 @@ function AppBar() {
       {/* left side */}
       <Box
         sx={{
-          width: "180px",
+          width: "90px",
           display: "flex",
           alignItems: "center",
           gap: 2,
         }}
       >
-        {/* <AppsIcon /> */}
         <Link
           to="/"
           style={{
@@ -71,41 +67,6 @@ function AppBar() {
             Meelo
           </Box>
         </Link>
-
-        {/* <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            gap: 1,
-          }}
-        ></Box> */}
-
-        {/* <Workspaces />
-        <Recent />
-        {/* <Box sx={{ display: { xs: "none", md: "flex" }, gap: 1 }}>
-          <Button
-            variant="outlined"
-            sx={{
-              color: (theme) =>
-                theme.palette.mode === "dark" ? "white" : "primary.main",
-              bgcolor: (theme) =>
-                theme.palette.mode === "dark" ? "#0b1723" : "white",
-              "&.MuiButton-outlined": {
-                borderColor: (theme) =>
-                  theme.palette.mode === "dark" ? "#cacaca" : "",
-                // borderWidth: '0.25px'
-              },
-              "&.MuiButton-outlined:hover": {
-                borderColor: (theme) =>
-                  theme.palette.mode === "dark" ? "white" : "",
-                // borderWidth: '2.5px'
-              },
-            }}
-          >
-            Create
-            <AddBoxIcon sx={{ ml: 1 }} />
-          </Button>
-        </Box> */}
       </Box>
 
       {/* between */}
@@ -219,28 +180,13 @@ function AppBar() {
       {/* right side */}
       <Box
         sx={{
-          width: "180px",
+          width: "90px",
           display: "flex",
           alignItems: "center",
-          gap: 2,
+          gap: 1,
         }}
       >
-        {/* <SwitchLightDarkMode /> */}
-
-        <Tooltip title="Notification">
-          <Badge
-            color="secondary"
-            variant="dot"
-            sx={{
-              cursor: "pointer",
-              "& .MuiBadge-badge": {
-                bgcolor: (theme) => theme.trelloCustom.COLOR_7852A9,
-              },
-            }}
-          >
-            <NotificationsNoneIcon />
-          </Badge>
-        </Tooltip>
+        <Notification />
 
         <Profiles />
       </Box>

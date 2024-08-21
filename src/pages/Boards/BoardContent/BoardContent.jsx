@@ -25,7 +25,6 @@ import Column from "./ListColumns/Column/Column";
 import Card from "./ListColumns/Column/ListCards/Card/Card";
 import { MouseSensor, TouchSensor } from "~/customLibs/DndKitSensors";
 import { generatePlaceholderCard } from "~/utils/formatters";
-import { toast } from "react-toastify";
 // import { mapOrder } from '~/utils/sorts'
 
 const ACTIVE_DRAG_ITEM_TYPE = {
@@ -38,17 +37,16 @@ const socket = io.connect("http://localhost:8017");
 function BoardContent({
   board,
   roleOfBoard,
-  // cards,
+
   createNewColumn,
   modifyColumn,
   deleteColumnDetails,
   moveColumns,
+
   moveCardInTheSameColumn,
   moveCardToDifferentColumn,
   createNewCard,
   deleteCardDetails,
-  // openModalDetailsCard,
-
   handleCardClick,
 }) {
   // const pointerSensor = useSensor(PointerSensor, {
@@ -97,7 +95,7 @@ function BoardContent({
 
   useEffect(() => {
     socket.on("update-board", (updatedBoard) => {
-      console.log("vao day");
+      // console.log("vao day");
       setOrderedColumns(updatedBoard.columns);
     });
 
@@ -270,8 +268,6 @@ function BoardContent({
       if (event?.active?.data?.current?.columnId) {
         setOldColumnWhenDraggingCard(findColumnByCardId(event?.active?.id));
       }
-    } else {
-      toast.error("Stop. You don't have enough permissions to do this action.");
     }
   };
 
@@ -609,14 +605,12 @@ function BoardContent({
         {/* box column */}
         <ListColumns
           roleOfBoard={roleOfBoard}
-          // cards={cards}
           columns={orderedColumns}
           createNewColumn={createNewColumn}
           modifyColumn={modifyColumn}
           deleteColumnDetails={deleteColumnDetails}
           createNewCard={createNewCard}
           deleteCardDetails={deleteCardDetails}
-          // openModalDetailsCard={openModalDetailsCard}
           handleCardClick={handleCardClick}
         />
 

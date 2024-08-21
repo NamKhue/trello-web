@@ -1,21 +1,21 @@
-import { useState } from "react";
-import { useColorScheme } from "@mui/material/styles";
+// import { useState } from "react";
+// import { useColorScheme } from "@mui/material/styles";
 
 import "./Switch.css";
 
-function Switch() {
-  const { mode, setMode } = useColorScheme();
+function Switch({ isLight, onToggle }) {
+  // const { mode, setMode } = useColorScheme();
 
-  const handleSwitchMode = (modeValue) => {
-    setMode(modeValue);
-  };
+  // const handleSwitchMode = (modeValue) => {
+  //   setMode(modeValue);
+  // };
 
-  const [isLight, setIsLight] = useState(mode === "dark" ? true : false);
+  // const [isLight, setIsLight] = useState(mode === "dark" ? true : false);
 
-  const onToggle = () => {
-    setIsLight(!isLight);
-    handleSwitchMode(!isLight ? "dark" : "light");
-  };
+  // const onToggle = () => {
+  //   setIsLight(!isLight);
+  //   handleSwitchMode(!isLight ? "dark" : "light");
+  // };
 
   return (
     <label className="toggle-switch">

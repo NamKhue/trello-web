@@ -1,8 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { useConfirm } from "material-ui-confirm";
 // import { useModal } from "mui-modal-provider";
-// import { toast } from "react-toastify";
 
 import Box from "@mui/material/Box";
 import { Card as MuiCard } from "@mui/material";
@@ -11,9 +10,6 @@ import CardMedia from "@mui/material/CardMedia";
 import Typography from "@mui/material/Typography";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
-// import CardActions from "@mui/material/CardActions";
-// import Button from "@mui/material/Button";
-// import TextField from "@mui/material/TextField";
 
 import { TbFileDescription } from "react-icons/tb";
 import { CgAttachment } from "react-icons/cg";
@@ -22,16 +18,64 @@ import { CiCalendar } from "react-icons/ci";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
+import { useAuth } from "~/hooks/useAuth";
+import socket from "~/utils/socket/socket";
+
 function Card({
   roleOfBoard,
   card,
-  // cards,
-  // column,
 
   deleteCardDetails,
-  // openModalDetailsCard,
   handleCardClick,
 }) {
+  // ============================================================================
+  const { loggedInUser } = useAuth();
+
+  // ============================================================================
+  const [userIsMemberOfCard, setUserIsMemberOfCard] = useState(false);
+
+  const checkUserIsMemberOfCard = (cardMembers) => {
+    const isMemberOfCard = cardMembers.some(
+      (member) => member.email === loggedInUser.email
+    );
+    setUserIsMemberOfCard(isMemberOfCard);
+  };
+
+  useEffect(() => {
+    if (card.members && loggedInUser) {
+      // const isMemberOfCard = card.members.some(
+      //   (member) => member.userId === loggedInUser._id
+      // );
+      // setUserIsMemberOfCard(isMemberOfCard);
+
+      checkUserIsMemberOfCard(card.members);
+    }
+  }, []);
+
+  // ============================================================================
+  useEffect(() => {
+    // add-user-into-card
+    socket.on("add-user-into-card", async (actorId, filteredMembers) => {
+      if (loggedInUser._id !== actorId) {
+        const newFilteredCardMembers = filteredMembers.filter(
+          (member) => member.cardInvited
+        );
+        checkUserIsMemberOfCard(newFilteredCardMembers);
+      }
+    });
+
+    // remove-user-from-card
+    socket.on("remove-user-from-card", (actorId, filteredMembers) => {
+      if (loggedInUser._id !== actorId) {
+        const newFilteredCardMembers = filteredMembers.filter(
+          (member) => member.cardInvited
+        );
+        checkUserIsMemberOfCard(newFilteredCardMembers);
+      }
+    });
+  }, []);
+
+  // ============================================================================
   // dnd kit
   const {
     attributes,
@@ -141,13 +185,19 @@ function Card({
 
   return (
     <div>
-      <div key={card} onContextMenu={handleContextMenu(card)}>
+      <div
+        key={card}
+        onContextMenu={
+          roleOfBoard != "member" || userIsMemberOfCard
+            ? handleContextMenu(card)
+            : null
+        }
+      >
         <MuiCard
           ref={setNodeRef}
           style={roleOfBoard != "member" ? dndKitCardStyles : null}
           {...attributes}
           {...listeners}
-          // onClick={() => openModalDetailsCard(column._id, card._id)}
           onClick={() => handleCardClick(card)}
           sx={{
             outline: "none",

@@ -5,7 +5,6 @@ import { CSS } from "@dnd-kit/utilities";
 import { toast } from "react-toastify";
 import { useConfirm } from "material-ui-confirm";
 // import { useModal } from "mui-modal-provider";
-// import { io } from "socket.io-client";
 
 import Box from "@mui/material/Box";
 import Menu from "@mui/material/Menu";
@@ -30,7 +29,6 @@ import AddIcon from "@mui/icons-material/Add";
 import AddCardIcon from "@mui/icons-material/AddCard";
 import EditIcon from "@mui/icons-material/Edit";
 
-// import { updateColumnDetailsAPI } from "~/apis";
 // import { mapOrder } from '~/utils/sorts'
 
 import ListCards from "./ListCards/ListCards";
@@ -38,15 +36,13 @@ import ListCards from "./ListCards/ListCards";
 // { column }
 function Column({
   roleOfBoard,
-  // cards,
   column,
-  // columns,
-  createNewCard,
-  deleteColumnDetails,
-  modifyColumn,
-  deleteCardDetails,
-  // openModalDetailsCard,
 
+  modifyColumn,
+  deleteColumnDetails,
+
+  createNewCard,
+  deleteCardDetails,
   handleCardClick,
 }) {
   const [openNewCardForm, setOpenNewCardForm] = useState(false);
@@ -125,12 +121,16 @@ function Column({
       return;
     }
 
+    let formattedNewCardTitle = newCardTitle.trim();
+
     // check sự tồn tại/trùng lặp của dữ liệu thông tin đang được tạo
     // nếu tồn tại
-    if (!column.cards.map((card) => card.title).includes(newCardTitle)) {
+    if (
+      !column.cards.map((card) => card.title).includes(formattedNewCardTitle)
+    ) {
       // tạo dữ liệu Card để gọi API
       const newCardData = {
-        title: newCardTitle,
+        title: formattedNewCardTitle,
         columnId: column._id,
       };
 
@@ -713,7 +713,6 @@ function Column({
           column={column}
           cards={orderedCards}
           deleteCardDetails={deleteCardDetails}
-          // openModalDetailsCard={openModalDetailsCard}
           handleCardClick={handleCardClick}
         />
 
@@ -801,6 +800,7 @@ function Column({
                         // Do code here
                         ev.preventDefault();
 
+                        ev.target.value.trim();
                         addNewCard();
                       }
                     }}

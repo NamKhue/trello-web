@@ -69,7 +69,7 @@ const RichTextEditor = ({
             },
           }}
         >
-          Save
+          Accept
         </Box>
 
         <Box

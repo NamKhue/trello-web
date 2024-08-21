@@ -9,7 +9,7 @@ const ProtectedRoute = ({ children }) => {
   // console.log("bruh 1 ", auth.isAuthenticated);
 
   if (!auth.isAuthenticated) {
-    console.log("bruh 2 ", auth.isAuthenticated);
+    // console.log("bruh 2 ", auth.isAuthenticated);
 
     return <Navigate to="/login" />;
   }

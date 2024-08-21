@@ -131,21 +131,6 @@ export const fetchRoleOfBoardsAPI = async (boardId) => {
   return response.data;
 };
 
-// INVITE MEMBER
-export const inviteMemberAPI = async (invitation) => {
-  const authToken = localStorage.getItem("authToken");
-
-  const response = await axios.post(
-    `${API_ROOT_V1.BOARD_USER}/invite`,
-    invitation,
-    {
-      headers: { Authorization: `Bearer ${authToken}` },
-    }
-  );
-
-  return response.data;
-};
-
 // REMOVE MEMBER
 export const removeMemberAPI = async (removeData) => {
   const authToken = localStorage.getItem("authToken");
@@ -343,5 +328,182 @@ export const deleteCardDetailsAPI = async (cardId) => {
   return response.data;
 };
 
+// ADD USER INTO CARD
+export const addUserIntoCardAPI = async (cardId, assignee) => {
+  const authToken = localStorage.getItem("authToken");
+
+  const response = await axios.post(
+    `${API_ROOT_V1.CARD}/addUserIntoCard/${cardId}`,
+    assignee,
+    {
+      headers: { Authorization: `Bearer ${authToken}` },
+    }
+  );
+
+  return response.data;
+};
+
+// REMOVE USER INTO CARD
+export const removeUserFromCardAPI = async (cardId, assignee) => {
+  const authToken = localStorage.getItem("authToken");
+
+  const response = await axios.delete(
+    `${API_ROOT_V1.CARD}/removeUserFromCard/${cardId}`,
+    {
+      headers: { Authorization: `Bearer ${authToken}` },
+      params: {
+        assignee: assignee,
+      },
+    }
+  );
+
+  return response.data;
+};
+
 // ================================================================================================
 // ================================================================================================
+// INVITATION
+
+// INVITE MEMBER INTO BOARD
+export const inviteMemberAPI = async (invitation) => {
+  const authToken = localStorage.getItem("authToken");
+
+  const response = await axios.post(
+    `${API_ROOT_V1.INVITATION}/invite`,
+    invitation,
+    {
+      headers: { Authorization: `Bearer ${authToken}` },
+    }
+  );
+
+  return response.data;
+};
+
+// ACCEPT INVITATION
+export const acceptInvitationAPI = async (tokenInvitation) => {
+  const authToken = localStorage.getItem("authToken");
+
+  const response = await axios.post(
+    `${API_ROOT_V1.INVITATION}/accept-invitation`,
+    tokenInvitation,
+    {
+      headers: { Authorization: `Bearer ${authToken}` },
+      params: {
+        tokenInvitation: tokenInvitation,
+      },
+    }
+  );
+
+  return response.data;
+};
+
+// DECLINE INVITATION
+export const declineInvitationAPI = async (tokenInvitation) => {
+  const authToken = localStorage.getItem("authToken");
+
+  const response = await axios.post(
+    `${API_ROOT_V1.INVITATION}/decline-invitation`,
+    tokenInvitation,
+    {
+      headers: { Authorization: `Bearer ${authToken}` },
+      params: {
+        tokenInvitation: tokenInvitation,
+      },
+    }
+  );
+
+  return response.data;
+};
+
+// GET INVITATION'S DETAILS
+export const getInvitationAPI = async (invitationId) => {
+  const authToken = localStorage.getItem("authToken");
+
+  const response = await axios.get(
+    `${API_ROOT_V1.INVITATION}/${invitationId}`,
+    {
+      headers: { Authorization: `Bearer ${authToken}` },
+    }
+  );
+
+  return response.data;
+};
+
+// ================================================================================================
+// ================================================================================================
+// NOTIFICATION
+
+// GET LIST OF NOTIFICATIONS
+export const getListOfNotificationsAPI = async () => {
+  const authToken = localStorage.getItem("authToken");
+
+  const response = await axios.get(
+    `${API_ROOT_V1.NOTIFICATION}/list-notifications`,
+    {
+      headers: { Authorization: `Bearer ${authToken}` },
+    }
+  );
+
+  return response.data;
+};
+
+// MARK AS READ FOR SINGLE NOTI
+export const markAsReadSingleNotiAPI = async (notification) => {
+  const authToken = localStorage.getItem("authToken");
+
+  const response = await axios.post(
+    `${API_ROOT_V1.NOTIFICATION}/mark-as-read`,
+    notification,
+    {
+      headers: { Authorization: `Bearer ${authToken}` },
+    }
+  );
+
+  return response.data;
+};
+
+// MARK AS READ FOR WHOLE LIST OF NOTIFICATIONS
+export const markAllNotisAsReadAPI = async (userId) => {
+  const authToken = localStorage.getItem("authToken");
+
+  const response = await axios.post(
+    `${API_ROOT_V1.NOTIFICATION}/mark-all-as-read`,
+    userId,
+    {
+      headers: { Authorization: `Bearer ${authToken}` },
+      params: {
+        userId: userId,
+      },
+    }
+  );
+
+  return response.data;
+};
+
+// DELETE SINGLE NOTIFICATION
+export const removeNotificationAPI = async (notificationId) => {
+  const authToken = localStorage.getItem("authToken");
+
+  const response = await axios.delete(
+    `${API_ROOT_V1.NOTIFICATION}/remove-notification/${notificationId}`,
+    {
+      headers: { Authorization: `Bearer ${authToken}` },
+    }
+  );
+
+  return response.data;
+};
+
+// DELETE SINGLE NOTIFICATION
+export const removeAllNotificationsAPI = async () => {
+  const authToken = localStorage.getItem("authToken");
+
+  const response = await axios.delete(
+    `${API_ROOT_V1.NOTIFICATION}/remove-all-notifications`,
+    {
+      headers: { Authorization: `Bearer ${authToken}` },
+    }
+  );
+
+  return response.data;
+};
