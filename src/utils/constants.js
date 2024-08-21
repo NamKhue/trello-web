@@ -7,4 +7,6 @@ export const API_ROOT_V1 = {
   BOARD: `${API_ROOT}/v1/boards`,
   COLUMN: `${API_ROOT}/v1/columns`,
   CARD: `${API_ROOT}/v1/cards`,
+  INVITATION: `${API_ROOT}/v1/invitations`,
+  NOTIFICATION: `${API_ROOT}/v1/notifications`,
 };

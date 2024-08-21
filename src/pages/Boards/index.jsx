@@ -18,6 +18,7 @@ import FilterListIcon from "@mui/icons-material/FilterList";
 import AppBar from "~/components/AppBar/AppBar";
 
 import {
+  fetchBoardDetailsAPI,
   fetchAllBoardsAPI,
   fetchMyBoardsAPI,
   fetchOwnerBoardsAPI,
@@ -26,6 +27,8 @@ import {
 } from "~/apis";
 
 import { useAuth } from "~/hooks/useAuth";
+
+import socket from "~/utils/socket/socket";
 
 // ============================================================================
 //
@@ -47,16 +50,32 @@ const gapBetweenTopAndMiddleOfRightSide = "40px";
 const paginationHeight = "60px";
 const gapBetweenGridAndPagination = "20px";
 const gridListHeight = `calc(100vh - ${paddingTop} - ${paddingBottom} - ${appBarHeight} - ${topOfRightSideHeight} - ${gapBetweenTopAndMiddleOfRightSide} - ${paginationHeight})`;
+//
 // ============================================================================
 
 // ============================================================================
 function HomePage() {
   // ============================================================================
   const { loggedInUser } = useAuth();
-  // const [userDetails, setUserDetails] = useState(loggedInUser);
   // ============================================================================
   const navigate = useNavigate();
+
   // ============================================================================
+  // socket when any client access homepage - access the application
+  useEffect(() => {
+    if (loggedInUser) {
+      socket.emit("join", loggedInUser._id);
+    }
+  }, [loggedInUser]);
+
+  // ============================================================================
+  const [boards, setBoards] = useState([]);
+
+  const [allBoards, setAllBoards] = useState([]);
+  const [myBoards, setMyBoards] = useState([]);
+  const [ownerBoards, setOwnerBoards] = useState([]);
+  const [memberBoards, setMemberBoards] = useState([]);
+
   // ============================================================================
   const [loadedCount, setLoadedCount] = useState(0);
   // const [loading, setLoading] = useState(true);
@@ -73,9 +92,6 @@ function HomePage() {
 
         // first set boards be all boards with ALL ROLES
         setBoards(sortListViaCreatedOrUpdatedTime(board));
-
-        // setLoading(false);
-        // console.log("sdfsdf ", sortListViaCreatedOrUpdatedTime(board));
       });
 
       // set boards with ROLE `CREATOR`
@@ -97,14 +113,33 @@ function HomePage() {
   // ============================================================================
 
   // ============================================================================
+  useEffect(() => {
+    if (loggedInUser) {
+      // // fetch-deadline-notifications
+      // socket.emit("fetch-deadline-notifications", loggedInUser._id);
 
-  const [boards, setBoards] = useState([]);
+      // socket after accepting joining into new board
+      socket.on("add-new-board", async (boardId) => {
+        const newBoardToAdd = await fetchBoardDetailsAPI(boardId);
+        setBoards([newBoardToAdd, ...boards]);
+      });
 
-  const [allBoards, setAllBoards] = useState([]);
-  const [myBoards, setMyBoards] = useState([]);
-  const [ownerBoards, setOwnerBoards] = useState([]);
-  const [memberBoards, setMemberBoards] = useState([]);
+      // socket when the user is removed from board and the user is in home page
+      socket.on("remove-user", async (userId) => {
+        if (loggedInUser._id === userId && location.pathname == "/homepage") {
+          fetchAllBoardsAPI().then(async (board) => {
+            // set for all boards
+            setAllBoards(sortListViaCreatedOrUpdatedTime(board));
 
+            // first set boards be all boards with ALL ROLES
+            setBoards(sortListViaCreatedOrUpdatedTime(board));
+          });
+        }
+      });
+    }
+  }, [boards, loggedInUser]);
+
+  // ============================================================================
   const TYPE_OF_BOARDS = {
     ALL_BOARDS: "All boards",
     MY_BOARDS: "My boards",
@@ -112,6 +147,7 @@ function HomePage() {
     MEMBER_BOARDS: "Member boards",
   };
 
+  // ============================================================================
   const [boardTypeHomePage, setBoardTypeHomePage] = useState("All boards");
   const [page, setPage] = useState(1);
   const [columns, setColumns] = useState(4);
@@ -130,6 +166,7 @@ function HomePage() {
     page * itemsPerPage
   );
 
+  // ============================================================================
   const updateColumnsAndRows = (isRow) => {
     if (isRow) {
       // setRows(4);
@@ -172,6 +209,7 @@ function HomePage() {
 
   const [flagDoneFirstLoad, setFlagDoneFirstLoad] = useState(false);
 
+  // ============================================================================
   // update UI when responsive
   useEffect(() => {
     const handleResize = () => {
@@ -206,6 +244,7 @@ function HomePage() {
     flagDoneFirstLoad,
   ]);
 
+  // ============================================================================
   // sort boards based on updatedAt, with the most recent first
   useEffect(() => {
     if (flagShouldSortBoards) {
@@ -365,11 +404,23 @@ function HomePage() {
               <Box
                 onClick={() => handleChooseAllBoards()}
                 sx={{
+                  minWidth: {
+                    xs: "80px",
+                    sm: "120px",
+                    lg: "200px",
+                  },
                   height: "50px",
                   cursor: "pointer",
                   px: 3,
-                  display: "flex",
-                  alignItems: "center",
+                  // display: "flex",
+                  // alignItems: "center",
+
+                  display: "inline-block",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  lineHeight: "50px",
+
                   borderRadius: "4px",
                   color: (theme) =>
                     theme.palette.mode === "dark"
@@ -398,11 +449,23 @@ function HomePage() {
               <Box
                 onClick={() => handleChooseMyBoards()}
                 sx={{
+                  minWidth: {
+                    xs: "80px",
+                    sm: "120px",
+                    lg: "200px",
+                  },
                   height: "50px",
                   cursor: "pointer",
                   px: 3,
-                  display: "flex",
-                  alignItems: "center",
+                  // display: "flex",
+                  // alignItems: "center",
+
+                  display: "inline-block",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  lineHeight: "50px",
+
                   borderRadius: "4px",
                   color: (theme) =>
                     theme.palette.mode === "dark"
@@ -431,11 +494,23 @@ function HomePage() {
               <Box
                 onClick={() => handleChooseOwnerBoards()}
                 sx={{
+                  minWidth: {
+                    xs: "80px",
+                    sm: "120px",
+                    lg: "200px",
+                  },
                   height: "50px",
                   cursor: "pointer",
                   px: 3,
-                  display: "flex",
-                  alignItems: "center",
+                  // display: "flex",
+                  // alignItems: "center",
+
+                  display: "inline-block",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  lineHeight: "50px",
+
                   borderRadius: "4px",
                   color: (theme) =>
                     theme.palette.mode === "dark"
@@ -464,11 +539,23 @@ function HomePage() {
               <Box
                 onClick={() => handleChooseMemberBoards()}
                 sx={{
+                  minWidth: {
+                    xs: "80px",
+                    sm: "120px",
+                    lg: "200px",
+                  },
                   height: "50px",
                   cursor: "pointer",
                   px: 3,
-                  display: "flex",
-                  alignItems: "center",
+                  // display: "flex",
+                  // alignItems: "center",
+
+                  display: "inline-block",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  lineHeight: "50px",
+
                   borderRadius: "4px",
                   color: (theme) =>
                     theme.palette.mode === "dark"

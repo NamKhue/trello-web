@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { isEmpty } from "lodash";
 import { toast } from "react-toastify";
 import { useParams, useNavigate } from "react-router-dom";
-import { io } from "socket.io-client";
 
 import Container from "@mui/material/Container";
 import Box from "@mui/material/Box";
@@ -32,13 +31,15 @@ import {
   inviteMemberAPI,
   removeMemberAPI,
   changeRoleOfMemberAPI,
+  addUserIntoCardAPI,
+  removeUserFromCardAPI,
 } from "~/apis";
 
 import "../../assets/css/Card/Dropdown.css";
 
 import { useAuth } from "~/hooks/useAuth";
 
-const socket = io.connect("http://localhost:8017");
+import socket from "~/utils/socket/socket";
 
 function Board() {
   // ============================================================================
@@ -96,6 +97,29 @@ function Board() {
     }
   }, [boardLoadedCount, boardId, roleOfBoard, board, navigate]);
 
+  // ============================================================================
+  // socket when board is change
+  useEffect(() => {
+    if (boardId && loggedInUser) {
+      socket.emit("join", loggedInUser._id);
+
+      // fetch-deadline-notifications
+      // socket.emit("fetch-deadline-notifications", loggedInUser._id);
+
+      socket.emit("access-board", loggedInUser.username, boardId);
+
+      socket.on("update-board", (updatedBoard) => {
+        if (updatedBoard._id === boardId) {
+          setBoard(updatedBoard);
+        }
+      });
+    }
+
+    return () => {
+      socket.off("update-board");
+    };
+  }, [boardId, loggedInUser]);
+
   // load more other data
   useEffect(() => {
     if (loadedOtherDataCount < 1 && board != null) {
@@ -117,23 +141,65 @@ function Board() {
     }
   }, [loadedOtherDataCount, board]);
 
-  // ============================================================================
-  // socket when board is change
+  // ================================================================================================
   useEffect(() => {
-    if (loggedInUser) {
-      socket.emit("access-board", loggedInUser.username, boardId);
+    if (boardId) {
+      // socket when user accept the invitation
+      socket.on("add-new-user", async () => {
+        // load all members in board
+        fetchAllMembersAPI(boardId).then((res) => {
+          setAllMembersInBoard(res);
+        });
+      });
 
-      socket.on("update-board", (updatedBoard) => {
-        if (updatedBoard._id === boardId) {
-          setBoard(updatedBoard);
-        }
+      // socket when user is changed the role by owner or creator
+      socket.on("change-role-of-user", async () => {
+        // fetch again the user's role in current board
+        fetchRoleOfBoardsAPI(boardId).then((res) => {
+          setRoleOfBoard(res);
+        });
+
+        // fetch again the board's data
+        fetchBoardDetailsAPI(boardId)
+          .then((board) => {
+            // sắp xếp dữ liệu columns
+            board.columns = mapOrder(
+              board.columns,
+              board.columnOrderIds,
+              "_id"
+            );
+
+            board.columns.forEach((column) => {
+              // cần xử lý vấn đề kéo thả khi đưa vào 1 column rỗng
+              if (isEmpty(column.cards)) {
+                column.cards = [generatePlaceholderCard(column)];
+                column.cardOrderIds = [generatePlaceholderCard(column)._id];
+              } else {
+                // sắp xếp dữ liệu cards
+                column.cards = mapOrder(
+                  column.cards,
+                  column.cardOrderIds,
+                  "_id"
+                );
+              }
+            });
+
+            setBoard(board);
+          })
+          .catch((error) => {
+            toast.error(error.response.data.message);
+            navigate("/homepage");
+          });
+      });
+
+      socket.on("remove-user", async () => {
+        // load all members in board
+        fetchAllMembersAPI(boardId).then((res) => {
+          setAllMembersInBoard(res);
+        });
       });
     }
-
-    return () => {
-      socket.off("update-board");
-    };
-  }, [boardId, loggedInUser]);
+  }, [allMembersInBoard, boardId, navigate]);
 
   // ============================================================================
   // remove no need properties
@@ -169,6 +235,7 @@ function Board() {
 
       setBoard(newBoard);
       socket.emit("update-board", board._id, newBoard);
+      // socket.emit("update-board", newBoard);
     } catch (error) {
       if (
         error.response &&
@@ -196,6 +263,7 @@ function Board() {
 
     setBoard(newBoard);
     socket.emit("update-board", board._id, newBoard);
+    // socket.emit("update-board", newBoard);
 
     try {
       const res = await updateColumnDetailsAPI(columnId, newDataOfColumn);
@@ -223,6 +291,7 @@ function Board() {
 
     setBoard(newBoard);
     socket.emit("update-board", board._id, newBoard);
+    // socket.emit("update-board", newBoard);
 
     // call api
     updateBoardDetailsAPI(board._id, newBoard).then((res) => {
@@ -270,6 +339,7 @@ function Board() {
 
     setBoard(newBoard);
     socket.emit("update-board", board._id, newBoard);
+    // socket.emit("update-board", newBoard);
   };
 
   // ============================================================================
@@ -284,6 +354,7 @@ function Board() {
 
     setBoard(newBoard);
     socket.emit("update-board", board._id, newBoard);
+    // socket.emit("update-board", newBoard);
 
     // gọi API update Board
     updateBoardDetailsAPI(newBoard._id, {
@@ -314,6 +385,7 @@ function Board() {
 
     setBoard(newBoard);
     socket.emit("update-board", board._id, newBoard);
+    // socket.emit("update-board", newBoard);
 
     // gọi API update Board
     updateColumnDetailsAPI(columnId, {
@@ -341,6 +413,7 @@ function Board() {
 
     setBoard(newBoard);
     socket.emit("update-board", board._id, newBoard);
+    // socket.emit("update-board", newBoard);
 
     // gọi API để xử lý data
     let prevCardOrderIds = dndOrderedColumns.find(
@@ -388,22 +461,23 @@ function Board() {
     // cập nhật state của board
     const newBoard = { ...board };
 
-    console.log("newBoard ", newBoard);
+    // console.log("newBoard ", newBoard);
 
     newBoard.columns = newBoard.columns.filter((col) => col._id !== columnId);
     newBoard.columnOrderIds = newBoard.columnOrderIds.filter(
       (_id) => _id !== columnId
     );
 
-    console.log("newBoard ", newBoard);
+    // console.log("newBoard ", newBoard);
 
     setBoard(newBoard);
     socket.emit("update-board", board._id, newBoard);
+    // socket.emit("update-board", newBoard);
 
     // call api xử lý data
     deleteColumnDetailsAPI(columnId).then((res) => {
       // có thể đặt trong interceptors
-      toast.success(res?.deleteResult);
+      toast.success(res?.deleteColumnResult);
     });
   };
 
@@ -436,11 +510,18 @@ function Board() {
 
     setBoard(newBoard);
     socket.emit("update-board", board._id, newBoard);
+    // socket.emit("update-board", newBoard);
 
     // call api xử lý data
     deleteCardDetailsAPI(cardId).then((res) => {
       // có thể đặt trong interceptors
-      toast.success(res?.deleteResult);
+      toast.success(res?.deleteCardResult);
+
+      //
+      socket.emit(
+        "list-notis-delete-card",
+        res?.listResponseDeleteCardNotificationForMembersInCard
+      );
     });
   };
 
@@ -466,9 +547,13 @@ function Board() {
 
       setBoard(newBoard);
       socket.emit("update-board", board._id, newBoard);
+      // socket.emit("update-board", newBoard);
 
       const res = await updateCardDetailsAPI(modifiedCard._id, modifiedCard);
       toast.success(res.modifyCardResult);
+
+      // notify to that user
+      socket.emit("update-card", loggedInUser._id, board._id, modifiedCard);
     } catch (error) {
       if (
         error.response &&
@@ -485,12 +570,17 @@ function Board() {
   };
 
   // ============================================================================
-  // invite other members into board
-  const inviteMember = async (invitation) => {
+  // invite other users into board
+  const inviteUserIntoBoard = async (invitation) => {
     try {
-      const res = await inviteMemberAPI(invitation);
+      const responseInviteMemberIntoBoard = await inviteMemberAPI(invitation);
+      toast.success(responseInviteMemberIntoBoard.inviteUserResult);
 
-      toast.success(res.inviteUserResult);
+      // notify to that user
+      socket.emit(
+        "notification",
+        responseInviteMemberIntoBoard.notiInviteUserIntoBoard
+      );
     } catch (error) {
       if (
         error.response &&
@@ -507,15 +597,21 @@ function Board() {
   };
 
   // ============================================================================
-  // invite other members into board
+  // remove member out of board
   const removeMemberOutOfBoard = async (userId) => {
     try {
-      const res = await removeMemberAPI({
+      const resRemoveMemberOutOfBoard = await removeMemberAPI({
         userId: userId,
         boardId: board._id,
       });
 
-      toast.success(res.removeUserResult);
+      toast.success(resRemoveMemberOutOfBoard.removeUserResult);
+
+      // notify to that user
+      socket.emit("notification", resRemoveMemberOutOfBoard.newNoti);
+
+      // notify to that user
+      socket.emit("remove-user", userId);
     } catch (error) {
       if (
         error.response &&
@@ -535,9 +631,117 @@ function Board() {
   // change the role of member in the board
   const changeRoleOfMember = async (roleChangeData) => {
     try {
-      const res = await changeRoleOfMemberAPI(roleChangeData);
+      const resChangeRoleOfMember = await changeRoleOfMemberAPI(roleChangeData);
+      // toast.success(resChangeRoleOfMember.changedRoleUserResult);
 
-      toast.success(res.upgradedRoleUserResult);
+      // notify to that user
+      socket.emit(
+        "notification",
+        resChangeRoleOfMember.notiChangedRoleOfMember
+      );
+
+      // notify to that user
+      socket.emit("change-role-of-user", roleChangeData.userId);
+    } catch (error) {
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.message
+      ) {
+        toast.error(error.response.data.message);
+        return error.response.data.message;
+      } else {
+        toast.error("An unexpected error occurred. Please try again.");
+        return "An unexpected error occurred. Please try again.";
+      }
+    }
+  };
+
+  // ============================================================================
+  // add member into card
+  const addMemberIntoCard = async (cardId, columnId, assignee) => {
+    try {
+      // cập nhật state của board
+      const newBoard = { ...board };
+
+      const columnToModifyCard = newBoard.columns.findIndex(
+        (col) => col._id === columnId
+      );
+
+      const cardToModify = newBoard.columns[columnToModifyCard].cards.findIndex(
+        (card) => card._id === cardId
+      );
+
+      newBoard.columns[columnToModifyCard].cards[cardToModify].members.push(
+        assignee
+      );
+
+      setBoard(newBoard);
+      socket.emit("update-board", newBoard._id, newBoard);
+
+      const responseAddUser = await addUserIntoCardAPI(cardId, assignee);
+      // toast.success(responseAddUser.addUserResult);
+
+      // console.log("🚀 ~ responseAddUser.newNoti:", responseAddUser.newNoti);
+
+      // // notify to that user
+      socket.emit("notification", responseAddUser.newNoti);
+    } catch (error) {
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.message
+      ) {
+        toast.error(error.response.data.message);
+        return error.response.data.message;
+      } else {
+        toast.error("An unexpected error occurred. Please try again.");
+        return "An unexpected error occurred. Please try again.";
+      }
+    }
+  };
+
+  // ============================================================================
+  // remove member into card
+  const removeMemberFromCard = async (
+    cardId,
+    columnId,
+    indexToRemove,
+    assignee
+  ) => {
+    try {
+      assignee = excludeProperties(assignee, ["joinedAt", "cardInvited"]);
+
+      // cập nhật state của board
+      const newBoard = { ...board };
+
+      const columnToModifyCard = newBoard.columns.findIndex(
+        (col) => col._id === columnId
+      );
+
+      const cardToModify = newBoard.columns[columnToModifyCard].cards.findIndex(
+        (card) => card._id === cardId
+      );
+
+      newBoard.columns[columnToModifyCard].cards[cardToModify].members.splice(
+        indexToRemove,
+        1
+      );
+
+      // notify about updating board
+      setBoard(newBoard);
+      socket.emit("update-board", boardId, newBoard);
+
+      const responseRemoverUser = await removeUserFromCardAPI(cardId, assignee);
+      // toast.success(responseRemoverUser.removeUserResult);
+
+      // console.log(
+      //   "🚀 ~ responseRemoverUser.newNoti:",
+      //   responseRemoverUser.newNoti
+      // );
+
+      // // notify to that user
+      socket.emit("notification", responseRemoverUser.newNoti);
     } catch (error) {
       if (
         error.response &&
@@ -623,7 +827,7 @@ function Board() {
         <Container disableGutters maxWidth={false} sx={{ height: "100vh" }}>
           {/* ============================================================================ */}
           {/* APP BAR */}
-          <AppBar />
+          <AppBar socket={socket} />
 
           {/* ============================================================================ */}
           {/* BOARD BAR */}
@@ -642,7 +846,7 @@ function Board() {
               roleOfBoard={roleOfBoard}
               allMembersInBoard={allMembersInBoard}
               modifyBoardDetails={modifyBoardDetails}
-              inviteMember={inviteMember}
+              inviteUserIntoBoard={inviteUserIntoBoard}
               removeMemberOutOfBoard={removeMemberOutOfBoard}
               changeRoleOfMember={changeRoleOfMember}
             />
@@ -670,11 +874,13 @@ function Board() {
           {/* MODAL CARD */}
           {popupModal && selectedCard && (
             <CardModal
+              onCloseModalCard={() => setPopupModalCard(false)}
               roleOfBoard={roleOfBoard}
               allMembersInBoard={allMembersInBoard}
               card={selectedCard}
               modifyCardDetails={modifyCardDetails}
-              onCloseModalCard={() => setPopupModalCard(false)}
+              addMemberIntoCard={addMemberIntoCard}
+              removeMemberFromCard={removeMemberFromCard}
             />
           )}
 

@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
 import Box from "@mui/material/Box";
@@ -18,6 +18,7 @@ import ClearIcon from "@mui/icons-material/Clear";
 import EmailIcon from "@mui/icons-material/Email";
 import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
 import PersonRemoveAlt1Icon from "@mui/icons-material/PersonRemoveAlt1";
+import CheckIcon from "@mui/icons-material/Check";
 
 // import { capitalizeFirstLetter } from "~/utils/formatters";
 
@@ -42,7 +43,7 @@ function BoardBar({
   allMembersInBoard,
   roleOfBoard,
   modifyBoardDetails,
-  inviteMember,
+  inviteUserIntoBoard,
   removeMemberOutOfBoard,
   changeRoleOfMember,
 }) {
@@ -96,6 +97,7 @@ function BoardBar({
   };
 
   const handleCloseModalInviteMember = () => {
+    setRecipientEmail("");
     setOpenModalInviteMember(false);
   };
 
@@ -115,9 +117,8 @@ function BoardBar({
         email: recipientEmail.trim(),
       };
 
-      inviteMember(invitation);
+      inviteUserIntoBoard(invitation);
 
-      setRecipientEmail("");
       handleCloseModalInviteMember();
     } else {
       toast.error("Please check the email again.");
@@ -142,6 +143,7 @@ function BoardBar({
   };
 
   const handleCloseModalMembersInBoard = () => {
+    setSearchQueryMembersInBoard("");
     setOpenModalMembersInBoard(false);
   };
 
@@ -188,35 +190,20 @@ function BoardBar({
 
   // ================================================================================================
   // CONTEXT MENU FOR UPGRADING THE ROLE OF MEMBER
+  const [currentMember, setCurrentMember] = useState(null);
+
   const [anchorEl, setAnchorEl] = useState(null);
-  const menuRef = useRef(null);
 
   // Open the menu
-  const handleOpenMenuChangingRoleOfMember = (event) => {
+  const handleOpenMenuChangingRoleOfMember = (event, member) => {
     setAnchorEl(event.currentTarget);
+    setCurrentMember(member);
   };
 
   // Close the menu
   const handleClose = () => {
     setAnchorEl(null);
   };
-
-  // Handle clicks outside of the menu
-  const handleClickOutside = (event) => {
-    if (menuRef.current && !menuRef.current.contains(event.target)) {
-      handleClose();
-    }
-  };
-
-  useEffect(() => {
-    // Add the event listener when the component mounts
-    document.addEventListener("mousedown", handleClickOutside);
-
-    // Clean up the event listener when the component unmounts
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
 
   //
   const handleChooseRoleTypeMemberForMember = (user) => {
@@ -225,6 +212,13 @@ function BoardBar({
       userId: user.userId,
       role: "member",
     };
+
+    const indexToModify = filteredMembers.findIndex(
+      (member) => member.userId == user.userId
+    );
+    filteredMembers[indexToModify].role = "member";
+
+    setFilteredMembers(filteredMembers);
 
     changeRoleOfMember(roleChangeData);
 
@@ -237,9 +231,12 @@ function BoardBar({
       userId: user.userId,
       role: "owner",
     };
-
+    const indexToModify = filteredMembers.findIndex(
+      (member) => member.userId == user.userId
+    );
+    filteredMembers[indexToModify].role = "owner";
+    setFilteredMembers(filteredMembers);
     changeRoleOfMember(roleChangeData);
-
     handleClose();
   };
 
@@ -809,7 +806,11 @@ function BoardBar({
                                 sx={{
                                   maxWidth:
                                     isHoveredUserBoardArea === user._id
-                                      ? "150px"
+                                      ? user.role.toLowerCase() === "creator"
+                                        ? "200px"
+                                        : roleOfBoard === "member"
+                                        ? "200px"
+                                        : "150px"
                                       : "200px",
                                   textOverflow: "ellipsis",
                                   whiteSpace: "nowrap",
@@ -827,7 +828,7 @@ function BoardBar({
                             </Tooltip>
                           </Box>
 
-                          {/* button info and remove  */}
+                          {/* button change the role of user and remove user */}
                           {isHoveredUserBoardArea === user._id &&
                             user.role != "creator" &&
                             roleOfBoard !== "member" && (
@@ -839,9 +840,19 @@ function BoardBar({
                                   gap: 0.5,
                                 }}
                               >
-                                <Tooltip title="Change the role of this user in board">
+                                <Tooltip
+                                  title="Change the role of this user in board"
+                                  sx={{
+                                    position: "relative",
+                                  }}
+                                >
                                   <Box
-                                    onClick={handleOpenMenuChangingRoleOfMember}
+                                    onClick={(e) =>
+                                      handleOpenMenuChangingRoleOfMember(
+                                        e,
+                                        user
+                                      )
+                                    }
                                     sx={{
                                       cursor: "pointer",
                                       px: 0.5,
@@ -898,33 +909,55 @@ function BoardBar({
                                     <PersonRemoveAlt1Icon />
                                   </Box>
                                 </Tooltip>
+
+                                {/* the menu to change the role of user */}
+                                {currentMember && (
+                                  <Menu
+                                    id="member-menu"
+                                    anchorEl={anchorEl}
+                                    open={Boolean(anchorEl)}
+                                    onClose={handleClose}
+                                    anchorOrigin={{
+                                      vertical: "bottom",
+                                      horizontal: "left",
+                                    }}
+                                    transformOrigin={{
+                                      vertical: "top",
+                                      horizontal: "left",
+                                    }}
+                                  >
+                                    <MenuItem
+                                      onClick={() =>
+                                        handleChooseRoleTypeOwnerForMember(
+                                          currentMember
+                                        )
+                                      }
+                                    >
+                                      Owner
+                                      {currentMember.role.toLowerCase() ===
+                                        "owner" && (
+                                        <CheckIcon sx={{ ml: 1.5 }} />
+                                      )}
+                                    </MenuItem>
+                                    <MenuItem
+                                      onClick={() =>
+                                        handleChooseRoleTypeMemberForMember(
+                                          currentMember
+                                        )
+                                      }
+                                    >
+                                      Member
+                                      {currentMember.role.toLowerCase() ===
+                                        "member" && (
+                                        <CheckIcon sx={{ ml: 1.5 }} />
+                                      )}
+                                    </MenuItem>
+                                  </Menu>
+                                )}
                               </Box>
                             )}
                         </Box>
                       </Box>
-
-                      <Menu
-                        id="menu"
-                        anchorEl={anchorEl}
-                        open={Boolean(anchorEl)}
-                        onClose={handleClose}
-                        ref={menuRef}
-                      >
-                        <MenuItem
-                          onClick={() =>
-                            handleChooseRoleTypeOwnerForMember(user)
-                          }
-                        >
-                          Owner
-                        </MenuItem>
-                        <MenuItem
-                          onClick={() =>
-                            handleChooseRoleTypeMemberForMember(user)
-                          }
-                        >
-                          Member
-                        </MenuItem>
-                      </Menu>
                     </Box>
                   ))}
                 </Box>

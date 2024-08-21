@@ -1,16 +1,7 @@
-import Box from "@mui/material/Box";
-import MoonIcon from "./icons/MoonIcon";
-import SunIcon from "./icons/SunIcon";
 import Switch from "./Switch";
 
 function SwitchLightDarkMode() {
-  return (
-    <Box sx={{ display: "flex", gap: 0.75 }}>
-      <SunIcon />
-      <Switch />
-      <MoonIcon />
-    </Box>
-  );
+  return <Switch />;
 }
 
 export default SwitchLightDarkMode;

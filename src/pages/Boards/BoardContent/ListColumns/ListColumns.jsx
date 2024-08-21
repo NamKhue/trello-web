@@ -16,15 +16,14 @@ import Column from "./Column/Column";
 
 function ListColumns({
   roleOfBoard,
-  // cards,
   columns,
+
   createNewColumn,
   modifyColumn,
   deleteColumnDetails,
+
   createNewCard,
   deleteCardDetails,
-  // openModalDetailsCard,
-
   handleCardClick,
 }) {
   const [loading, setLoading] = useState(true);
@@ -107,14 +106,12 @@ function ListColumns({
               <Column
                 key={column._id}
                 roleOfBoard={roleOfBoard}
-                // cards={cards.filter((card) => card.columnId == column._id)}
                 columns={columns}
                 column={column}
                 modifyColumn={modifyColumn}
                 deleteColumnDetails={deleteColumnDetails}
                 createNewCard={createNewCard}
                 deleteCardDetails={deleteCardDetails}
-                // openModalDetailsCard={openModalDetailsCard}
                 handleCardClick={handleCardClick}
               />
             ))}
