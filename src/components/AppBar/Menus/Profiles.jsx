@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 
 import Box from "@mui/material/Box";
@@ -16,12 +16,13 @@ import MoonIcon from "~/components/SwitchLightDarkMode/icons/MoonIcon";
 import SunIcon from "~/components/SwitchLightDarkMode/icons/SunIcon";
 import Switch from "~/components/SwitchLightDarkMode/Switch";
 
-import { useColorScheme } from "@mui/material/styles";
 import { useAuth } from "~/hooks/useAuth";
+import { ThemeContext } from "~/contexts/ThemeContext";
 
 function Profiles() {
   // =================================================================
-  const { mode, setMode } = useColorScheme();
+  // const { mode, setMode } = useColorScheme();
+  const { mode, setMode } = useContext(ThemeContext);
 
   const [modeTheme, setModeTheme] = useState(mode);
   const [isLight, setIsLight] = useState(mode === "dark" ? true : false);
@@ -50,7 +51,8 @@ function Profiles() {
     }
   }, [loggedInUser]);
 
-  const [anchorEl, setAnchorEl] = React.useState(null);
+  // =================================================================
+  const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
 
   const handleClick = (event) => {

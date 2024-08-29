@@ -181,7 +181,7 @@ function Column({
   const handleRenameColumnDirectly = (column, newColumnTitleEdit) => {
     // set new data UI for column
     // and call api update Board & DB
-    if (newColumnTitleEdit.trim() != "") {
+    if (newColumnTitleEdit.trim().length > 2) {
       if (column.title != newColumnTitleEdit.trim()) {
         column.title = newColumnTitleEdit.trim();
         setNewColumnTitle(column.title);
@@ -192,7 +192,7 @@ function Column({
       }
     } else {
       setNewColumnTitle(column.title);
-      toast.error("You can't let the title of column empty!");
+      toast.error("You should name column's title with more 2 letters.");
     }
   };
 

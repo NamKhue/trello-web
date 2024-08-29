@@ -350,9 +350,9 @@ const Notification = () => {
 
       // add new board if user is in homepage
       socket.emit(
-        "add-new-board",
-        targetInvitation.recipientId,
-        targetInvitation.boardId
+        "accept-joining-new-board",
+        targetInvitation.recipientId
+        // targetInvitation.boardId
       );
 
       // add new user when user accept the invitation
@@ -404,13 +404,13 @@ const Notification = () => {
         notification.invitationId
       );
 
-      const resAcceptInvitation = await declineInvitationAPI(
+      const resDeclineInvitation = await declineInvitationAPI(
         // notification.invitationId
         targetInvitation.token
       );
 
       // notify to that user
-      socket.emit("notification", resAcceptInvitation.notiDeclineInvitation);
+      socket.emit("notification", resDeclineInvitation.notiDeclineInvitation);
 
       // reload page
       // if (location.pathname == "/homepage") {
@@ -610,7 +610,7 @@ const Notification = () => {
                   "&:hover": {
                     bgcolor: (theme) =>
                       theme.palette.mode === "dark"
-                        ? theme.trelloCustom.COLOR_E6E6E6
+                        ? theme.trelloCustom.COLOR_2C194D
                         : theme.trelloCustom.COLOR_E8D1FF,
                   },
                 }}
@@ -1006,7 +1006,7 @@ const Notification = () => {
                                   theme.trelloCustom.COLOR_188544,
                                 bgcolor: (theme) =>
                                   theme.palette.mode === "dark"
-                                    ? theme.trelloCustom.COLOR_95FFC0
+                                    ? theme.trelloCustom.COLOR_C6FFCE
                                     : theme.trelloCustom.COLOR_CDF4DD,
                               }}
                             >
@@ -1059,7 +1059,7 @@ const Notification = () => {
                                   theme.trelloCustom.COLOR_188544,
                                 bgcolor: (theme) =>
                                   theme.palette.mode === "dark"
-                                    ? theme.trelloCustom.COLOR_95FFC0
+                                    ? theme.trelloCustom.COLOR_C6FFCE
                                     : theme.trelloCustom.COLOR_CDF4DD,
                               }}
                             />

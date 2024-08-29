@@ -381,7 +381,6 @@ const CardModal = ({
   };
 
   const handleEnterTitle = (e) => {
-    handleUnfocus();
     handleChangeTitle(e.target.value.trim());
   };
 
@@ -391,7 +390,7 @@ const CardModal = ({
       if (inputElement) {
         inputElement.blur();
 
-        if (selectedCard.title == "") {
+        if (selectedCard.title.trim().length < 3) {
           setSelectedCard((prev) => ({
             ...prev,
             title: originalCard.title,
@@ -406,7 +405,9 @@ const CardModal = ({
             setIsModifyingCard(false);
           }
 
-          toast.error("You can't let the title of card empty!");
+          toast.error("You should name card's title with more 2 letters.");
+
+          return;
         }
       }
     }
@@ -1240,11 +1241,11 @@ const CardModal = ({
                     onChange={(ev) => handleChangeTitle(ev.target.value)}
                     onBlur={(ev) => {
                       handleEnterTitle(ev);
-                      handleUnfocus();
                     }}
                     onKeyDown={(ev) => {
                       if (ev.key === "Enter") {
                         handleEnterTitle(ev);
+                        handleUnfocus();
                       }
                     }}
                     type="text"
@@ -2090,6 +2091,9 @@ const CardModal = ({
                       )}
                     </Box>
                   </Box>
+
+                  {/* comment component */}
+                  <Box></Box>
                 </Box>
 
                 {/* right side */}
@@ -2749,7 +2753,7 @@ const CardModal = ({
                               // top: "100px",
                               // left: "-580px",
                               //
-                              top: "-50px",
+                              top: "0px",
                               left: "50px",
                               //
                               position: "absolute",
