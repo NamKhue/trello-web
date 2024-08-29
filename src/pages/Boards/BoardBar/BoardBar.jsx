@@ -19,6 +19,16 @@ import EmailIcon from "@mui/icons-material/Email";
 import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
 import PersonRemoveAlt1Icon from "@mui/icons-material/PersonRemoveAlt1";
 import CheckIcon from "@mui/icons-material/Check";
+import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";
+import LinkIcon from "@mui/icons-material/Link";
+import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
+
+import {
+  getPublicInvitationAPI,
+  generateInvitationLinkForPublicAPI,
+  deleteInvitationLinkForPublicAPI,
+} from "~/apis";
 
 // import { capitalizeFirstLetter } from "~/utils/formatters";
 
@@ -43,6 +53,7 @@ function BoardBar({
   allMembersInBoard,
   roleOfBoard,
   modifyBoardDetails,
+  deleteBoard,
   inviteUserIntoBoard,
   removeMemberOutOfBoard,
   changeRoleOfMember,
@@ -89,11 +100,14 @@ function BoardBar({
     if (openModalMembersInBoard) {
       handleCloseModalMembersInBoard();
     }
+    if (openModalMoreOptions) {
+      handleCloseModalMoreOptions();
+    }
   };
 
   const handleOpenModalInviteMember = () => {
     checkModalMembersInBoardIsClose();
-    setOpenModalInviteMember(true);
+    setOpenModalInviteMember(!openModalInviteMember);
   };
 
   const handleCloseModalInviteMember = () => {
@@ -135,11 +149,14 @@ function BoardBar({
     if (openModalInviteMember) {
       handleCloseModalInviteMember();
     }
+    if (openModalMoreOptions) {
+      handleCloseModalMoreOptions();
+    }
   };
 
   const handleOpenModalMembersInBoard = () => {
     checkModalInviteMemberIsClose();
-    setOpenModalMembersInBoard(true);
+    setOpenModalMembersInBoard(!openModalMembersInBoard);
   };
 
   const handleCloseModalMembersInBoard = () => {
@@ -238,6 +255,120 @@ function BoardBar({
     setFilteredMembers(filteredMembers);
     changeRoleOfMember(roleChangeData);
     handleClose();
+  };
+
+  // ================================================================================================
+  useEffect(() => {
+    if (board) {
+      getPublicInvitationAPI(board._id)
+        .then((res) => {
+          const resInvitationForPublic = res;
+
+          if (resInvitationForPublic) {
+            setPublicInvitationLink(resInvitationForPublic.invitationLink);
+            setIsClickGenerateLink(true);
+          }
+        })
+        .catch(() => {
+          setIsClickGenerateLink(false);
+          setPublicInvitationLink("");
+        });
+    }
+  }, [board]);
+
+  const [isClickGenerateLink, setIsClickGenerateLink] = useState(false);
+  const [publicInvitationLink, setPublicInvitationLink] = useState("");
+
+  const handleGenerateInvitationLink = async () => {
+    try {
+      const resPublicInvitationLink = await generateInvitationLinkForPublicAPI(
+        board._id
+      );
+
+      setIsClickGenerateLink(true);
+      setPublicInvitationLink(resPublicInvitationLink);
+    } catch (error) {
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.message
+      ) {
+        toast.error(error.response.data.message);
+        return error.response.data.message;
+      } else {
+        toast.error("An unexpected error occurred. Please try again.");
+        return "An unexpected error occurred. Please try again.";
+      }
+    }
+  };
+
+  const [copySuccessMsg, setCopySuccessMsg] = useState("");
+
+  const handleCopyInvitationLink = async () => {
+    navigator.clipboard.writeText(publicInvitationLink).then(
+      () => {
+        setCopySuccessMsg("Copied to clickboard!");
+        setTimeout(() => setCopySuccessMsg(""), 2000);
+      },
+      (error) => {
+        toast.error(error);
+        setCopySuccessMsg("Failed to copy text.");
+        setTimeout(() => setCopySuccessMsg(""), 2000);
+      }
+    );
+  };
+
+  const handleRemoveInvitationLink = async () => {
+    try {
+      // Create a URL object
+      const url = new URL(publicInvitationLink);
+
+      // Use URLSearchParams to get the token from the query parameters
+      const tokenPublicInvitation = url.searchParams.get("token");
+
+      await deleteInvitationLinkForPublicAPI(board._id, tokenPublicInvitation);
+
+      setIsClickGenerateLink(false);
+      setPublicInvitationLink("");
+    } catch (error) {
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.message
+      ) {
+        toast.error(error.response.data.message);
+        return error.response.data.message;
+      } else {
+        toast.error("An unexpected error occurred. Please try again.");
+        return "An unexpected error occurred. Please try again.";
+      }
+    }
+  };
+
+  // ================================================================================================
+  const [openModalMoreOptions, setOpenModalMoreOptions] = useState(false);
+
+  const handleOpenModalMoreOptions = () => {
+    checkModalMoreOptions();
+
+    setOpenModalMoreOptions(!openModalMoreOptions);
+  };
+
+  const handleCloseModalMoreOptions = () => {
+    setOpenModalMoreOptions(false);
+  };
+
+  const checkModalMoreOptions = () => {
+    if (openModalInviteMember) {
+      handleCloseModalInviteMember();
+    }
+    if (openModalMembersInBoard) {
+      handleCloseModalMembersInBoard();
+    }
+  };
+
+  const handleDeleteBoard = () => {
+    deleteBoard();
   };
 
   // ================================================================================================
@@ -458,6 +589,27 @@ function BoardBar({
             <GroupIcon sx={{ mr: 1 }} />
             Members
           </Button>
+
+          {(roleOfBoard === "creator" || roleOfBoard === "owner") && (
+            <Box
+              onClick={() => handleOpenModalMoreOptions()}
+              variant="outlined"
+              sx={{
+                cursor: "pointer",
+                height: "35px",
+                width: "35px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                border: "1px solid transparent",
+                borderRadius: "4px",
+                color: (theme) => theme.trelloCustom.COLOR_F8F8F8,
+                bgcolor: (theme) => theme.trelloCustom.COLOR_7236AE,
+              }}
+            >
+              <MoreVertIcon sx={{}} />
+            </Box>
+          )}
         </Box>
       </Box>
 
@@ -469,7 +621,7 @@ function BoardBar({
             right: "20px",
             top: "110px",
             position: "absolute",
-            width: "300px",
+            width: "350px",
             gap: 1.25,
             px: 2,
             py: 1.5,
@@ -481,12 +633,13 @@ function BoardBar({
             boxShadow: (theme) =>
               theme.palette.mode === "dark"
                 ? `0px 2px 10px ${theme.trelloCustom.COLOR_411A61}`
-                : `0px 2px 10px ${theme.trelloCustom.COLOR_313131}`,
+                : `0px 2px 10px ${theme.trelloCustom.COLOR_818181}`,
           }}
         >
           {/* title & close btn */}
           <Box
             sx={{
+              height: "30px",
               mb: 1.5,
               width: "100%",
               display: "flex",
@@ -494,34 +647,78 @@ function BoardBar({
               justifyContent: "space-between",
             }}
           >
-            {/* fake component */}
-            <Box sx={{ width: "30px" }}></Box>
-
             {/* title */}
-            <Box sx={{ fontSize: "1.2rem", fontWeight: "bold" }}>Invite</Box>
-
-            {/* close btn */}
             <Box
-              onClick={() => handleCloseModalInviteMember()}
               sx={{
-                height: "30px",
-                width: "30px",
-                cursor: "pointer",
+                fontSize: "1.3rem",
+                fontWeight: "bold",
+                cursor: "context-menu",
+              }}
+            >
+              Invite
+            </Box>
+
+            <Box
+              sx={{
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                // py: 0.5,
-                // px: 0.5,
-                borderRadius: "6px",
-                "&:hover": {
-                  bgcolor: (theme) =>
-                    theme.palette.mode === "dark"
-                      ? theme.trelloCustom.COLOR_281E38
-                      : theme.trelloCustom.COLOR_D7D7D7,
-                },
               }}
             >
-              <CloseIcon />
+              {/* copy msg */}
+              {copySuccessMsg && (
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 0.5,
+                    pl: 1,
+                    pr: 1.25,
+                    py: 0.5,
+                    mr: 1,
+                    borderRadius: "20px",
+
+                    fontSize: ".95rem",
+                    color: (theme) => theme.trelloCustom.COLOR_188544,
+                    bgcolor: (theme) =>
+                      theme.palette.mode === "dark"
+                        ? theme.trelloCustom.COLOR_C6FFCE
+                        : theme.trelloCustom.COLOR_CDF4DD,
+                  }}
+                >
+                  <CheckCircleOutlineIcon
+                    sx={{
+                      fontSize: "1.25rem",
+                    }}
+                  />
+                  {copySuccessMsg}
+                </Box>
+              )}
+
+              {/* close btn */}
+              <Box
+                onClick={() => handleCloseModalInviteMember()}
+                sx={{
+                  height: "30px",
+                  width: "30px",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  // py: 0.5,
+                  // px: 0.5,
+                  borderRadius: "6px",
+                  "&:hover": {
+                    bgcolor: (theme) =>
+                      theme.palette.mode === "dark"
+                        ? theme.trelloCustom.COLOR_281E38
+                        : theme.trelloCustom.COLOR_D7D7D7,
+                  },
+                }}
+              >
+                <CloseIcon />
+              </Box>
             </Box>
           </Box>
 
@@ -590,6 +787,164 @@ function BoardBar({
               Send
             </Box>
           )}
+
+          {checkIsRecipientEmailValid(recipientEmail) && (
+            <Divider
+              sx={{
+                mt: 1.5,
+                mb: 1,
+                borderColor: (theme) =>
+                  theme.palette.mode === "dark"
+                    ? theme.trelloCustom.COLOR_D7D7D7
+                    : theme.trelloCustom.COLOR_7236AE,
+              }}
+            />
+          )}
+
+          {/* generate invitation link component */}
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 1,
+            }}
+          >
+            <Box
+              sx={{
+                mr: 0.5,
+                width: "36px",
+                height: "36px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                borderRadius: "6px",
+
+                color: (theme) =>
+                  theme.palette.mode === "dark"
+                    ? theme.trelloCustom.COLOR_E6E6E6
+                    : theme.trelloCustom.COLOR_7236AE,
+                bgcolor: (theme) =>
+                  theme.palette.mode === "dark"
+                    ? theme.trelloCustom.COLOR_281E38
+                    : theme.trelloCustom.COLOR_EDDAFF,
+              }}
+            >
+              <LinkIcon />
+            </Box>
+
+            <Box
+              sx={{
+                flex: 6,
+                display: "flex",
+                flexDirection: "column",
+                gap: 0.25,
+              }}
+            >
+              <Box
+                sx={{
+                  fontSize: ".95rem",
+                  color: (theme) =>
+                    theme.palette.mode === "dark"
+                      ? theme.trelloCustom.COLOR_E6E6E6
+                      : theme.trelloCustom.COLOR_313131,
+                }}
+              >
+                {"Share this board via public link"}
+              </Box>
+
+              <Box
+                sx={{
+                  height: "20px",
+                  display: "flex",
+                  alignItems: "center",
+                }}
+              >
+                {!isClickGenerateLink && (
+                  <Box
+                    onClick={() => handleGenerateInvitationLink()}
+                    sx={{
+                      cursor: "pointer",
+                      width: "fit-content",
+                      display: "flex",
+                      alignItems: "center",
+                      fontSize: ".9rem",
+                      color: (theme) =>
+                        theme.palette.mode === "dark"
+                          ? theme.trelloCustom.COLOR_9357CF
+                          : theme.trelloCustom.COLOR_7236AE,
+
+                      "&:hover": {
+                        textDecoration: "underline",
+                      },
+                    }}
+                  >
+                    Create link
+                  </Box>
+                )}
+
+                {isClickGenerateLink && (
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                    }}
+                  >
+                    <Box
+                      onClick={() => handleCopyInvitationLink()}
+                      sx={{
+                        cursor: "pointer",
+                        width: "fit-content",
+                        fontSize: ".9rem",
+                        color: (theme) =>
+                          theme.palette.mode === "dark"
+                            ? theme.trelloCustom.COLOR_9357CF
+                            : theme.trelloCustom.COLOR_7236AE,
+
+                        "&:hover": {
+                          textDecoration: "underline",
+                        },
+                      }}
+                    >
+                      Copy link
+                    </Box>
+
+                    <FiberManualRecordIcon
+                      sx={{
+                        "&.MuiSvgIcon-root": {
+                          width: ".25em",
+                          color: (theme) =>
+                            theme.palette.mode === "dark"
+                              ? theme.trelloCustom.COLOR_9357CF
+                              : theme.trelloCustom.COLOR_7236AE,
+                        },
+                      }}
+                    />
+
+                    <Box
+                      onClick={() => handleRemoveInvitationLink()}
+                      sx={{
+                        cursor: "pointer",
+                        width: "fit-content",
+                        fontSize: ".9rem",
+                        color: (theme) =>
+                          theme.palette.mode === "dark"
+                            ? theme.trelloCustom.COLOR_9357CF
+                            : theme.trelloCustom.COLOR_7236AE,
+
+                        "&:hover": {
+                          textDecoration: "underline",
+                        },
+                      }}
+                    >
+                      Remove link
+                    </Box>
+                  </Box>
+                )}
+              </Box>
+            </Box>
+          </Box>
         </Box>
       )}
 
@@ -613,7 +968,7 @@ function BoardBar({
             boxShadow: (theme) =>
               theme.palette.mode === "dark"
                 ? `0px 2px 10px ${theme.trelloCustom.COLOR_411A61}`
-                : `0px 2px 10px ${theme.trelloCustom.COLOR_313131}`,
+                : `0px 2px 10px ${theme.trelloCustom.COLOR_818181}`,
           }}
         >
           {/* title & close btn */}
@@ -627,10 +982,18 @@ function BoardBar({
             }}
           >
             {/* fake component */}
-            <Box sx={{ width: "30px" }}></Box>
+            {/* <Box sx={{ width: "30px" }}></Box> */}
 
             {/* title */}
-            <Box sx={{ fontSize: "1.2rem", fontWeight: "bold" }}>Members</Box>
+            <Box
+              sx={{
+                fontSize: "1.3rem",
+                fontWeight: "bold",
+                cursor: "context-menu",
+              }}
+            >
+              Members
+            </Box>
 
             {/* close btn */}
             <Box
@@ -963,6 +1326,108 @@ function BoardBar({
                 </Box>
               </Box>
             )}
+          </Box>
+        </Box>
+      )}
+
+      {/* modal members */}
+      {openModalMoreOptions && (
+        <Box
+          sx={{
+            zIndex: "999",
+            right: "20px",
+            top: "110px",
+            position: "absolute",
+            width: "300px",
+            gap: 1.25,
+            px: 2,
+            py: 1.5,
+            borderRadius: "8px",
+            bgcolor: (theme) =>
+              theme.palette.mode === "dark"
+                ? theme.trelloCustom.COLOR_13091B
+                : theme.trelloCustom.COLOR_F8F8F8,
+            boxShadow: (theme) =>
+              theme.palette.mode === "dark"
+                ? `0px 2px 10px ${theme.trelloCustom.COLOR_411A61}`
+                : `0px 2px 10px ${theme.trelloCustom.COLOR_818181}`,
+          }}
+        >
+          {/* title & close btn */}
+          <Box
+            sx={{
+              mb: 1.5,
+              width: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            {/* fake component */}
+            {/* <Box sx={{ width: "30px" }}></Box> */}
+
+            {/* title */}
+            <Box
+              sx={{
+                fontSize: "1.15rem",
+                fontWeight: "bold",
+                cursor: "context-menu",
+              }}
+            >
+              More options
+            </Box>
+
+            {/* close btn */}
+            <Box
+              onClick={() => handleCloseModalMoreOptions()}
+              sx={{
+                height: "30px",
+                width: "30px",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                borderRadius: "6px",
+                "&:hover": {
+                  bgcolor: (theme) =>
+                    theme.palette.mode === "dark"
+                      ? theme.trelloCustom.COLOR_281E38
+                      : theme.trelloCustom.COLOR_D7D7D7,
+                },
+              }}
+            >
+              <CloseIcon />
+            </Box>
+          </Box>
+
+          <Box
+            sx={{
+              maxHeight: "380px",
+              overflow: "auto",
+            }}
+          >
+            <Box
+              onClick={() => handleDeleteBoard()}
+              sx={{
+                cursor: "pointer",
+                py: 1,
+                px: 1.5,
+                borderRadius: "6px",
+                color: (theme) =>
+                  theme.palette.mode === "dark" ? "none" : "#DF0606",
+                bgcolor: (theme) =>
+                  theme.palette.mode === "dark" ? "#FFFFFF14" : "#FFD8D8",
+
+                "&:hover": {
+                  color: (theme) =>
+                    theme.palette.mode === "dark" ? "#FF4545" : "none",
+                  bgcolor: (theme) =>
+                    theme.palette.mode === "dark" ? "#640101" : "#FFC2C2",
+                },
+              }}
+            >
+              Delete board
+            </Box>
           </Box>
         </Box>
       )}

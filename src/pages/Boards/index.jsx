@@ -2,6 +2,13 @@ import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { useMediaQuery } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import TimeAgo from "timeago-react";
+import * as timeago from "timeago.js";
+
+// purpose for display time ago
+import en_US from "timeago.js/lib/lang/en_US";
+// register
+timeago.register("en_US", en_US);
 
 import Container from "@mui/material/Container";
 import Box from "@mui/material/Box";
@@ -13,12 +20,12 @@ import Modal from "@mui/material/Modal";
 import TextField from "@mui/material/TextField";
 
 import AddIcon from "@mui/icons-material/Add";
-import FilterListIcon from "@mui/icons-material/FilterList";
+// import FilterListIcon from "@mui/icons-material/FilterList";
 
 import AppBar from "~/components/AppBar/AppBar";
 
 import {
-  fetchBoardDetailsAPI,
+  // fetchBoardDetailsAPI,
   fetchAllBoardsAPI,
   fetchMyBoardsAPI,
   fetchOwnerBoardsAPI,
@@ -113,27 +120,64 @@ function HomePage() {
   // ============================================================================
 
   // ============================================================================
+  const reloadHomepageWhenThereAreChanges = () => {
+    // fetch again all board
+    fetchAllBoardsAPI().then(async (board) => {
+      // set for all boards
+      setAllBoards(sortListViaCreatedOrUpdatedTime(board));
+
+      // first set boards be all boards with ALL ROLES
+      setBoards(sortListViaCreatedOrUpdatedTime(board));
+    });
+
+    // set boards with ROLE `OWNER` - đồng sáng lập or cùng sở hữu
+    fetchOwnerBoardsAPI().then(async (board) => {
+      setOwnerBoards(sortListViaCreatedOrUpdatedTime(board));
+    });
+
+    // set boards with ROLE `MEMBER`
+    fetchMemberBoardsAPI().then(async (board) => {
+      setMemberBoards(sortListViaCreatedOrUpdatedTime(board));
+    });
+
+    handleChooseAllBoards();
+  };
+
+  // ============================================================================
   useEffect(() => {
     if (loggedInUser) {
-      // // fetch-deadline-notifications
-      // socket.emit("fetch-deadline-notifications", loggedInUser._id);
-
       // socket after accepting joining into new board
-      socket.on("add-new-board", async (boardId) => {
-        const newBoardToAdd = await fetchBoardDetailsAPI(boardId);
-        setBoards([newBoardToAdd, ...boards]);
+      socket.on("accept-joining-new-board", async () => {
+        reloadHomepageWhenThereAreChanges();
+      });
+
+      // socket after the board that the user is the member
+      socket.on("delete-board", async (boardId, userId) => {
+        if (
+          loggedInUser._id == userId &&
+          location.pathname.includes("homepage")
+        ) {
+          reloadHomepageWhenThereAreChanges();
+        }
+      });
+
+      // socket when the user is changed the role
+      socket.on("change-role-of-user", async (userId) => {
+        if (
+          loggedInUser._id === userId &&
+          location.pathname.includes("homepage")
+        ) {
+          reloadHomepageWhenThereAreChanges();
+        }
       });
 
       // socket when the user is removed from board and the user is in home page
       socket.on("remove-user", async (userId) => {
-        if (loggedInUser._id === userId && location.pathname == "/homepage") {
-          fetchAllBoardsAPI().then(async (board) => {
-            // set for all boards
-            setAllBoards(sortListViaCreatedOrUpdatedTime(board));
-
-            // first set boards be all boards with ALL ROLES
-            setBoards(sortListViaCreatedOrUpdatedTime(board));
-          });
+        if (
+          loggedInUser._id === userId &&
+          location.pathname.includes("homepage")
+        ) {
+          reloadHomepageWhenThereAreChanges();
         }
       });
     }
@@ -641,7 +685,7 @@ function HomePage() {
                     }}
                   >
                     {/* filter boards button */}
-                    <Box
+                    {/* <Box
                       onClick={() => console.log("filter boards")}
                       sx={{
                         height: "100%",
@@ -674,10 +718,11 @@ function HomePage() {
                     >
                       <FilterListIcon sx={{ mr: 0.5 }} />
                       Filter
-                    </Box>
+                    </Box> */}
 
                     {/* create new board button */}
-                    {boardTypeHomePage === TYPE_OF_BOARDS.MY_BOARDS && (
+                    {(boardTypeHomePage === TYPE_OF_BOARDS.MY_BOARDS ||
+                      boardTypeHomePage === TYPE_OF_BOARDS.ALL_BOARDS) && (
                       <Box
                         onClick={handleOpenModalBoardTitle}
                         sx={{
@@ -726,68 +771,112 @@ function HomePage() {
                       md: `${gridListHeight}`,
                     },
                     transition: "height 0.3s",
+
+                    display: !currentListItems.length ? "flex" : "",
+                    alignItems: !currentListItems.length ? "center" : "none",
+                    justifyContent: !currentListItems.length ? "center" : "",
                   }}
                 >
-                  <Grid
-                    container
-                    spacing={2}
-                    sx={{
-                      gridTemplateColumns: `repeat(${columns}, 1fr)`,
-                      transition: "grid-template-columns 0.3s",
-                    }}
-                  >
-                    {currentListItems.map((board) => (
-                      <Grid
-                        item
-                        xs={12 / columns}
-                        key={board._id}
-                        onClick={() => handleChooseBoard(board)}
-                      >
-                        <Box
-                          sx={{
-                            cursor: "pointer",
-                            height: "100px",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            borderRadius: "8px",
-                            px: 2,
-                            py: 1,
+                  {!currentListItems.length ? (
+                    <Box
+                      sx={{
+                        fontSize: "1.1rem",
+                        color: (theme) =>
+                          theme.palette.mode === "dark"
+                            ? theme.trelloCustom.COLOR_B469FF
+                            : theme.trelloCustom.COLOR_7236AE,
+                      }}
+                    >
+                      Empty
+                    </Box>
+                  ) : (
+                    <Grid
+                      container
+                      spacing={2}
+                      sx={{
+                        gridTemplateColumns: `repeat(${columns}, 1fr)`,
+                        transition: "grid-template-columns 0.3s",
+                      }}
+                    >
+                      {currentListItems.map((board) => (
+                        <Grid item xs={12 / columns} key={board._id}>
+                          <Box
+                            onClick={() => handleChooseBoard(board)}
+                            sx={{
+                              cursor: "pointer",
+                              height: "100px",
+                              display: "flex",
+                              flexDirection: "column",
+                              alignItems: "center",
+                              justifyContent: "space-between",
+                              borderRadius: "8px",
+                              px: 2,
+                              py: 1,
 
-                            color: (theme) =>
-                              theme.palette.mode === "dark"
-                                ? theme.trelloCustom.COLOR_E6E6E6
-                                : theme.trelloCustom.COLOR_790283,
-                            bgcolor: (theme) =>
-                              theme.palette.mode === "dark"
-                                ? theme.trelloCustom.COLOR_51247C
-                                : theme.trelloCustom.COLOR_DDADF0,
-                            "&:hover": {
                               color: (theme) =>
                                 theme.palette.mode === "dark"
                                   ? theme.trelloCustom.COLOR_E6E6E6
-                                  : theme.trelloCustom.COLOR_F8F8F8,
+                                  : theme.trelloCustom.COLOR_790283,
                               bgcolor: (theme) =>
                                 theme.palette.mode === "dark"
-                                  ? theme.trelloCustom.COLOR_1E0734
-                                  : theme.trelloCustom.COLOR_9357CF,
-                            },
-                          }}
-                        >
-                          <Box
-                            sx={{
-                              fontSize: "1.1rem",
-                              textAlign: "center",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
+                                  ? theme.trelloCustom.COLOR_51247C
+                                  : theme.trelloCustom.COLOR_DDADF0,
+                              "&:hover": {
+                                color: (theme) =>
+                                  theme.palette.mode === "dark"
+                                    ? theme.trelloCustom.COLOR_E6E6E6
+                                    : theme.trelloCustom.COLOR_F8F8F8,
+                                bgcolor: (theme) =>
+                                  theme.palette.mode === "dark"
+                                    ? theme.trelloCustom.COLOR_1E0734
+                                    : theme.trelloCustom.COLOR_9357CF,
+                              },
                             }}
                           >
-                            {board.title}
+                            {/* fake component */}
+                            <Box
+                              sx={{
+                                height: "20px",
+                              }}
+                            ></Box>
+
+                            <Box
+                              sx={{
+                                fontSize: "1.1rem",
+                                textAlign: "center",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                              }}
+                            >
+                              {board.title}
+                            </Box>
+
+                            <Box
+                              sx={{
+                                width: "100%",
+                                height: "20px",
+                                display: "flex",
+                                justifyContent: "end",
+                                fontSize: ".8rem",
+                                color: (theme) =>
+                                  theme.trelloCustom.COLOR_C0C0C0,
+                              }}
+                            >
+                              <TimeAgo
+                                datetime={
+                                  board.updatedAt
+                                    ? board.updatedAt
+                                    : board.createdAt
+                                }
+                                locale="en"
+                                sx={{}}
+                              />
+                            </Box>
                           </Box>
-                        </Box>
-                      </Grid>
-                    ))}
-                  </Grid>
+                        </Grid>
+                      ))}
+                    </Grid>
+                  )}
                 </Box>
               </Box>
 

@@ -222,6 +222,16 @@ export const updateBoardDetailsAPI = async (boardId, updateData) => {
   return response.data;
 };
 
+// UPDATE BOARD
+export const deleteBoardAPI = async (boardId) => {
+  const authToken = localStorage.getItem("authToken");
+
+  const response = await axios.delete(`${API_ROOT_V1.BOARD}/${boardId}`, {
+    headers: { Authorization: `Bearer ${authToken}` },
+  });
+  return response.data;
+};
+
 // MOVE CARD TO DIFFERENT COLUMN
 export const moveCardToDifferentColumnAPI = async (updateData) => {
   const authToken = localStorage.getItem("authToken");
@@ -303,7 +313,7 @@ export const createNewCardAPI = async (boardId, newCardData) => {
 };
 
 // UPDATE CARD
-export const updateCardDetailsAPI = async (cardId, updateData) => {
+export const updateCardDetailsAPI = async (cardId, boardId, updateData) => {
   const authToken = localStorage.getItem("authToken");
 
   const response = await axios.put(
@@ -311,6 +321,9 @@ export const updateCardDetailsAPI = async (cardId, updateData) => {
     updateData,
     {
       headers: { Authorization: `Bearer ${authToken}` },
+      params: {
+        boardId: boardId,
+      },
     }
   );
 
@@ -318,18 +331,21 @@ export const updateCardDetailsAPI = async (cardId, updateData) => {
 };
 
 // DELETE CARD
-export const deleteCardDetailsAPI = async (cardId) => {
+export const deleteCardDetailsAPI = async (cardId, boardId) => {
   const authToken = localStorage.getItem("authToken");
 
   const response = await axios.delete(`${API_ROOT_V1.CARD}/${cardId}`, {
     headers: { Authorization: `Bearer ${authToken}` },
+    params: {
+      boardId: boardId,
+    },
   });
 
   return response.data;
 };
 
 // ADD USER INTO CARD
-export const addUserIntoCardAPI = async (cardId, assignee) => {
+export const addUserIntoCardAPI = async (cardId, boardId, assignee) => {
   const authToken = localStorage.getItem("authToken");
 
   const response = await axios.post(
@@ -337,6 +353,9 @@ export const addUserIntoCardAPI = async (cardId, assignee) => {
     assignee,
     {
       headers: { Authorization: `Bearer ${authToken}` },
+      params: {
+        boardId: boardId,
+      },
     }
   );
 
@@ -344,7 +363,7 @@ export const addUserIntoCardAPI = async (cardId, assignee) => {
 };
 
 // REMOVE USER INTO CARD
-export const removeUserFromCardAPI = async (cardId, assignee) => {
+export const removeUserFromCardAPI = async (cardId, boardId, assignee) => {
   const authToken = localStorage.getItem("authToken");
 
   const response = await axios.delete(
@@ -353,6 +372,7 @@ export const removeUserFromCardAPI = async (cardId, assignee) => {
       headers: { Authorization: `Bearer ${authToken}` },
       params: {
         assignee: assignee,
+        boardId: boardId,
       },
     }
   );
@@ -363,6 +383,40 @@ export const removeUserFromCardAPI = async (cardId, assignee) => {
 // ================================================================================================
 // ================================================================================================
 // INVITATION
+
+// GENRERATE INVITATION FOR PUBLIC
+export const generateInvitationLinkForPublicAPI = async (boardId) => {
+  const authToken = localStorage.getItem("authToken");
+
+  const response = await axios.get(
+    `${API_ROOT_V1.INVITATION}/generate-invitation-link/${boardId}`,
+    {
+      headers: { Authorization: `Bearer ${authToken}` },
+    }
+  );
+
+  return response.data;
+};
+
+// DELETE PUBLIC INVITATION
+export const deleteInvitationLinkForPublicAPI = async (
+  boardId,
+  tokenPublicInvitation
+) => {
+  const authToken = localStorage.getItem("authToken");
+
+  const response = await axios.delete(
+    `${API_ROOT_V1.INVITATION}/${tokenPublicInvitation}`,
+    {
+      headers: { Authorization: `Bearer ${authToken}` },
+      params: {
+        boardId: boardId,
+      },
+    }
+  );
+
+  return response.data;
+};
 
 // INVITE MEMBER INTO BOARD
 export const inviteMemberAPI = async (invitation) => {
@@ -421,6 +475,20 @@ export const getInvitationAPI = async (invitationId) => {
 
   const response = await axios.get(
     `${API_ROOT_V1.INVITATION}/${invitationId}`,
+    {
+      headers: { Authorization: `Bearer ${authToken}` },
+    }
+  );
+
+  return response.data;
+};
+
+// GET PUBLIC INVITATION'S DETAILS
+export const getPublicInvitationAPI = async (invitationId) => {
+  const authToken = localStorage.getItem("authToken");
+
+  const response = await axios.get(
+    `${API_ROOT_V1.INVITATION}/public-invitation/${invitationId}`,
     {
       headers: { Authorization: `Bearer ${authToken}` },
     }
@@ -507,3 +575,6 @@ export const removeAllNotificationsAPI = async () => {
 
   return response.data;
 };
+
+// ================================================================================================
+// ================================================================================================

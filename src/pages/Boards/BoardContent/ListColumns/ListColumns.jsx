@@ -26,6 +26,41 @@ function ListColumns({
   deleteCardDetails,
   handleCardClick,
 }) {
+  // ============================================================================
+  const [mouseDown, setMouseDown] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+
+  const sliderRef = useRef(null);
+
+  const startDragging = (e) => {
+    setMouseDown(true);
+    setStartX(e.pageX - sliderRef.current.offsetLeft);
+    setScrollLeft(sliderRef.current.scrollLeft);
+  };
+
+  const stopDragging = () => {
+    setMouseDown(false);
+  };
+
+  const move = (e) => {
+    if (!mouseDown) return;
+
+    const x = e.pageX - sliderRef.current.offsetLeft;
+    const scroll = x - startX;
+    const newScrollLeft = scrollLeft - scroll;
+
+    // Ensure the new scroll position is within bounds
+    sliderRef.current.scrollLeft = Math.max(
+      0,
+      Math.min(
+        newScrollLeft,
+        sliderRef.current.scrollWidth - sliderRef.current.clientWidth
+      )
+    );
+  };
+
+  // ============================================================================
   const [loading, setLoading] = useState(true);
 
   // ============================================================================
@@ -36,6 +71,7 @@ function ListColumns({
     }
   }, [roleOfBoard]);
 
+  // ============================================================================
   const [openNewColumnForm, setOpenNewColumnForm] = useState(false);
   const toggleOpenNewColumnForm = () =>
     setOpenNewColumnForm(!openNewColumnForm);
@@ -90,6 +126,12 @@ function ListColumns({
       >
         {!loading && (
           <Box
+            ref={sliderRef}
+            onMouseMove={move}
+            onMouseDown={startDragging}
+            onMouseUp={stopDragging}
+            onMouseLeave={stopDragging}
+            //
             sx={{
               outline: "none",
               bgcolor: "inherit",

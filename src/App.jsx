@@ -7,6 +7,7 @@ import HomePage from "~/pages/Boards";
 import Board from "~/pages/Boards/_id";
 
 import ProtectedRoute from "~/components/authen/ProtectedRoute";
+import AcceptInvitationPage from "~/components/Invitation/AcceptInvitationPage";
 
 function App() {
   return (
@@ -48,6 +49,8 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        <Route path="/accept-invitation" element={<AcceptInvitationPage />} />
       </Routes>
     </Router>
   );

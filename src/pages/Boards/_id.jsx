@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { isEmpty } from "lodash";
 import { toast } from "react-toastify";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 
 import Container from "@mui/material/Container";
 import Box from "@mui/material/Box";
@@ -23,6 +23,7 @@ import {
   createNewCardAPI,
   createNewColumnAPI,
   updateBoardDetailsAPI,
+  deleteBoardAPI,
   updateColumnDetailsAPI,
   moveCardToDifferentColumnAPI,
   deleteColumnDetailsAPI,
@@ -43,6 +44,7 @@ import socket from "~/utils/socket/socket";
 
 function Board() {
   // ============================================================================
+  const location = useLocation();
   const navigate = useNavigate();
   // ============================================================================
   const { loggedInUser } = useAuth();
@@ -111,6 +113,14 @@ function Board() {
       socket.on("update-board", (updatedBoard) => {
         if (updatedBoard._id === boardId) {
           setBoard(updatedBoard);
+        }
+      });
+
+      socket.on("delete-board", (boardId, userId) => {
+        if (loggedInUser._id == userId) {
+          if (location.pathname.includes(boardId)) {
+            navigate(`/homepage`, { replace: true });
+          }
         }
       });
     }
@@ -297,6 +307,38 @@ function Board() {
     updateBoardDetailsAPI(board._id, newBoard).then((res) => {
       // có thể đặt trong interceptors
       toast.success(res?.modifyBoardResult);
+    });
+  };
+
+  // ============================================================================
+  // call api to update details of board
+  const deleteBoard = async () => {
+    // call api
+    deleteBoardAPI(board._id).then((resDeletedBoard) => {
+      //
+      socket.emit(
+        "notification",
+        resDeletedBoard?.responseDeleteBoardNotificationForCreator
+      );
+
+      //
+      if (
+        resDeletedBoard?.listResponseDeleteBoardNotificationForMembersInBoard
+          .length > 0
+      ) {
+        resDeletedBoard?.listResponseDeleteBoardNotificationForMembersInBoard.map(
+          (notiItem) => {
+            socket.emit("notification", notiItem);
+          }
+        );
+      }
+
+      // // có thể đặt trong interceptors
+      // toast.success(resDeletedBoard?.deleteBoardResult);
+
+      allMembersInBoard.map((member) => {
+        socket.emit("delete-board", board._id, member.userId);
+      });
     });
   };
 
@@ -513,7 +555,7 @@ function Board() {
     // socket.emit("update-board", newBoard);
 
     // call api xử lý data
-    deleteCardDetailsAPI(cardId).then((res) => {
+    deleteCardDetailsAPI(cardId, board._id).then((res) => {
       // có thể đặt trong interceptors
       toast.success(res?.deleteCardResult);
 
@@ -521,6 +563,12 @@ function Board() {
       socket.emit(
         "list-notis-delete-card",
         res?.listResponseDeleteCardNotificationForMembersInCard
+      );
+
+      //
+      socket.emit(
+        "notification",
+        res?.responseDeleteCardNotificationForCreator
       );
     });
   };
@@ -549,7 +597,11 @@ function Board() {
       socket.emit("update-board", board._id, newBoard);
       // socket.emit("update-board", newBoard);
 
-      const res = await updateCardDetailsAPI(modifiedCard._id, modifiedCard);
+      const res = await updateCardDetailsAPI(
+        modifiedCard._id,
+        board._id,
+        modifiedCard
+      );
       toast.success(res.modifyCardResult);
 
       // notify to that user
@@ -679,7 +731,11 @@ function Board() {
       setBoard(newBoard);
       socket.emit("update-board", newBoard._id, newBoard);
 
-      const responseAddUser = await addUserIntoCardAPI(cardId, assignee);
+      const responseAddUser = await addUserIntoCardAPI(
+        cardId,
+        board._id,
+        assignee
+      );
       // toast.success(responseAddUser.addUserResult);
 
       // console.log("🚀 ~ responseAddUser.newNoti:", responseAddUser.newNoti);
@@ -732,7 +788,11 @@ function Board() {
       setBoard(newBoard);
       socket.emit("update-board", boardId, newBoard);
 
-      const responseRemoverUser = await removeUserFromCardAPI(cardId, assignee);
+      const responseRemoverUser = await removeUserFromCardAPI(
+        cardId,
+        board._id,
+        assignee
+      );
       // toast.success(responseRemoverUser.removeUserResult);
 
       // console.log(
@@ -846,6 +906,7 @@ function Board() {
               roleOfBoard={roleOfBoard}
               allMembersInBoard={allMembersInBoard}
               modifyBoardDetails={modifyBoardDetails}
+              deleteBoard={deleteBoard}
               inviteUserIntoBoard={inviteUserIntoBoard}
               removeMemberOutOfBoard={removeMemberOutOfBoard}
               changeRoleOfMember={changeRoleOfMember}
