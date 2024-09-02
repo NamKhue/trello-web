@@ -108,17 +108,30 @@ function Profiles() {
                 height: 38,
                 fontSize: 16,
                 "&.MuiAvatar-root": {
-                  border: "2px solid",
-                  color: (theme) =>
-                    theme.palette.mode === "dark" ? "white" : "white",
-                  borderColor: (theme) =>
+                  // border: "2px solid",
+                  // color: (theme) =>
+                  //   theme.palette.mode === "dark" ? "white" : "white",
+                  // borderColor: (theme) =>
+                  //   theme.palette.mode === "dark"
+                  //     ? "#d6d6d6"
+                  //     : theme.trelloCustom.COLOR_7236AE,
+                  // bgcolor: (theme) =>
+                  //   theme.palette.mode === "dark"
+                  //     ? theme.trelloCustom.COLOR_C200D3
+                  //     : theme.trelloCustom.COLOR_C200D3,
+
+                  border: (theme) =>
                     theme.palette.mode === "dark"
-                      ? "#d6d6d6"
+                      ? `2px solid ${theme.trelloCustom.COLOR_7236AE}`
+                      : `2px solid ${theme.trelloCustom.COLOR_7236AE}`,
+                  color: (theme) =>
+                    theme.palette.mode === "dark"
+                      ? theme.trelloCustom.COLOR_B469FF
                       : theme.trelloCustom.COLOR_7236AE,
                   bgcolor: (theme) =>
                     theme.palette.mode === "dark"
-                      ? theme.trelloCustom.COLOR_C200D3
-                      : theme.trelloCustom.COLOR_C200D3,
+                      ? theme.trelloCustom.COLOR_3A135F
+                      : theme.trelloCustom.COLOR_D1A3FF,
                 },
               }}
             >

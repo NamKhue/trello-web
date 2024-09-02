@@ -23,6 +23,7 @@ import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
 import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";
+import QuestionAnswerIcon from "@mui/icons-material/QuestionAnswer";
 
 // date time picker
 import dayjs from "dayjs";
@@ -35,6 +36,9 @@ import { TimePicker } from "@mui/x-date-pickers/TimePicker";
 
 // description/text editor
 import RichTextEditor from "../RichTextEditor";
+
+// comment section
+import CommentSection from "../CommentSection";
 
 // css
 import "../../../assets/css/Card/Dropdown.css";
@@ -434,13 +438,13 @@ const CardModal = ({
     },
     {
       name: "At risk",
-      textColor: "#DF0606",
+      textColor: "#B70000",
       bgColor: "#FF9D9D",
     },
     {
       name: "Pending",
-      textColor: "#646010",
-      bgColor: "#FFEB4F",
+      textColor: "#886701",
+      bgColor: "#FFE15D",
     },
     {
       name: "On track",
@@ -520,6 +524,7 @@ const CardModal = ({
       checkIsOpenMenuPriorityThenClose();
       checkIsOpenDateTimePickerThenClose();
       checkIsOpenAssigneeThenClose();
+      checkIsOpenCommentSectionThenClose();
 
       setIsOpenMenuStatus(!isOpenMenuStatus);
     }
@@ -608,6 +613,7 @@ const CardModal = ({
       checkIsOpenMenuStatusThenClose();
       checkIsOpenDateTimePickerThenClose();
       checkIsOpenAssigneeThenClose();
+      checkIsOpenCommentSectionThenClose();
 
       setIsOpenMenuPriority(!isOpenMenuPriority);
     }
@@ -790,6 +796,7 @@ const CardModal = ({
     checkIsOpenMenuStatusThenClose();
     checkIsOpenMenuPriorityThenClose();
     checkIsOpenAssigneeThenClose();
+    checkIsOpenCommentSectionThenClose();
   };
 
   const checkIsOpenDateTimePickerThenClose = () => {
@@ -1086,6 +1093,7 @@ const CardModal = ({
     checkIsOpenMenuStatusThenClose();
     checkIsOpenMenuPriorityThenClose();
     checkIsOpenDateTimePickerThenClose();
+    checkIsOpenCommentSectionThenClose();
   };
 
   //
@@ -1179,6 +1187,34 @@ const CardModal = ({
   );
 
   // ============================================================================
+  // COMMENT SECTION
+  const [isOpenCommentSection, setIsOpenCommentSection] = useState(false);
+
+  const handleOpenCommentSection = () => {
+    checkOtherOpenExceptCommentSection();
+
+    setIsOpenCommentSection(!isOpenCommentSection);
+  };
+
+  const handleCloseCommentSection = () => {
+    setIsOpenCommentSection(false);
+  };
+
+  const checkIsOpenCommentSectionThenClose = () => {
+    if (isOpenCommentSection) {
+      handleCloseCommentSection();
+    }
+  };
+
+  //
+  const checkOtherOpenExceptCommentSection = () => {
+    checkIsOpenMenuStatusThenClose();
+    checkIsOpenMenuPriorityThenClose();
+    checkIsOpenDateTimePickerThenClose();
+    checkIsOpenAssigneeThenClose();
+  };
+
+  // ============================================================================
   // ============================================================================
   return (
     <Modal open={true}>
@@ -1190,6 +1226,24 @@ const CardModal = ({
             left: "50%",
             transform: "translate(-50%, -50%)",
             width: (theme) => theme.trelloCustom.MODAL_CARD_WIDTH,
+
+            // "&::-webkit-scrollbar": {
+            //   width: "5px",
+            //   height: "0",
+            // },
+            // "&::-webkit-scrollbar-thumb": {
+            //   backgroundColor: (theme) =>
+            //     theme.palette.mode === "dark"
+            //       ? theme.trelloCustom.COLOR_463666
+            //       : theme.trelloCustom.COLOR_818181,
+            // },
+            // "&::-webkit-scrollbar-thumb:hover": {
+            //   backgroundColor: (theme) =>
+            //     theme.palette.mode === "dark"
+            //       ? theme.trelloCustom.COLOR_7236AE
+            //       : theme.trelloCustom.COLOR_818181,
+            // },
+
             pt: 2,
             pb: 3,
             pl: 3.5,
@@ -2035,7 +2089,7 @@ const CardModal = ({
                             py: 1,
                             px: 1.75,
                             border: "2px solid",
-                            borderRadius: "6px",
+                            borderRadius: "10px",
                             borderColor: (theme) =>
                               theme.trelloCustom.COLOR_C0C0C0,
                             "&:hover": {
@@ -2049,10 +2103,10 @@ const CardModal = ({
                           }}
                         >
                           {/* descriptionCardToDisplay != "<p><br></p>" &&
-                        descriptionCardToDisplay != "<h1><br></h1>" &&
-                        descriptionCardToDisplay != "<h2><br></h2>" &&
-                        descriptionCardToDisplay != "<h3><br></h3>" &&
-                        descriptionCardToDisplay != ""  */}
+          descriptionCardToDisplay != "<h1><br></h1>" &&
+          descriptionCardToDisplay != "<h2><br></h2>" &&
+          descriptionCardToDisplay != "<h3><br></h3>" &&
+          descriptionCardToDisplay != ""  */}
                           <Box>
                             {checkDescriptionData(descriptionCardToDisplay) ? (
                               <div
@@ -2091,9 +2145,6 @@ const CardModal = ({
                       )}
                     </Box>
                   </Box>
-
-                  {/* comment component */}
-                  <Box></Box>
                 </Box>
 
                 {/* right side */}
@@ -2209,7 +2260,7 @@ const CardModal = ({
                             {/* title */}
                             <Box
                               sx={{
-                                pl: 1,
+                                pl: 0.25,
                                 fontSize: "1.25rem",
                                 fontWeight: "bold",
                               }}
@@ -3276,6 +3327,162 @@ const CardModal = ({
                       </Box>
                     </Box>
                   )}
+
+                  {/* show comment section */}
+                  <Box
+                    sx={{
+                      display: "flex",
+                    }}
+                  >
+                    {/* active show comment button */}
+                    <Box
+                      onClick={() => handleOpenCommentSection()}
+                      sx={{
+                        cursor: "pointer",
+                        position: "relative",
+                        width: "100%",
+                        height: "2.5em",
+                        fontSize: "0.9rem",
+                        fontWeight: "bold",
+                        pl: 2,
+                        pr: 0.25,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        borderRadius: "4px",
+                        color: (theme) =>
+                          theme.palette.mode === "dark"
+                            ? theme.trelloCustom.COLOR_D7D7D7
+                            : theme.trelloCustom.COLOR_313131,
+                        bgcolor: (theme) =>
+                          theme.palette.mode === "dark"
+                            ? theme.trelloCustom.COLOR_281E38
+                            : theme.trelloCustom.COLOR_E6E6E6,
+                        "&:hover": {
+                          bgcolor: (theme) =>
+                            theme.palette.mode === "dark"
+                              ? theme.trelloCustom.COLOR_463666
+                              : theme.trelloCustom.COLOR_D7D7D7,
+                        },
+                      }}
+                    >
+                      Comments
+                      {/* icon */}
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          width: "40px",
+                          height: "40px",
+                          borderRadius: "20px",
+                          "&:hover": {
+                            bgcolor: "#ffffff14",
+                          },
+                        }}
+                      >
+                        <QuestionAnswerIcon />
+                      </Box>
+                    </Box>
+
+                    {/* modal comment */}
+                    <Box
+                      sx={{
+                        position: "relative",
+                        width: "0",
+                      }}
+                    >
+                      {isOpenCommentSection && (
+                        <Box
+                          sx={{
+                            zIndex: 1,
+                            left: "-400px",
+                            top: "-320px",
+                            //
+                            // left: "50px",
+                            // top: "-320px",
+                            //
+                            position: "absolute",
+                            width: "420px",
+                            px: 2,
+                            py: 1.5,
+                            borderRadius: "8px",
+                            bgcolor: (theme) =>
+                              theme.palette.mode === "dark"
+                                ? theme.trelloCustom.COLOR_13091B
+                                : theme.trelloCustom.COLOR_F8F8F8,
+                            boxShadow: (theme) =>
+                              theme.palette.mode === "dark"
+                                ? `0px 2px 10px ${theme.trelloCustom.COLOR_411A61}`
+                                : `0px 2px 10px ${theme.trelloCustom.COLOR_313131}`,
+
+                            display: "flex",
+                            flexDirection: "column",
+                          }}
+                        >
+                          {/* title & close btn */}
+                          <Box
+                            sx={{
+                              width: "100%",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "space-between",
+                            }}
+                          >
+                            {/* title */}
+                            <Box
+                              sx={{
+                                fontSize: "1.25rem",
+                                fontWeight: "bold",
+                              }}
+                            >
+                              Comments
+                            </Box>
+
+                            {/* buttons component */}
+                            {/* close btn */}
+                            <Box
+                              onClick={() => handleCloseCommentSection()}
+                              sx={{
+                                cursor: "pointer",
+                                width: "70px",
+                                height: "35px",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                py: 0.25,
+                                px: 1.25,
+                                fontSize: "0.9rem",
+                                fontWeight: "bold",
+                                borderRadius: "5px",
+                                color: (theme) =>
+                                  theme.palette.mode === "dark"
+                                    ? theme.trelloCustom.COLOR_D7D7D7
+                                    : theme.trelloCustom.COLOR_313131,
+                                bgcolor: (theme) =>
+                                  theme.palette.mode === "dark"
+                                    ? theme.trelloCustom.COLOR_281E38
+                                    : theme.trelloCustom.COLOR_E6E6E6,
+                                "&:hover": {
+                                  bgcolor: (theme) =>
+                                    theme.palette.mode === "dark"
+                                      ? theme.trelloCustom.COLOR_463666
+                                      : theme.trelloCustom.COLOR_D7D7D7,
+                                },
+                              }}
+                            >
+                              Close
+                            </Box>
+                          </Box>
+
+                          <CommentSection
+                            card={card}
+                            userIsMemberOfCard={userIsMemberOfCard}
+                          />
+                        </Box>
+                      )}
+                    </Box>
+                  </Box>
                 </Box>
               </Box>
             </Box>

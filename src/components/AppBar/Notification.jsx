@@ -141,6 +141,28 @@ const Notification = () => {
       });
     });
 
+    // noti-receive-new-comment
+    socket.on("noti-receive-new-comment", (notification) => {
+      setListNotifications((prevList) => {
+        if (prevList.some((n) => n._id === notification._id)) {
+          return prevList;
+        }
+        setAnyNotiNotReadYet(true);
+        return [notification, ...prevList];
+      });
+    });
+
+    // noti-receive-new-reply
+    socket.on("noti-receive-new-reply", (notification) => {
+      setListNotifications((prevList) => {
+        if (prevList.some((n) => n._id === notification._id)) {
+          return prevList;
+        }
+        setAnyNotiNotReadYet(true);
+        return [notification, ...prevList];
+      });
+    });
+
     //
   }, [listNotifications, navigate, location]);
 
@@ -720,7 +742,7 @@ const Notification = () => {
           <Box
             sx={{
               width: "450px",
-              height: "350px",
+              height: !filteredNotifications.length ? "350px" : null,
               overflow: "scroll",
 
               px: 2,
@@ -766,58 +788,95 @@ const Notification = () => {
                 {"Loading..."}
               </Box>
             ) : filteredNotifications.length > 0 ? (
-              filteredNotifications.map((notification) =>
-                notification.type.toUpperCase() !== "INVITE" ? (
-                  <Card
-                    key={notification._id}
-                    sx={{
-                      mb: 2,
-                      my: 1,
+              filteredNotifications.map((notification) => (
+                <Card
+                  key={notification._id}
+                  sx={{
+                    mb: 2,
+                    my: 1,
 
-                      bgcolor: (theme) =>
-                        theme.palette.mode === "dark"
-                          ? theme.trelloCustom.COLOR_180F27
-                          : "none",
-                      border: "1px solid",
+                    bgcolor: (theme) =>
+                      theme.palette.mode === "dark"
+                        ? theme.trelloCustom.COLOR_180F27
+                        : "none",
+                    border: "1px solid",
+                    borderColor: (theme) =>
+                      theme.palette.mode === "dark"
+                        ? "transparent"
+                        : theme.trelloCustom.COLOR_D7D7D7,
+                    boxShadow: "none",
+
+                    "&:hover": {
                       borderColor: (theme) =>
+                        theme.palette.mode === "dark" ? "none" : "transparent",
+                      boxShadow: (theme) =>
                         theme.palette.mode === "dark"
-                          ? "transparent"
-                          : theme.trelloCustom.COLOR_D7D7D7,
-                      boxShadow: "none",
+                          ? "none"
+                          : `0px 2px 10px ${theme.trelloCustom.COLOR_CBCBCB}`,
+                    },
 
-                      "&:hover": {
-                        borderColor: (theme) =>
-                          theme.palette.mode === "dark"
-                            ? "none"
-                            : "transparent",
-                        boxShadow: (theme) =>
-                          theme.palette.mode === "dark"
-                            ? "none"
-                            : `0px 2px 10px ${theme.trelloCustom.COLOR_CBCBCB}`,
+                    "&.MuiPaper-root.MuiCard-root": {
+                      borderRadius: "6px",
+                    },
+                  }}
+                >
+                  <CardContent
+                    sx={{
+                      "&.MuiCardContent-root": {
+                        pl: 1.5,
+                        pr: 0.25,
+                      },
+                      "&:last-child": {
+                        py: 1.25,
                       },
 
-                      "&.MuiPaper-root.MuiCard-root": {
-                        borderRadius: "6px",
-                      },
+                      display: "flex",
+                      alignItems: "start",
+                      justifyContent: "space-between",
+
+                      gap: 1.75,
                     }}
                   >
-                    <CardContent
+                    {/* noti's ava of actor */}
+                    <Box
                       sx={{
-                        "&.MuiCardContent-root": {
-                          pl: 2,
-                          pr: 0.75,
-                        },
-                        "&:last-child": {
-                          py: 1.25,
-                        },
+                        flex: 1,
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          height: "45px",
+                          width: "45px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
 
+                          borderRadius: "10px",
+                          fontWeight: "bold",
+                          fontSize: "1.1rem",
+                          color: (theme) =>
+                            theme.palette.mode === "dark"
+                              ? theme.trelloCustom.COLOR_B469FF
+                              : theme.trelloCustom.COLOR_7236AE,
+                          bgcolor: (theme) =>
+                            theme.palette.mode === "dark"
+                              ? theme.trelloCustom.COLOR_3A135F
+                              : theme.trelloCustom.COLOR_EDDAFF,
+                        }}
+                      >
+                        {notification.actorName.charAt(0).toUpperCase()}
+                      </Box>
+                    </Box>
+
+                    <Box
+                      sx={{
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "space-between",
-
                         gap: 2,
                       }}
                     >
+                      {/* noti's content */}
                       <Box
                         sx={{
                           flex: 9,
@@ -826,6 +885,7 @@ const Notification = () => {
                           gap: 0.75,
                         }}
                       >
+                        {/* notify msg */}
                         <Typography
                           variant="body1"
                           sx={{
@@ -841,234 +901,123 @@ const Notification = () => {
                           {notification.notifyMessage}
                         </Typography>
 
-                        <Box
-                          sx={{
-                            fontWeight: notification.markIsRead
-                              ? "normal"
-                              : "bold",
-                            fontSize: ".75rem",
-                            color: (theme) => theme.trelloCustom.COLOR_818181,
-                          }}
-                        >
-                          {formatRelative(
-                            new Date(notification.happenedAt),
-                            Date.now(),
-                            {
-                              locale: enUS,
-                            }
-                          )
-                            .charAt(0)
-                            .toUpperCase() +
-                            formatRelative(
-                              new Date(notification.happenedAt),
-                              Date.now(),
-                              {
-                                locale: enUS,
-                              }
-                            ).slice(1)}
-                        </Box>
-                      </Box>
-
-                      <Box
-                        sx={{
-                          flex: 1,
-
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "space-between",
-
-                          gap: 1,
-                        }}
-                      >
-                        {!notification.markIsRead && (
+                        {/* comment/reply msg */}
+                        {(notification.type.toUpperCase() === "COMMENT" ||
+                          notification.type.toUpperCase() === "REPLY") && (
                           <Box
                             sx={{
-                              width: "10px",
-                              height: "10px",
-                              borderRadius: "50%",
-                              bgcolor: (theme) =>
+                              width: "fit-content",
+                              py: 0.75,
+                              px: 2,
+                              fontWeight: "normal",
+                              fontSize: ".9rem",
+                              borderRadius: "6px",
+                              color: (theme) =>
                                 theme.palette.mode === "dark"
                                   ? theme.trelloCustom.COLOR_B469FF
                                   : theme.trelloCustom.COLOR_7236AE,
+                              bgcolor: (theme) =>
+                                theme.palette.mode === "dark"
+                                  ? theme.trelloCustom.COLOR_3A135F
+                                  : theme.trelloCustom.COLOR_EDDAFF,
                             }}
-                          ></Box>
+                          >
+                            {notification.contentComment}
+                          </Box>
                         )}
-
-                        <IconButton
-                          onClick={(e) =>
-                            handleClickMenuOptionsEachNoti(e, notification)
-                          }
-                        >
-                          <MoreVertIcon />
-                        </IconButton>
-                      </Box>
-                    </CardContent>
-                  </Card>
-                ) : (
-                  <Card
-                    key={notification._id}
-                    sx={{
-                      mb: 2,
-                      my: 1,
-
-                      bgcolor: (theme) =>
-                        theme.palette.mode === "dark"
-                          ? theme.trelloCustom.COLOR_180F27
-                          : "none",
-                      border: "1px solid",
-                      borderColor: (theme) =>
-                        theme.palette.mode === "dark"
-                          ? "transparent"
-                          : theme.trelloCustom.COLOR_D7D7D7,
-                      boxShadow: "none",
-
-                      "&:hover": {
-                        borderColor: (theme) =>
-                          theme.palette.mode === "dark"
-                            ? "none"
-                            : "transparent",
-                        boxShadow: (theme) =>
-                          theme.palette.mode === "dark"
-                            ? "none"
-                            : `0px 2px 10px ${theme.trelloCustom.COLOR_CBCBCB}`,
-                      },
-
-                      "&.MuiPaper-root.MuiCard-root": {
-                        borderRadius: "6px",
-                      },
-                    }}
-                  >
-                    <CardContent
-                      sx={{
-                        "&.MuiCardContent-root": {
-                          pl: 2,
-                          pr: 0.75,
-                        },
-                        "&:last-child": {
-                          py: 1.25,
-                        },
-
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-
-                        gap: 2,
-                      }}
-                    >
-                      <Box
-                        sx={{
-                          flex: 9,
-                          display: "flex",
-                          flexDirection: "column",
-                          gap: 0.75,
-                        }}
-                      >
-                        {/* content of notify message */}
-                        <Typography
-                          variant="body1"
-                          sx={{
-                            fontWeight: notification.markIsRead
-                              ? "normal"
-                              : "bold",
-                            color: (theme) =>
-                              theme.palette.mode === "dark"
-                                ? theme.trelloCustom.COLOR_D7D7D7
-                                : theme.trelloCustom.COLOR_313131,
-                          }}
-                        >
-                          {notification.notifyMessage}
-                        </Typography>
 
                         {/* buttons for invitation noti */}
-                        {notification.response.toUpperCase() === "PENDING" ? (
-                          <Box
-                            sx={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 1.5,
-                            }}
-                          >
+                        {notification.type.toUpperCase() === "INVITE" &&
+                          (notification.response.toUpperCase() === "PENDING" ? (
                             <Box
-                              onClick={() =>
-                                handleAcceptInvitationJoiningIntoBoard(
-                                  notification
-                                )
-                              }
                               sx={{
-                                cursor: "pointer",
-                                py: 0.5,
-                                px: 1.5,
-                                fontSize: ".8rem",
-                                fontWeight: "bold",
-                                borderRadius: "4px",
-                                border: "1px solid transparent",
-                                color: (theme) =>
-                                  theme.trelloCustom.COLOR_188544,
-                                bgcolor: (theme) =>
-                                  theme.palette.mode === "dark"
-                                    ? theme.trelloCustom.COLOR_C6FFCE
-                                    : theme.trelloCustom.COLOR_CDF4DD,
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 1.5,
                               }}
                             >
-                              Accept
-                            </Box>
+                              <Box
+                                onClick={() =>
+                                  handleAcceptInvitationJoiningIntoBoard(
+                                    notification
+                                  )
+                                }
+                                sx={{
+                                  cursor: "pointer",
+                                  py: 0.5,
+                                  px: 1.5,
+                                  fontSize: ".8rem",
+                                  fontWeight: "bold",
+                                  borderRadius: "4px",
+                                  border: "1px solid transparent",
+                                  color: (theme) =>
+                                    theme.trelloCustom.COLOR_188544,
+                                  bgcolor: (theme) =>
+                                    theme.palette.mode === "dark"
+                                      ? theme.trelloCustom.COLOR_C6FFCE
+                                      : theme.trelloCustom.COLOR_CDF4DD,
+                                }}
+                              >
+                                Accept
+                              </Box>
 
+                              <Box
+                                onClick={() =>
+                                  handleDeclineInvitationJoiningIntoBoard(
+                                    notification
+                                  )
+                                }
+                                sx={{
+                                  cursor: "pointer",
+                                  py: 0.5,
+                                  px: 1.5,
+                                  fontSize: ".8rem",
+                                  fontWeight: "bold",
+                                  borderRadius: "4px",
+                                  border: "1px solid transparent",
+                                  color: (theme) =>
+                                    theme.trelloCustom.COLOR_6F09AE,
+                                  bgcolor: (theme) =>
+                                    theme.trelloCustom.COLOR_CE85FB,
+                                }}
+                              >
+                                Decline
+                              </Box>
+                            </Box>
+                          ) : (
                             <Box
-                              onClick={() =>
-                                handleDeclineInvitationJoiningIntoBoard(
-                                  notification
-                                )
-                              }
                               sx={{
-                                cursor: "pointer",
-                                py: 0.5,
-                                px: 1.5,
-                                fontSize: ".8rem",
-                                fontWeight: "bold",
-                                borderRadius: "4px",
-                                border: "1px solid transparent",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 0.5,
+                                fontWeight: notification.markIsRead
+                                  ? "normal"
+                                  : "bold",
+                                fontSize: ".9rem",
                                 color: (theme) =>
-                                  theme.trelloCustom.COLOR_6F09AE,
-                                bgcolor: (theme) =>
-                                  theme.trelloCustom.COLOR_CE85FB,
+                                  theme.trelloCustom.COLOR_818181,
                               }}
                             >
-                              Decline
+                              <CheckIcon
+                                sx={{
+                                  width: "25px",
+                                  height: "25px",
+                                  p: 0.25,
+                                  borderRadius: "50%",
+                                  color: (theme) =>
+                                    theme.trelloCustom.COLOR_188544,
+                                  bgcolor: (theme) =>
+                                    theme.palette.mode === "dark"
+                                      ? theme.trelloCustom.COLOR_C6FFCE
+                                      : theme.trelloCustom.COLOR_CDF4DD,
+                                }}
+                              />
+
+                              {"You've already responded this invitation"}
                             </Box>
-                          </Box>
-                        ) : (
-                          <Box
-                            sx={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 0.5,
-                              fontWeight: notification.markIsRead
-                                ? "normal"
-                                : "bold",
-                              fontSize: ".9rem",
-                              color: (theme) => theme.trelloCustom.COLOR_818181,
-                            }}
-                          >
-                            <CheckIcon
-                              sx={{
-                                width: "25px",
-                                height: "25px",
-                                p: 0.25,
-                                borderRadius: "50%",
-                                color: (theme) =>
-                                  theme.trelloCustom.COLOR_188544,
-                                bgcolor: (theme) =>
-                                  theme.palette.mode === "dark"
-                                    ? theme.trelloCustom.COLOR_C6FFCE
-                                    : theme.trelloCustom.COLOR_CDF4DD,
-                              }}
-                            />
+                          ))}
 
-                            {"You've already responded this invitation"}
-                          </Box>
-                        )}
-
-                        {/* time of notify message */}
+                        {/* notify time */}
                         <Box
                           sx={{
                             fontWeight: notification.markIsRead
@@ -1097,6 +1046,7 @@ const Notification = () => {
                         </Box>
                       </Box>
 
+                      {/* noti's menu options */}
                       <Box
                         sx={{
                           flex: 1,
@@ -1130,10 +1080,10 @@ const Notification = () => {
                           <MoreVertIcon />
                         </IconButton>
                       </Box>
-                    </CardContent>
-                  </Card>
-                )
-              )
+                    </Box>
+                  </CardContent>
+                </Card>
+              ))
             ) : (
               <Box
                 sx={{

@@ -2,7 +2,6 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import Box from "@mui/material/Box";
 import { arrayMove } from "@dnd-kit/sortable";
 import { cloneDeep, isEmpty } from "lodash";
-import { io } from "socket.io-client";
 
 import {
   DndContext,
@@ -32,7 +31,7 @@ const ACTIVE_DRAG_ITEM_TYPE = {
   CARD: "ACTIVE_DRAG_ITEM_TYPE_CARD",
 };
 
-const socket = io.connect("http://localhost:8017");
+import socket from "~/utils/socket/socket";
 
 function BoardContent({
   board,
@@ -72,6 +71,8 @@ function BoardContent({
   const sensors = useSensors(mouseSensor, touchSensor);
 
   const [orderedColumns, setOrderedColumns] = useState([]);
+
+  const [isDraggingDnD, setIsDraggingDnD] = useState(false);
 
   // tại 1 thời điểm chỉ có 1 phần tử (item) đang được kéo (col hoặc card)
   const [activeDragItemId, setActiveDragItemId] = useState(null);
@@ -253,21 +254,20 @@ function BoardContent({
 
   // trigger khi bắt đầu việc kéo 1 phần tử => drag
   const handleDragStart = (event) => {
-    if (roleOfBoard != "member") {
-      // console.log('handle drag start: ', event)
+    setIsDraggingDnD(true);
+    // console.log('handle drag start: ', event)
 
-      setActiveDragItemId(event?.active?.id);
-      setActiveDragItemType(
-        event?.active?.data?.current?.columnId
-          ? ACTIVE_DRAG_ITEM_TYPE.CARD
-          : ACTIVE_DRAG_ITEM_TYPE.COLUMN
-      );
-      setActiveDragItemData(event?.active?.data?.current);
+    setActiveDragItemId(event?.active?.id);
+    setActiveDragItemType(
+      event?.active?.data?.current?.columnId
+        ? ACTIVE_DRAG_ITEM_TYPE.CARD
+        : ACTIVE_DRAG_ITEM_TYPE.COLUMN
+    );
+    setActiveDragItemData(event?.active?.data?.current);
 
-      // nếu là kéo card thì mới thực hiện hành động set giá trị oldColumn
-      if (event?.active?.data?.current?.columnId) {
-        setOldColumnWhenDraggingCard(findColumnByCardId(event?.active?.id));
-      }
+    // nếu là kéo card thì mới thực hiện hành động set giá trị oldColumn
+    if (event?.active?.data?.current?.columnId) {
+      setOldColumnWhenDraggingCard(findColumnByCardId(event?.active?.id));
     }
   };
 
@@ -490,6 +490,8 @@ function BoardContent({
     setActiveDragItemType(null);
     setActiveDragItemData(null);
     setOldColumnWhenDraggingCard(null);
+
+    setIsDraggingDnD(false);
   };
 
   // 32
@@ -583,7 +585,7 @@ function BoardContent({
 
       // tự custom nâng cao thuật toán phát hiện va chạm (37)
       collisionDetection={collisionDetectionStrategy}
-      onDragStart={handleDragStart}
+      onDragStart={roleOfBoard != "member" ? handleDragStart : null}
       onDragOver={roleOfBoard != "member" ? handleDragOver : null}
       onDragEnd={roleOfBoard != "member" ? handleDragEnd : null}
     >
@@ -604,6 +606,7 @@ function BoardContent({
       >
         {/* box column */}
         <ListColumns
+          isDraggingDnD={isDraggingDnD}
           roleOfBoard={roleOfBoard}
           columns={orderedColumns}
           createNewColumn={createNewColumn}

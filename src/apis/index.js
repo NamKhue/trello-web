@@ -578,3 +578,56 @@ export const removeAllNotificationsAPI = async () => {
 
 // ================================================================================================
 // ================================================================================================
+
+// GET COMMENTS
+export const getCommentsAPI = async (cardId, boardId) => {
+  const authToken = localStorage.getItem("authToken");
+
+  const response = await axios.get(
+    `${API_ROOT_V1.COMMENT}/get-comments/${cardId}`,
+    {
+      headers: { Authorization: `Bearer ${authToken}` },
+      params: {
+        boardId: boardId,
+      },
+    }
+  );
+
+  return response.data;
+};
+
+// CREATE NEW COMMENT
+export const createNewCommentAPI = async (cardId, boardId, commentData) => {
+  const authToken = localStorage.getItem("authToken");
+
+  const response = await axios.post(
+    `${API_ROOT_V1.COMMENT}/new-comment/${cardId}`,
+    commentData,
+    {
+      headers: { Authorization: `Bearer ${authToken}` },
+      params: {
+        boardId: boardId,
+      },
+    }
+  );
+
+  return response.data;
+};
+
+// CREATE NEW REPLY
+export const createNewReplyAPI = async (cardId, boardId, replyData) => {
+  const authToken = localStorage.getItem("authToken");
+
+  const response = await axios.post(
+    `${API_ROOT_V1.COMMENT}/new-reply/${cardId}`,
+    replyData,
+    {
+      headers: { Authorization: `Bearer ${authToken}` },
+      params: {
+        boardId: boardId,
+      },
+    }
+  );
+
+  return response.data;
+};

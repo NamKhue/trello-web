@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
+import { useConfirm } from "material-ui-confirm";
 
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -367,8 +368,21 @@ function BoardBar({
     }
   };
 
+  //
+  const confirmDeleteColumn = useConfirm();
+
   const handleDeleteBoard = () => {
-    deleteBoard();
+    confirmDeleteColumn({
+      title: "Delete Board?",
+      description:
+        "This action will permanently delete this Board and all components! Are you sure?",
+      confirmationText: "Confirm",
+      cancellationText: "Cancel",
+    })
+      .then(() => {
+        deleteBoard();
+      })
+      .catch(() => {});
   };
 
   // ================================================================================================
@@ -407,127 +421,139 @@ function BoardBar({
             gap: 1,
           }}
         >
-          {roleOfBoard === "creator" || roleOfBoard === "owner" ? (
-            <TextField
-              onMouseEnter={handleMouseHoverTitleBoard}
-              onMouseLeave={handleMouseLeaveTitleBoard}
-              type="text"
-              variant="outlined"
-              value={
-                board?.title != newBoardTitle ? newBoardTitle : board?.title
-              }
-              onChange={(e) => setNewBoardTitle(e.target.value)}
-              onKeyDown={(ev) => {
-                if (ev.key === "Enter") {
+          <Tooltip title={board?.title} placement="bottom" arrow>
+            {roleOfBoard === "creator" || roleOfBoard === "owner" ? (
+              <TextField
+                onMouseEnter={handleMouseHoverTitleBoard}
+                onMouseLeave={handleMouseLeaveTitleBoard}
+                type="text"
+                variant="outlined"
+                value={
+                  board?.title != newBoardTitle ? newBoardTitle : board?.title
+                }
+                onChange={(e) => setNewBoardTitle(e.target.value)}
+                onKeyDown={(ev) => {
+                  if (ev.key === "Enter") {
+                    ev.preventDefault();
+                    ev.target.blur();
+                    // ev.target.value.trim();
+                    handleRenameBoardDirectly(board, newBoardTitle);
+                  }
+                }}
+                onBlur={(ev) => {
                   ev.preventDefault();
                   ev.target.blur();
                   // ev.target.value.trim();
                   handleRenameBoardDirectly(board, newBoardTitle);
-                }
-              }}
-              onBlur={(ev) => {
-                ev.preventDefault();
-                ev.target.blur();
-                // ev.target.value.trim();
-                handleRenameBoardDirectly(board, newBoardTitle);
-              }}
-              InputProps={{
-                endAdornment: (
-                  // edit btn
-                  <Box>
-                    {isHoveredTitleBoard && (
-                      <Box
-                        sx={{
-                          cursor: "pointer",
-                          width: "fit-content",
-                          height: "30px",
-                          px: 1,
-                          display: "flex",
-                          alignItems: "center",
-                          fontWeight: "bold",
+                }}
+                InputProps={{
+                  endAdornment: (
+                    // edit btn
+                    <Box>
+                      {isHoveredTitleBoard && (
+                        <Box
+                          sx={{
+                            cursor: "pointer",
+                            width: "fit-content",
+                            height: "30px",
+                            px: 1,
+                            display: "flex",
+                            alignItems: "center",
+                            fontWeight: "bold",
 
-                          bgcolor: "transparent",
-                          color: (theme) =>
-                            theme.palette.mode === "dark"
-                              ? theme.trelloCustom.COLOR_D7D7D7
-                              : theme.trelloCustom.COLOR_F8F8F8,
-                        }}
-                      >
-                        <EditIcon sx={{ fontSize: "1.5rem", pr: 0.5 }} />
-                      </Box>
-                    )}
-                  </Box>
-                ),
-              }}
-              sx={{
-                "& input": {
-                  cursor: "pointer",
-                  pt: 1.25,
-                  pb: 1.25,
-                  pr: 1.75,
-                  height: "15px",
-                  fontSize: "1.3rem",
-                  fontWeight: "bold",
-                  border: "2px solid transparent",
-                  borderRadius: "6px",
-                  bgcolor: "transparent",
-                  color: (theme) => theme.trelloCustom.COLOR_F8F8F8,
-                },
-                "& input:hover": {
-                  bgcolor: (theme) => theme.trelloCustom.COLOR_7236AE,
-                  borderColor: (theme) => theme.trelloCustom.COLOR_7236AE,
-                },
-                "& input:focus": {
-                  color: (theme) =>
-                    theme.palette.mode === "dark"
-                      ? theme.trelloCustom.COLOR_D7D7D7
-                      : theme.trelloCustom.COLOR_F8F8F8,
-                  bgcolor: (theme) =>
-                    theme.palette.mode === "dark"
-                      ? theme.trelloCustom.COLOR_281E38
-                      : theme.trelloCustom.COLOR_7236AE,
-                  borderColor: (theme) =>
-                    theme.palette.mode === "dark"
-                      ? theme.trelloCustom.COLOR_C0C0C0
-                      : theme.trelloCustom.COLOR_D7D7D7,
-                },
-                "& .MuiInputBase-input": {
+                            bgcolor: "transparent",
+                            color: (theme) =>
+                              theme.palette.mode === "dark"
+                                ? theme.trelloCustom.COLOR_D7D7D7
+                                : theme.trelloCustom.COLOR_F8F8F8,
+                          }}
+                        >
+                          <EditIcon sx={{ fontSize: "1.5rem", pr: 0.5 }} />
+                        </Box>
+                      )}
+                    </Box>
+                  ),
+                }}
+                sx={{
+                  "& input": {
+                    cursor: "pointer",
+                    pt: 1.25,
+                    pb: 1.25,
+                    pr: 1.75,
+                    height: "15px",
+                    fontSize: "1.3rem",
+                    fontWeight: "bold",
+                    border: "2px solid transparent",
+                    borderRadius: "6px",
+                    bgcolor: "transparent",
+                    color: (theme) => theme.trelloCustom.COLOR_F8F8F8,
+                  },
+                  "& input:hover": {
+                    bgcolor: (theme) => theme.trelloCustom.COLOR_7236AE,
+                    borderColor: (theme) => theme.trelloCustom.COLOR_7236AE,
+                  },
+                  "& input:focus": {
+                    color: (theme) =>
+                      theme.palette.mode === "dark"
+                        ? theme.trelloCustom.COLOR_D7D7D7
+                        : theme.trelloCustom.COLOR_F8F8F8,
+                    bgcolor: (theme) =>
+                      theme.palette.mode === "dark"
+                        ? theme.trelloCustom.COLOR_281E38
+                        : theme.trelloCustom.COLOR_7236AE,
+                    borderColor: (theme) =>
+                      theme.palette.mode === "dark"
+                        ? theme.trelloCustom.COLOR_C0C0C0
+                        : theme.trelloCustom.COLOR_D7D7D7,
+                  },
+                  "& .MuiInputBase-input": {
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  },
+
+                  // border outline
+                  "& .MuiOutlinedInput-root": {
+                    "& fieldset": {
+                      borderRadius: "6px",
+                      borderWidth: "2px",
+                      borderColor: "transparent",
+                    },
+                    "&:hover fieldset": {
+                      borderColor: "transparent",
+                    },
+                    "&.Mui-focused fieldset": {
+                      borderColor: "transparent",
+                      // borderColor: (theme) =>
+                      //   theme.palette.mode === "dark"
+                      //     ? theme.trelloCustom.COLOR_8A2DCB
+                      //     : theme.trelloCustom.COLOR_313131,
+                    },
+                  },
+                }}
+              />
+            ) : (
+              <Box
+                sx={{
+                  width: {
+                    xs: "250px",
+                    sm: "350px",
+                    md: "400px",
+                    lg: "700px",
+                  },
+                  display: "inline-block",
+                  whiteSpace: "nowrap",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
-                },
 
-                // border outline
-                "& .MuiOutlinedInput-root": {
-                  "& fieldset": {
-                    borderRadius: "6px",
-                    borderWidth: "2px",
-                    borderColor: "transparent",
-                  },
-                  "&:hover fieldset": {
-                    borderColor: "transparent",
-                  },
-                  "&.Mui-focused fieldset": {
-                    borderColor: "transparent",
-                    // borderColor: (theme) =>
-                    //   theme.palette.mode === "dark"
-                    //     ? theme.trelloCustom.COLOR_8A2DCB
-                    //     : theme.trelloCustom.COLOR_313131,
-                  },
-                },
-              }}
-            />
-          ) : (
-            <Box
-              sx={{
-                color: (theme) => theme.trelloCustom.COLOR_F8F8F8,
-                fontSize: "1.3rem",
-                fontWeight: "bold",
-                pl: 2,
-              }}
-            >
-              {board?.title}
-            </Box>
-          )}
+                  fontSize: "1.3rem",
+                  fontWeight: "bold",
+                  color: (theme) => theme.trelloCustom.COLOR_F8F8F8,
+                }}
+              >
+                {board?.title}
+              </Box>
+            )}
+          </Tooltip>
 
           {/* </Tooltip>
         <Chip
@@ -565,50 +591,56 @@ function BoardBar({
           }}
         >
           {(roleOfBoard === "creator" || roleOfBoard === "owner") && (
-            <Box
-              sx={{
-                display: "flex",
-              }}
-            >
-              <Button
-                variant="outlined"
-                sx={BUTTON_BOARD_BAR_STYLE}
-                onClick={() => handleOpenModalInviteMember()}
+            <Tooltip title={"Invite member"} arrow>
+              <Box
+                sx={{
+                  display: "flex",
+                }}
               >
-                <PersonAddAltIcon sx={{ mr: 1 }} />
-                Invite
-              </Button>
-            </Box>
+                <Button
+                  variant="outlined"
+                  sx={BUTTON_BOARD_BAR_STYLE}
+                  onClick={() => handleOpenModalInviteMember()}
+                >
+                  <PersonAddAltIcon sx={{ mr: 1 }} />
+                  Invite
+                </Button>
+              </Box>
+            </Tooltip>
           )}
 
-          <Button
-            onClick={() => handleOpenModalMembersInBoard()}
-            variant="outlined"
-            sx={BUTTON_BOARD_BAR_STYLE}
-          >
-            <GroupIcon sx={{ mr: 1 }} />
-            Members
-          </Button>
+          <Tooltip title={"Members of board"} arrow>
+            <Button
+              onClick={() => handleOpenModalMembersInBoard()}
+              variant="outlined"
+              sx={BUTTON_BOARD_BAR_STYLE}
+            >
+              <GroupIcon sx={{ mr: 1 }} />
+              Members
+            </Button>
+          </Tooltip>
 
           {(roleOfBoard === "creator" || roleOfBoard === "owner") && (
-            <Box
-              onClick={() => handleOpenModalMoreOptions()}
-              variant="outlined"
-              sx={{
-                cursor: "pointer",
-                height: "35px",
-                width: "35px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                border: "1px solid transparent",
-                borderRadius: "4px",
-                color: (theme) => theme.trelloCustom.COLOR_F8F8F8,
-                bgcolor: (theme) => theme.trelloCustom.COLOR_7236AE,
-              }}
-            >
-              <MoreVertIcon sx={{}} />
-            </Box>
+            <Tooltip title={"More options"} arrow>
+              <Box
+                onClick={() => handleOpenModalMoreOptions()}
+                variant="outlined"
+                sx={{
+                  cursor: "pointer",
+                  height: "35px",
+                  width: "35px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  border: "1px solid transparent",
+                  borderRadius: "4px",
+                  color: (theme) => theme.trelloCustom.COLOR_F8F8F8,
+                  bgcolor: (theme) => theme.trelloCustom.COLOR_7236AE,
+                }}
+              >
+                <MoreVertIcon sx={{}} />
+              </Box>
+            </Tooltip>
           )}
         </Box>
       </Box>
@@ -1330,7 +1362,7 @@ function BoardBar({
         </Box>
       )}
 
-      {/* modal members */}
+      {/* modal more options */}
       {openModalMoreOptions && (
         <Box
           sx={{
