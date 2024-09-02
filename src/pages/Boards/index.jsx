@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import { useMediaQuery } from "@mui/material";
+import { Tooltip, useMediaQuery } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import TimeAgo from "timeago-react";
 import * as timeago from "timeago.js";
@@ -800,79 +800,83 @@ function HomePage() {
                     >
                       {currentListItems.map((board) => (
                         <Grid item xs={12 / columns} key={board._id}>
-                          <Box
-                            onClick={() => handleChooseBoard(board)}
-                            sx={{
-                              cursor: "pointer",
-                              height: "100px",
-                              display: "flex",
-                              flexDirection: "column",
-                              alignItems: "center",
-                              justifyContent: "space-between",
-                              borderRadius: "8px",
-                              px: 2,
-                              py: 1,
+                          <Tooltip title={board.title} placement="bottom" arrow>
+                            <Box
+                              onClick={() => handleChooseBoard(board)}
+                              sx={{
+                                cursor: "pointer",
+                                height: "100px",
+                                display: "flex",
+                                flexDirection: "column",
+                                alignItems: "center",
+                                justifyContent: "space-between",
+                                borderRadius: "8px",
+                                px: 2,
+                                py: 1,
 
-                              color: (theme) =>
-                                theme.palette.mode === "dark"
-                                  ? theme.trelloCustom.COLOR_E6E6E6
-                                  : theme.trelloCustom.COLOR_790283,
-                              bgcolor: (theme) =>
-                                theme.palette.mode === "dark"
-                                  ? theme.trelloCustom.COLOR_51247C
-                                  : theme.trelloCustom.COLOR_DDADF0,
-                              "&:hover": {
                                 color: (theme) =>
                                   theme.palette.mode === "dark"
                                     ? theme.trelloCustom.COLOR_E6E6E6
-                                    : theme.trelloCustom.COLOR_F8F8F8,
+                                    : theme.trelloCustom.COLOR_790283,
                                 bgcolor: (theme) =>
                                   theme.palette.mode === "dark"
-                                    ? theme.trelloCustom.COLOR_1E0734
-                                    : theme.trelloCustom.COLOR_9357CF,
-                              },
-                            }}
-                          >
-                            {/* fake component */}
-                            <Box
-                              sx={{
-                                height: "20px",
-                              }}
-                            ></Box>
-
-                            <Box
-                              sx={{
-                                fontSize: "1.1rem",
-                                textAlign: "center",
-                                overflow: "hidden",
-                                textOverflow: "ellipsis",
+                                    ? theme.trelloCustom.COLOR_51247C
+                                    : theme.trelloCustom.COLOR_DDADF0,
+                                "&:hover": {
+                                  color: (theme) =>
+                                    theme.palette.mode === "dark"
+                                      ? theme.trelloCustom.COLOR_E6E6E6
+                                      : theme.trelloCustom.COLOR_F8F8F8,
+                                  bgcolor: (theme) =>
+                                    theme.palette.mode === "dark"
+                                      ? theme.trelloCustom.COLOR_1E0734
+                                      : theme.trelloCustom.COLOR_9357CF,
+                                },
                               }}
                             >
-                              {board.title}
-                            </Box>
+                              {/* fake component */}
+                              <Box
+                                sx={{
+                                  height: "20px",
+                                }}
+                              ></Box>
 
-                            <Box
-                              sx={{
-                                width: "100%",
-                                height: "20px",
-                                display: "flex",
-                                justifyContent: "end",
-                                fontSize: ".8rem",
-                                color: (theme) =>
-                                  theme.trelloCustom.COLOR_C0C0C0,
-                              }}
-                            >
-                              <TimeAgo
-                                datetime={
-                                  board.updatedAt
-                                    ? board.updatedAt
-                                    : board.createdAt
-                                }
-                                locale="en"
-                                sx={{}}
-                              />
+                              {/* board's title */}
+                              <Box
+                                sx={{
+                                  width: "100%",
+                                  fontSize: "1.1rem",
+                                  textAlign: "center",
+                                  overflow: "hidden",
+                                  textOverflow: "ellipsis",
+                                  whiteSpace: "nowrap",
+                                }}
+                              >
+                                {board.title}
+                              </Box>
+
+                              {/* display time ago */}
+                              <Box
+                                sx={{
+                                  width: "100%",
+                                  height: "20px",
+                                  display: "flex",
+                                  justifyContent: "end",
+                                  fontSize: ".75rem",
+                                  fontWeight: "bold",
+                                }}
+                              >
+                                <TimeAgo
+                                  datetime={
+                                    board.updatedAt
+                                      ? board.updatedAt
+                                      : board.createdAt
+                                  }
+                                  locale="en"
+                                />
+                              </Box>
                             </Box>
-                          </Box>
+                          </Tooltip>
                         </Grid>
                       ))}
                     </Grid>

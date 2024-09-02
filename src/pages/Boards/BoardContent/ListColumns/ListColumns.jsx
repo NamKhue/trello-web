@@ -15,6 +15,8 @@ import AddIcon from "@mui/icons-material/Add";
 import Column from "./Column/Column";
 
 function ListColumns({
+  isDraggingDnD,
+
   roleOfBoard,
   columns,
 
@@ -34,6 +36,8 @@ function ListColumns({
   const sliderRef = useRef(null);
 
   const startDragging = (e) => {
+    if (isDraggingDnD) return;
+
     setMouseDown(true);
     setStartX(e.pageX - sliderRef.current.offsetLeft);
     setScrollLeft(sliderRef.current.scrollLeft);
@@ -44,6 +48,7 @@ function ListColumns({
   };
 
   const move = (e) => {
+    if (isDraggingDnD) return;
     if (!mouseDown) return;
 
     const x = e.pageX - sliderRef.current.offsetLeft;
@@ -147,6 +152,7 @@ function ListColumns({
             {columns?.map((column) => (
               <Column
                 key={column._id}
+                isDraggingDnD={isDraggingDnD}
                 roleOfBoard={roleOfBoard}
                 columns={columns}
                 column={column}

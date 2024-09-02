@@ -1,5 +1,6 @@
 // constants
 export const API_ROOT = "http://localhost:8017";
+// export const API_ROOT = "https://be-meelo-note.onrender.com";
 
 export const API_ROOT_V1 = {
   USER: `${API_ROOT}/v1/user`,
@@ -9,4 +10,5 @@ export const API_ROOT_V1 = {
   CARD: `${API_ROOT}/v1/cards`,
   INVITATION: `${API_ROOT}/v1/invitations`,
   NOTIFICATION: `${API_ROOT}/v1/notifications`,
+  COMMENT: `${API_ROOT}/v1/comments`,
 };

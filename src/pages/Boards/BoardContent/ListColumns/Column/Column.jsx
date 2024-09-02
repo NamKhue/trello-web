@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -35,6 +35,8 @@ import ListCards from "./ListCards/ListCards";
 
 // { column }
 function Column({
+  isDraggingDnD,
+
   roleOfBoard,
   column,
 
@@ -403,10 +405,20 @@ function Column({
 
   // Function to focus the TextField
   const handleFieldsetClickTitleColumn = () => {
+    // if (isDraggingDnD) {return;}
+
     if (textFieldRefTitleColumn.current) {
       textFieldRefTitleColumn.current.focus();
     }
   };
+
+  // blur column's title input when dragging dnd
+  useEffect(() => {
+    if (isDraggingDnD) {
+      setFocusedOnTitleColumn(false);
+      textFieldRefTitleColumn.current.blur();
+    }
+  }, [isDraggingDnD]);
 
   return (
     <div

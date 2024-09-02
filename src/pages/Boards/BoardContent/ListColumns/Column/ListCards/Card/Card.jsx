@@ -4,22 +4,28 @@ import { useConfirm } from "material-ui-confirm";
 // import { useModal } from "mui-modal-provider";
 
 import Box from "@mui/material/Box";
-import { Card as MuiCard } from "@mui/material";
+import { Card as MuiCard, Tooltip } from "@mui/material";
 import CardContent from "@mui/material/CardContent";
 import CardMedia from "@mui/material/CardMedia";
 import Typography from "@mui/material/Typography";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
+import Stack from "@mui/material/Stack";
+import AvatarGroup from "@mui/material/AvatarGroup";
+import Avatar from "@mui/material/Avatar";
 
 import { TbFileDescription } from "react-icons/tb";
 import { CgAttachment } from "react-icons/cg";
 import { CiCalendar } from "react-icons/ci";
+import QuestionAnswerIcon from "@mui/icons-material/QuestionAnswer";
 
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
 import { useAuth } from "~/hooks/useAuth";
 import socket from "~/utils/socket/socket";
+
+import { getCommentsAPI } from "~/apis";
 
 function Card({
   roleOfBoard,
@@ -34,6 +40,7 @@ function Card({
   // ============================================================================
   const [userIsMemberOfCard, setUserIsMemberOfCard] = useState(false);
 
+  // ============================================================================
   const checkUserIsMemberOfCard = (cardMembers) => {
     const isMemberOfCard = cardMembers.some(
       (member) => member.email === loggedInUser.email
@@ -41,6 +48,7 @@ function Card({
     setUserIsMemberOfCard(isMemberOfCard);
   };
 
+  // ============================================================================
   useEffect(() => {
     if (card.members && loggedInUser) {
       // const isMemberOfCard = card.members.some(
@@ -51,6 +59,18 @@ function Card({
       checkUserIsMemberOfCard(card.members);
     }
   }, []);
+
+  // ============================================================================
+  const [comments, setComments] = useState([]);
+
+  // load comments' data
+  useEffect(() => {
+    if (card && !card._id.includes("placeholder-card")) {
+      getCommentsAPI(card._id, card.boardId).then((resComments) => {
+        setComments(resComments);
+      });
+    }
+  }, [card]);
 
   // ============================================================================
   useEffect(() => {
@@ -124,7 +144,7 @@ function Card({
     //   );
     // }
 
-    return !!card?.deadlineAt?.length || !!card?.memberIds?.length;
+    return !!card?.deadlineAt || !!card?.members?.length;
   };
 
   // right click handle - click chUột phải để mở menu options
@@ -306,18 +326,36 @@ function Card({
                   height: "20px",
                   display: "flex",
                   alignItems: "center",
-                  gap: 0.5,
+                  gap: 0.25,
+
+                  color: (theme) =>
+                    theme.palette.mode === "dark"
+                      ? theme.trelloCustom.COLOR_B469FF
+                      : theme.trelloCustom.COLOR_7236AE,
                 }}
               >
                 {!!card?.description?.length && (
                   <TbFileDescription
                     style={{
-                      marginLeft: "-3px",
+                      marginLeft: "-2px",
                     }}
                   />
                 )}
+
                 {/* {!!card?.attachments?.length && <CgAttachment />} */}
-                <CgAttachment />
+                <CgAttachment
+                  style={{
+                    fontSize: ".9rem",
+                  }}
+                />
+
+                {!!comments.length && (
+                  <QuestionAnswerIcon
+                    sx={{
+                      width: "1rem",
+                    }}
+                  />
+                )}
               </Box>
             )}
 
@@ -333,7 +371,7 @@ function Card({
                 }}
               >
                 {/* date & time */}
-                {card?.deadlineAt?.length && (
+                {card.deadlineAt ? (
                   <Box
                     sx={{
                       // border: "1px solid",
@@ -345,17 +383,18 @@ function Card({
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "space-around",
+
                       color: (theme) =>
                         theme.palette.mode === "dark"
-                          ? theme.trelloCustom.COLOR_F8F8F8
-                          : theme.trelloCustom.COLOR_1C1B1F,
+                          ? theme.trelloCustom.COLOR_B469FF
+                          : theme.trelloCustom.COLOR_7236AE,
                     }}
                   >
                     {/* icon */}
                     <CiCalendar
                       style={{
                         marginTop: "-2px",
-                        marginLeft: "-1.5px",
+                        marginLeft: "-1px",
                         fontSize: "1rem",
                         strokeWidth: 0.75,
                       }}
@@ -366,6 +405,11 @@ function Card({
                       sx={{
                         fontSize: ".8rem",
                         fontWeight: "bold",
+
+                        color: (theme) =>
+                          theme.palette.mode === "dark"
+                            ? theme.trelloCustom.COLOR_C0C0C0
+                            : theme.trelloCustom.COLOR_1C1B1F,
                       }}
                     >
                       {`${card?.deadlineAt.split(" ")[0].split("-")[2]}.${
@@ -373,10 +417,52 @@ function Card({
                       }.${card?.deadlineAt.split(" ")[0].split("-")[0]}`}
                     </Box>
                   </Box>
+                ) : (
+                  <Box></Box>
                 )}
 
                 {/* member */}
-                <Box></Box>
+                {card.members.length && (
+                  <AvatarGroup
+                    max={4}
+                    sx={{
+                      "&.MuiAvatarGroup-root .MuiAvatar-root": {
+                        fontSize: "1rem",
+                        height: "30px",
+                        width: "30px",
+                        border: (theme) =>
+                          theme.palette.mode === "dark"
+                            ? `1px solid ${theme.trelloCustom.COLOR_7236AE}`
+                            : `1px solid ${theme.trelloCustom.COLOR_B469FF}`,
+                        color: (theme) =>
+                          theme.palette.mode === "dark"
+                            ? theme.trelloCustom.COLOR_B469FF
+                            : theme.trelloCustom.COLOR_7236AE,
+                        bgcolor: (theme) =>
+                          theme.palette.mode === "dark"
+                            ? theme.trelloCustom.COLOR_3A135F
+                            : theme.trelloCustom.COLOR_EDDAFF,
+                      },
+                    }}
+                  >
+                    <Stack direction="row" spacing={-0.75}>
+                      {card.members.map((cardMember) => (
+                        <Box key={cardMember.userId}>
+                          <Tooltip
+                            title={cardMember.username}
+                            placement="bottom"
+                            arrow
+                          >
+                            <Avatar
+                              alt={cardMember.username.toUpperCase()}
+                              src="#"
+                            />
+                          </Tooltip>
+                        </Box>
+                      ))}
+                    </Stack>
+                  </AvatarGroup>
+                )}
               </Box>
             )}
           </CardContent>
