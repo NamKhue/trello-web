@@ -11,4 +11,5 @@ export const API_ROOT_V1 = {
   INVITATION: `${API_ROOT}/v1/invitations`,
   NOTIFICATION: `${API_ROOT}/v1/notifications`,
   COMMENT: `${API_ROOT}/v1/comments`,
+  FILE: `${API_ROOT}/v1/files`,
 };

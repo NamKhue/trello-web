@@ -631,3 +631,56 @@ export const createNewReplyAPI = async (cardId, boardId, replyData) => {
 
   return response.data;
 };
+
+// ================================================================================================
+// ================================================================================================
+
+// upload multiple files
+// export const uploadFiles = async (files, cardId, onUploadProgress) => {
+//   const formData = new FormData();
+//   files.forEach((file) => formData.append("file", file));
+//   formData.append("cardId", cardId);
+export const uploadFiles = async (base64Files, cardId, onUploadProgress) => {
+  if (!cardId) {
+    throw new Error("Card ID is required.");
+  }
+
+  const formData = new FormData();
+  base64Files.forEach((base64File, index) => {
+    formData.append(`file${index}`, base64File);
+  });
+  formData.append("cardId", cardId);
+
+  try {
+    await axios.post(`${API_ROOT_V1.FILE}/upload/${cardId}`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+      onUploadProgress,
+    });
+  } catch (error) {
+    console.error("Error uploading files:", error);
+    throw error;
+  }
+};
+
+// fetch files for a specific card
+export const fetchFiles = async (cardId) => {
+  try {
+    const response = await axios.get(`${API_ROOT_V1.FILE}/${cardId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching files:", error);
+    throw error;
+  }
+};
+
+// delete a specific file
+export const deleteFile = async (filename, cardId) => {
+  try {
+    await axios.delete(`${API_ROOT_V1.FILE}/${cardId}`, {
+      data: { filename },
+    });
+  } catch (error) {
+    console.error("Error deleting file:", error);
+    throw error;
+  }
+};

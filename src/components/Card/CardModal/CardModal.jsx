@@ -12,8 +12,10 @@ import FormControl from "@mui/material/FormControl";
 import Select from "@mui/material/Select";
 import InputLabel from "@mui/material/InputLabel";
 import MenuItem from "@mui/material/MenuItem";
-
 import IconButton from "@mui/material/IconButton";
+import List from "@mui/material/List";
+import ListItem from "@mui/material/ListItem";
+
 import ClearIcon from "@mui/icons-material/Clear";
 import CheckIcon from "@mui/icons-material/Check";
 import CloseIcon from "@mui/icons-material/Close";
@@ -24,6 +26,7 @@ import AddIcon from "@mui/icons-material/Add";
 import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
 import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";
 import QuestionAnswerIcon from "@mui/icons-material/QuestionAnswer";
+import AttachmentIcon from "@mui/icons-material/Attachment";
 
 // date time picker
 import dayjs from "dayjs";
@@ -39,6 +42,9 @@ import RichTextEditor from "../RichTextEditor";
 
 // comment section
 import CommentSection from "../CommentSection";
+
+// upload attachments section
+import FileUpload from "../FileUpload";
 
 // css
 import "../../../assets/css/Card/Dropdown.css";
@@ -525,6 +531,7 @@ const CardModal = ({
       checkIsOpenDateTimePickerThenClose();
       checkIsOpenAssigneeThenClose();
       checkIsOpenCommentSectionThenClose();
+      checkIsOpenUploadAttachmentSectionThenClose();
 
       setIsOpenMenuStatus(!isOpenMenuStatus);
     }
@@ -614,6 +621,7 @@ const CardModal = ({
       checkIsOpenDateTimePickerThenClose();
       checkIsOpenAssigneeThenClose();
       checkIsOpenCommentSectionThenClose();
+      checkIsOpenUploadAttachmentSectionThenClose();
 
       setIsOpenMenuPriority(!isOpenMenuPriority);
     }
@@ -797,6 +805,7 @@ const CardModal = ({
     checkIsOpenMenuPriorityThenClose();
     checkIsOpenAssigneeThenClose();
     checkIsOpenCommentSectionThenClose();
+    checkIsOpenUploadAttachmentSectionThenClose();
   };
 
   const checkIsOpenDateTimePickerThenClose = () => {
@@ -1094,6 +1103,7 @@ const CardModal = ({
     checkIsOpenMenuPriorityThenClose();
     checkIsOpenDateTimePickerThenClose();
     checkIsOpenCommentSectionThenClose();
+    checkIsOpenUploadAttachmentSectionThenClose();
   };
 
   //
@@ -1212,7 +1222,56 @@ const CardModal = ({
     checkIsOpenMenuPriorityThenClose();
     checkIsOpenDateTimePickerThenClose();
     checkIsOpenAssigneeThenClose();
+    checkIsOpenUploadAttachmentSectionThenClose();
   };
+
+  // ============================================================================
+  // UPLOAD ATTACHMENT SECTION
+  const [isOpenUploadAttachmentSection, setIsOpenUploadAttachmentSection] =
+    useState(false);
+
+  const handleOpenUploadAttachmentSection = () => {
+    checkOtherOpenExceptUploadAttachmentSection();
+
+    setIsOpenUploadAttachmentSection(!isOpenUploadAttachmentSection);
+  };
+
+  const handleCloseUploadAttachmentSection = () => {
+    setIsOpenUploadAttachmentSection(false);
+  };
+
+  const checkIsOpenUploadAttachmentSectionThenClose = () => {
+    if (isOpenUploadAttachmentSection) {
+      handleCloseUploadAttachmentSection();
+    }
+  };
+
+  //
+  const checkOtherOpenExceptUploadAttachmentSection = () => {
+    checkIsOpenMenuStatusThenClose();
+    checkIsOpenMenuPriorityThenClose();
+    checkIsOpenDateTimePickerThenClose();
+    checkIsOpenAssigneeThenClose();
+    checkIsOpenCommentSectionThenClose();
+  };
+
+  //
+  const [files, setFiles] = useState([]);
+
+  const refreshFiles = async () => {
+    try {
+      // const fileList = await fetchFiles(card._id);
+      // setFiles(fileList);
+    } catch (error) {
+      console.error("Error fetching files:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (card) {
+      // refreshFiles();
+    }
+  }, [card]);
 
   // ============================================================================
   // ============================================================================
@@ -1976,6 +2035,42 @@ const CardModal = ({
                         <Box>
                           {formatDateToDisplay(selectedCard.deadlineAt)[1]}
                         </Box>
+                      </Box>
+                    </Box>
+                  )}
+
+                  {/* attachments */}
+                  {files.length > 0 && (
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                      {/* label of priority */}
+                      <Box
+                        sx={{
+                          flex: 3,
+                          fontWeight: "bold",
+                          color: (theme) =>
+                            theme.palette.mode === "dark"
+                              ? theme.trelloCustom.COLOR_D7D7D7
+                              : theme.trelloCustom.COLOR_313131,
+                        }}
+                      >
+                        Attachments
+                      </Box>
+
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 2 }}
+                      >
+                        <List>
+                          {files.map((file) => (
+                            <ListItem
+                              key={file._id}
+                              sx={{ display: "flex", alignItems: "center" }}
+                            >
+                              <Typography variant="body2" sx={{ flex: 1 }}>
+                                {file.originalname}
+                              </Typography>
+                            </ListItem>
+                          ))}
+                        </List>
                       </Box>
                     </Box>
                   )}
@@ -3396,11 +3491,11 @@ const CardModal = ({
                         <Box
                           sx={{
                             zIndex: 1,
-                            left: "-400px",
-                            top: "-320px",
-                            //
-                            // left: "50px",
+                            // left: "-400px",
                             // top: "-320px",
+                            //
+                            left: "50px",
+                            top: "-220px",
                             //
                             position: "absolute",
                             width: "420px",
@@ -3481,6 +3576,178 @@ const CardModal = ({
                           />
                         </Box>
                       )}
+                    </Box>
+                  </Box>
+
+                  {/* show files upload section */}
+                  <Box
+                    sx={{
+                      display: "flex",
+                    }}
+                  >
+                    {/* active show comment button */}
+                    <Tooltip title="Upload attachment">
+                      <Box
+                        onClick={() => handleOpenUploadAttachmentSection()}
+                        sx={{
+                          cursor: "pointer",
+                          position: "relative",
+                          width: "100%",
+                          height: "2.5em",
+                          fontSize: "0.9rem",
+                          fontWeight: "bold",
+                          pl: 2,
+                          pr: 0.25,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+
+                          borderRadius: "4px",
+
+                          color: (theme) =>
+                            theme.palette.mode === "dark"
+                              ? theme.trelloCustom.COLOR_D7D7D7
+                              : theme.trelloCustom.COLOR_313131,
+                          bgcolor: (theme) =>
+                            theme.palette.mode === "dark"
+                              ? theme.trelloCustom.COLOR_281E38
+                              : theme.trelloCustom.COLOR_E6E6E6,
+
+                          "&:hover": {
+                            bgcolor: (theme) =>
+                              theme.palette.mode === "dark"
+                                ? theme.trelloCustom.COLOR_463666
+                                : theme.trelloCustom.COLOR_D7D7D7,
+                          },
+                        }}
+                      >
+                        {/* label */}
+                        <Box
+                          sx={{
+                            width: "100px",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                          }}
+                        >
+                          Attachment
+                        </Box>
+
+                        {/* icon */}
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            width: "40px",
+                            height: "40px",
+                            borderRadius: "20px",
+                            "&:hover": {
+                              bgcolor: "#ffffff14",
+                            },
+                          }}
+                        >
+                          <AttachmentIcon />
+                        </Box>
+                      </Box>
+                    </Tooltip>
+
+                    {/* modal upload attachments */}
+                    <Box
+                      sx={{
+                        position: "relative",
+                        width: "0",
+                      }}
+                    >
+                      {/* {isOpenUploadAttachmentSection && ( */}
+                      <Box
+                        sx={{
+                          zIndex: 1,
+                          left: "-400px",
+                          top: "-320px",
+                          //
+                          // left: "50px",
+                          // top: "-200px",
+                          //
+                          position: "absolute",
+                          width: "420px",
+                          px: 2,
+                          py: 1.5,
+                          borderRadius: "8px",
+                          bgcolor: (theme) =>
+                            theme.palette.mode === "dark"
+                              ? theme.trelloCustom.COLOR_13091B
+                              : theme.trelloCustom.COLOR_F8F8F8,
+                          boxShadow: (theme) =>
+                            theme.palette.mode === "dark"
+                              ? `0px 2px 10px ${theme.trelloCustom.COLOR_411A61}`
+                              : `0px 2px 10px ${theme.trelloCustom.COLOR_313131}`,
+
+                          display: "flex",
+                          flexDirection: "column",
+                        }}
+                      >
+                        {/* title & close btn */}
+                        <Box
+                          sx={{
+                            width: "100%",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                          }}
+                        >
+                          {/* title */}
+                          <Box
+                            sx={{
+                              fontSize: "1.25rem",
+                              fontWeight: "bold",
+                            }}
+                          >
+                            Attachment
+                          </Box>
+
+                          {/* buttons component */}
+                          {/* close btn */}
+                          <Box
+                            onClick={() => handleCloseUploadAttachmentSection()}
+                            sx={{
+                              cursor: "pointer",
+                              width: "70px",
+                              height: "35px",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              py: 0.25,
+                              px: 1.25,
+                              fontSize: "0.9rem",
+                              fontWeight: "bold",
+                              borderRadius: "5px",
+                              color: (theme) =>
+                                theme.palette.mode === "dark"
+                                  ? theme.trelloCustom.COLOR_D7D7D7
+                                  : theme.trelloCustom.COLOR_313131,
+                              bgcolor: (theme) =>
+                                theme.palette.mode === "dark"
+                                  ? theme.trelloCustom.COLOR_281E38
+                                  : theme.trelloCustom.COLOR_E6E6E6,
+                              "&:hover": {
+                                bgcolor: (theme) =>
+                                  theme.palette.mode === "dark"
+                                    ? theme.trelloCustom.COLOR_463666
+                                    : theme.trelloCustom.COLOR_D7D7D7,
+                              },
+                            }}
+                          >
+                            Close
+                          </Box>
+                        </Box>
+
+                        <FileUpload
+                          cardId={card._id}
+                          refreshFiles={refreshFiles}
+                        />
+                      </Box>
+                      {/* )} */}
                     </Box>
                   </Box>
                 </Box>
