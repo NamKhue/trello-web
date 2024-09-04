@@ -74,6 +74,7 @@ const COLOR_351159 = "#351159";
 const COLOR_D1A3FF = "#D1A3FF";
 const COLOR_C6FFCE = "#C6FFCE";
 const COLOR_3A135F = "#3A135F";
+const COLOR_3C0E5E = "#3C0E5E";
 
 // priority
 const COLOR_268FB0 = "#268FB0";
@@ -166,6 +167,7 @@ const theme = extendTheme({
     COLOR_D1A3FF: COLOR_D1A3FF,
     COLOR_C6FFCE: COLOR_C6FFCE,
     COLOR_3A135F: COLOR_3A135F,
+    COLOR_3C0E5E: COLOR_3C0E5E,
 
     // priority
     COLOR_188544: COLOR_188544,

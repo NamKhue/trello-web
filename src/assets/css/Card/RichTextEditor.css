@@ -1,6 +1,7 @@
 /* RichTextEditor.css */
-.quill-description. {
-  width: 100%;
+.quill-description {
+  width: 400px;
+  max-width: 400px;
   overflow-x: hidden;
 }
 

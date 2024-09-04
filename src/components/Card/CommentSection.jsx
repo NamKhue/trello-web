@@ -422,8 +422,7 @@ const CommentSection = ({ card, userIsMemberOfCard }) => {
           border: (theme) =>
             theme.palette.mode === "dark"
               ? !isReplies
-                ? // ? `2px solid ${theme.trelloCustom.COLOR_818181}`
-                  `2px solid #3c0e5e`
+                ? `2px solid ${theme.trelloCustom.COLOR_3C0E5E}`
                 : "none"
               : !isReplies
               ? `2px solid ${theme.trelloCustom.COLOR_D7D7D7}`
@@ -688,7 +687,7 @@ const CommentSection = ({ card, userIsMemberOfCard }) => {
   return (
     <Box
       sx={{
-        maxHeight: "460px",
+        maxHeight: "400px",
         // height: "350px",
         mt: 1.5,
         // mx: 1,
@@ -700,7 +699,7 @@ const CommentSection = ({ card, userIsMemberOfCard }) => {
       <Box
         ref={commentsListRef}
         sx={{
-          minHeight: loading ? "250px" : 0,
+          minHeight: loading ? "100px" : 0,
           // maxHeight: "400px",
           flex: 1,
           overflowY: "auto",
@@ -727,10 +726,16 @@ const CommentSection = ({ card, userIsMemberOfCard }) => {
           !comments.length ? (
             <Box
               sx={{
-                height: "250px",
+                height: "100px",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
+
+                borderRadius: "10px",
+                border: (theme) =>
+                  theme.palette.mode === "dark"
+                    ? `2px solid ${theme.trelloCustom.COLOR_3C0E5E}`
+                    : `2px solid ${theme.trelloCustom.COLOR_D7D7D7}`,
               }}
             >
               Comment is empty
@@ -741,10 +746,16 @@ const CommentSection = ({ card, userIsMemberOfCard }) => {
         ) : (
           <Box
             sx={{
-              minHeight: loading ? "250px" : 0,
+              minHeight: loading ? "100px" : 0,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
+
+              borderRadius: "10px",
+              border: (theme) =>
+                theme.palette.mode === "dark"
+                  ? `2px solid ${theme.trelloCustom.COLOR_3C0E5E}`
+                  : `2px solid ${theme.trelloCustom.COLOR_D7D7D7}`,
             }}
           >
             {"Loading..."}

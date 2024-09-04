@@ -2,16 +2,23 @@ import { useState, useEffect, useRef } from "react";
 import { toast } from "react-toastify";
 import { DateTime } from "luxon";
 
+import styled from "styled-components";
+import { useColorScheme } from "@mui/material/styles";
+
+import { Tab, Tabs, TabList, TabPanel } from "react-tabs";
+import "react-tabs/style/react-tabs.css";
+
 import Tooltip from "@mui/material/Tooltip";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
-import Modal from "@mui/material/Modal";
 import TextField from "@mui/material/TextField";
 import CircularProgress from "@mui/material/CircularProgress";
 import FormControl from "@mui/material/FormControl";
 import Select from "@mui/material/Select";
 import InputLabel from "@mui/material/InputLabel";
+import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
+import Dialog from "@mui/material/Dialog";
 
 import IconButton from "@mui/material/IconButton";
 import ClearIcon from "@mui/icons-material/Clear";
@@ -23,7 +30,6 @@ import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
 import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";
-import QuestionAnswerIcon from "@mui/icons-material/QuestionAnswer";
 
 // date time picker
 import dayjs from "dayjs";
@@ -31,8 +37,6 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { TimePicker } from "@mui/x-date-pickers/TimePicker";
-// import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
-// import { renderTimeViewClock } from "@mui/x-date-pickers/timeViewRenderers";
 
 // description/text editor
 import RichTextEditor from "../RichTextEditor";
@@ -45,6 +49,70 @@ import "../../../assets/css/Card/Dropdown.css";
 
 import { useAuth } from "~/hooks/useAuth";
 import socket from "~/utils/socket/socket";
+
+// Define styled for react-tabs npm components
+const StyledTabList = styled(TabList)`
+  width: 400px;
+  max-width: 400px;
+  display: flex;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  margin-top: 8px;
+  background-color: "transparent";
+  border-bottom: 1px solid
+    ${(props) =>
+      props["data-color-scheme"] === "dark" ? "#281E38" : "#D7D7D7"};
+`;
+
+const StyledTab = styled(Tab)`
+  margin-bottom: -1px;
+  padding: 8px 20px;
+  cursor: pointer;
+  border: 3px solid transparent;
+  border-radius: 6px 6px 0 0;
+  font-size: 1rem;
+  font-weight: bold;
+  transition: background-color 0.3s;
+
+  border-bottom: ${(props) =>
+    props.selected
+      ? props["data-color-scheme"] === "dark"
+        ? "3px solid #7236AE"
+        : "3px solid #818181"
+      : props["data-color-scheme"] === "dark"
+      ? "3px solid #51247C"
+      : "3px solid #C0C0C0"};
+  color: ${(props) =>
+    props.selected
+      ? props["data-color-scheme"] === "dark"
+        ? "#E6E6E6"
+        : "#313131"
+      : props["data-color-scheme"] === "dark"
+      ? "#eeeeee"
+      : "#333333"};
+  background-color: ${(props) =>
+    props.selected
+      ? props["data-color-scheme"] === "dark"
+        ? "#281E38"
+        : "#E6E6E6"
+      : props["data-color-scheme"] === "dark"
+      ? "transparent"
+      : "transparent"};
+
+  &:hover {
+    background-color: ${(props) =>
+      props["data-color-scheme"] === "dark" ? "#463666" : "#D7D7D7"};
+    border-bottom: 3px solid
+      ${(props) =>
+        props["data-color-scheme"] === "dark" ? "#7236AE" : "#313131"};
+  }
+`;
+
+const StyledTabPanel = styled(TabPanel)`
+  width: 400px;
+  max-width: 400px;
+`;
 
 // Function to check if the deadline is overdue
 const checkIsOverdue = (deadlineAt) => {
@@ -60,53 +128,6 @@ const checkIsOverdue = (deadlineAt) => {
   return now > deadlineDate;
 };
 
-// // Function to check if current time is within the notification range before the deadline
-// function isWithinNotificationRange(deadlineAt, notifyBefore, notifyUnit) {
-//   // Parse the deadlineAt string to a DateTime object
-//   const deadlineDateTime = DateTime.fromFormat(deadlineAt, "yyyy-MM-dd HH:mm", {
-//     zone: "Asia/Bangkok",
-//   });
-
-//   // Get current time in the same time zone
-//   const dateNow = DateTime.now().setZone("Asia/Bangkok");
-
-//   // Normalize both dates to the start of the minute for comparison
-//   const normalizedDateNow = dateNow.startOf("minute");
-//   const normalizedDeadlineDateTime = deadlineDateTime.startOf("minute");
-
-//   // Handle the special case where notifyBefore is 0 and notifyUnit is 'minute'
-//   if (notifyBefore === 0 && notifyUnit === "minute") {
-//     return normalizedDateNow.equals(normalizedDeadlineDateTime);
-//   }
-
-//   // Calculate the difference in minutes
-//   const diffInMinutes = deadlineDateTime.diff(dateNow, "minutes").as("minutes");
-
-//   // Determine the notification threshold based on notifyUnit
-//   let notifyThreshold;
-//   switch (notifyUnit) {
-//     case "minute":
-//       notifyThreshold = notifyBefore;
-//       break;
-//     case "hour":
-//       notifyThreshold = notifyBefore * 60;
-//       break;
-//     case "day":
-//       notifyThreshold = notifyBefore * 24 * 60;
-//       break;
-//     case "week":
-//       notifyThreshold = notifyBefore * 7 * 24 * 60;
-//       break;
-//     default:
-//       throw new Error(
-//         'Unsupported notifyUnit. Use "minute", "hour", "day", or "week".'
-//       );
-//   }
-
-//   // Return true if the current time is within the notification range before the deadline
-//   return diffInMinutes <= notifyThreshold && diffInMinutes >= 0;
-// }
-
 // ============================================================================
 const CardModal = ({
   onCloseModalCard,
@@ -119,6 +140,7 @@ const CardModal = ({
 }) => {
   // ============================================================================
   const { loggedInUser } = useAuth();
+  const { colorScheme } = useColorScheme();
   // ============================================================================
   const [loading, setLoading] = useState(true);
   const [loadedCount, setLoadedCount] = useState(0);
@@ -493,7 +515,7 @@ const CardModal = ({
   };
 
   //
-  const [isOpenMenuStatus, setIsOpenMenuStatus] = useState(false);
+  // const [isOpenMenuStatus, setIsOpenMenuStatus] = useState(false);
 
   const selectedStatusLabel =
     selectedCard.status == ""
@@ -519,16 +541,29 @@ const CardModal = ({
       : statusLabelData[0].bgColor
   );
 
-  const toggleDropdownMenuStatus = () => {
-    if (roleOfBoard != "member" || userIsMemberOfCard) {
-      checkIsOpenMenuPriorityThenClose();
-      checkIsOpenDateTimePickerThenClose();
-      checkIsOpenAssigneeThenClose();
-      checkIsOpenCommentSectionThenClose();
+  //
+  const [anchorElStatusMenu, setAnchorElStatusMenu] = useState(null);
 
-      setIsOpenMenuStatus(!isOpenMenuStatus);
+  const handleOpenStatusMenu = (event) => {
+    if (roleOfBoard != "member" || userIsMemberOfCard) {
+      setAnchorElStatusMenu(event.currentTarget);
     }
   };
+
+  const handleCloseStatusMenu = () => {
+    setAnchorElStatusMenu(null);
+  };
+
+  // const toggleDropdownMenuStatus = () => {
+  //   if (roleOfBoard != "member" || userIsMemberOfCard) {
+  //     checkIsOpenMenuPriorityThenClose();
+  //     checkIsOpenDateTimePickerThenClose();
+  //     checkIsOpenAssigneeThenClose();
+  //     checkIsOpenCommentSectionThenClose();
+
+  //     setIsOpenMenuStatus(!isOpenMenuStatus);
+  //   }
+  // };
 
   const handleChangeStatus = (nameStatus, textColor, bgColor) => {
     setSelectedStatusToDisplay(nameStatus);
@@ -542,7 +577,8 @@ const CardModal = ({
       statusBgColor: bgColor,
     });
 
-    setIsOpenMenuStatus(false);
+    // setIsOpenMenuStatus(false);
+    handleCloseStatusMenu();
 
     if (nameStatus !== originalCard.status) {
       setIsModifyingCard(true);
@@ -559,11 +595,11 @@ const CardModal = ({
     }
   };
 
-  const checkIsOpenMenuStatusThenClose = () => {
-    if (isOpenMenuStatus) {
-      toggleDropdownMenuStatus();
-    }
-  };
+  // const checkIsOpenMenuStatusThenClose = () => {
+  //   if (isOpenMenuStatus) {
+  //     toggleDropdownMenuStatus();
+  //   }
+  // };
 
   // ============================================================================
   // priority
@@ -582,7 +618,7 @@ const CardModal = ({
   };
 
   //
-  const [isOpenMenuPriority, setIsOpenMenuPriority] = useState(false);
+  // const [isOpenMenuPriority, setIsOpenMenuPriority] = useState(false);
 
   const selectedPriorityLabel =
     selectedCard.priority == ""
@@ -608,16 +644,29 @@ const CardModal = ({
       : priorityLabelData[0].bgColor
   );
 
-  const toggleDropdownMenuPriority = () => {
-    if (roleOfBoard != "member" || userIsMemberOfCard) {
-      checkIsOpenMenuStatusThenClose();
-      checkIsOpenDateTimePickerThenClose();
-      checkIsOpenAssigneeThenClose();
-      checkIsOpenCommentSectionThenClose();
+  //
+  const [anchorElPriorityMenu, setAnchorElPriorityMenu] = useState(null);
 
-      setIsOpenMenuPriority(!isOpenMenuPriority);
+  const handleOpenPriorityMenu = (event) => {
+    if (roleOfBoard != "member" || userIsMemberOfCard) {
+      setAnchorElPriorityMenu(event.currentTarget);
     }
   };
+
+  const handleClosePriorityMenu = () => {
+    setAnchorElPriorityMenu(null);
+  };
+
+  // const toggleDropdownMenuPriority = () => {
+  //   if (roleOfBoard != "member" || userIsMemberOfCard) {
+  //     checkIsOpenMenuStatusThenClose();
+  //     checkIsOpenDateTimePickerThenClose();
+  //     checkIsOpenAssigneeThenClose();
+  //     checkIsOpenCommentSectionThenClose();
+
+  //     setIsOpenMenuPriority(!isOpenMenuPriority);
+  //   }
+  // };
 
   const handleChangePriority = (namePriority, textColor, bgColor) => {
     setSelectedPriorityToDisplay(namePriority);
@@ -631,7 +680,8 @@ const CardModal = ({
       priorityBgColor: bgColor,
     });
 
-    setIsOpenMenuPriority(false);
+    // setIsOpenMenuPriority(false);
+    handleClosePriorityMenu();
 
     if (namePriority !== originalCard.priority) {
       setIsModifyingCard(true);
@@ -648,29 +698,29 @@ const CardModal = ({
     }
   };
 
-  const checkIsOpenMenuPriorityThenClose = () => {
-    if (isOpenMenuPriority) {
-      toggleDropdownMenuPriority();
-    }
-  };
+  // const checkIsOpenMenuPriorityThenClose = () => {
+  //   if (isOpenMenuPriority) {
+  //     toggleDropdownMenuPriority();
+  //   }
+  // };
 
   // ============================================================================
   // description
   //
-  const [isHoveredDescriptionField, setIsHoveredDescriptionField] =
-    useState(false);
+  // const [isHoveredDescriptionField, setIsHoveredDescriptionField] =
+  //   useState(false);
 
-  const handleEnterDescriptionField = () => {
-    if (roleOfBoard != "member" || userIsMemberOfCard) {
-      setIsHoveredDescriptionField(true);
-    }
-  };
+  // const handleEnterDescriptionField = () => {
+  //   if (roleOfBoard != "member" || userIsMemberOfCard) {
+  //     setIsHoveredDescriptionField(true);
+  //   }
+  // };
 
-  const handleLeaveDescriptionField = () => {
-    if (roleOfBoard != "member" || userIsMemberOfCard) {
-      setIsHoveredDescriptionField(false);
-    }
-  };
+  // const handleLeaveDescriptionField = () => {
+  //   if (roleOfBoard != "member" || userIsMemberOfCard) {
+  //     setIsHoveredDescriptionField(false);
+  //   }
+  // };
 
   //
   const [isOpenDescriptionFieldCard, setIsOpenDescriptionFieldCard] =
@@ -684,7 +734,9 @@ const CardModal = ({
 
   //
   const toggleOpenDescriptionFieldCard = () => {
-    setIsOpenDescriptionFieldCard(!isOpenDescriptionFieldCard);
+    if (roleOfBoard != "member" || userIsMemberOfCard) {
+      setIsOpenDescriptionFieldCard(!isOpenDescriptionFieldCard);
+    }
   };
 
   //
@@ -734,7 +786,7 @@ const CardModal = ({
 
   // ============================================================================
   // date & time
-  const [isOpenDateTimePicker, setIsOpenDateTimePicker] = useState(false);
+  // const [isOpenDateTimePicker, setIsOpenDateTimePicker] = useState(false);
 
   // const dateValue = selectedCard.deadlineAt.split(" ")[0].split("-");
   // const [isOverdueDeadline, setIsOverdueDeadline] = useState(
@@ -792,33 +844,44 @@ const CardModal = ({
   };
 
   //
-  const checkOtherOpenExceptDateTimePicker = () => {
-    checkIsOpenMenuStatusThenClose();
-    checkIsOpenMenuPriorityThenClose();
-    checkIsOpenAssigneeThenClose();
-    checkIsOpenCommentSectionThenClose();
-  };
+  // const checkOtherOpenExceptDateTimePicker = () => {
+  //   checkIsOpenMenuStatusThenClose();
+  //   checkIsOpenMenuPriorityThenClose();
+  //   checkIsOpenAssigneeThenClose();
+  //   checkIsOpenCommentSectionThenClose();
+  // };
 
-  const checkIsOpenDateTimePickerThenClose = () => {
-    if (isOpenDateTimePicker) {
-      handleCloseDateTimePicker();
-    }
-  };
+  // const checkIsOpenDateTimePickerThenClose = () => {
+  //   if (isOpenDateTimePicker) {
+  //     handleCloseDateTimePicker();
+  //   }
+  // };
 
   //
-  const handleOpenDateTimePicker = () => {
-    checkOtherOpenExceptDateTimePicker();
-    setIsOpenDateTimePicker(!isOpenDateTimePicker);
+  const [anchorElDateTime, setAnchorElDateTime] = useState(null);
+
+  const handleOpenDateTimePicker = (event) => {
+    setAnchorElDateTime(event.currentTarget);
   };
 
   const handleCloseDateTimePicker = () => {
-    setIsOpenDateTimePicker(false);
+    setAnchorElDateTime(null);
   };
 
   //
-  const handleOpenDatePicker = () => {
-    checkOtherOpenExceptDateTimePicker();
-  };
+  // const handleOpenDateTimePicker = () => {
+  //   checkOtherOpenExceptDateTimePicker();
+  //   setIsOpenDateTimePicker(!isOpenDateTimePicker);
+  // };
+
+  // const handleCloseDateTimePicker = () => {
+  //   setIsOpenDateTimePicker(false);
+  // };
+
+  //
+  // const handleOpenDatePicker = () => {
+  //   checkOtherOpenExceptDateTimePicker();
+  // };
 
   const handleChangeDatePicker = (date) => {
     setValueDatePicker(
@@ -1086,32 +1149,43 @@ const CardModal = ({
   };
 
   //
-  const [isOpenAssignee, setIsOpenAssignee] = useState(false);
+  // const [isOpenAssignee, setIsOpenAssignee] = useState(false);
+
+  // //
+  // const checkOtherOpenExceptAssignee = () => {
+  //   checkIsOpenMenuStatusThenClose();
+  //   checkIsOpenMenuPriorityThenClose();
+  //   checkIsOpenDateTimePickerThenClose();
+  //   checkIsOpenCommentSectionThenClose();
+  // };
 
   //
-  const checkOtherOpenExceptAssignee = () => {
-    checkIsOpenMenuStatusThenClose();
-    checkIsOpenMenuPriorityThenClose();
-    checkIsOpenDateTimePickerThenClose();
-    checkIsOpenCommentSectionThenClose();
-  };
+  const [anchorElAssignee, setAnchorElAssignee] = useState(null);
 
-  //
-  const handleOpenAssignee = () => {
-    checkOtherOpenExceptAssignee();
-
-    setIsOpenAssignee(true);
+  const handleOpenAssignee = (event) => {
+    setAnchorElAssignee(event.currentTarget);
   };
 
   const handleCloseAssignee = () => {
-    setIsOpenAssignee(false);
+    setAnchorElAssignee(null);
   };
 
-  const checkIsOpenAssigneeThenClose = () => {
-    if (isOpenAssignee) {
-      handleCloseAssignee();
-    }
-  };
+  // //
+  // const handleOpenAssignee = () => {
+  //   checkOtherOpenExceptAssignee();
+
+  //   setIsOpenAssignee(true);
+  // };
+
+  // const handleCloseAssignee = () => {
+  //   setIsOpenAssignee(false);
+  // };
+
+  // const checkIsOpenAssigneeThenClose = () => {
+  //   if (isOpenAssignee) {
+  //     handleCloseAssignee();
+  //   }
+  // };
 
   //
   // add/remove member feature
@@ -1188,176 +1262,117 @@ const CardModal = ({
 
   // ============================================================================
   // COMMENT SECTION
-  const [isOpenCommentSection, setIsOpenCommentSection] = useState(false);
+  // const [isOpenCommentSection, setIsOpenCommentSection] = useState(false);
 
-  const handleOpenCommentSection = () => {
-    checkOtherOpenExceptCommentSection();
+  // const handleOpenCommentSection = () => {
+  //   checkOtherOpenExceptCommentSection();
 
-    setIsOpenCommentSection(!isOpenCommentSection);
-  };
+  //   setIsOpenCommentSection(!isOpenCommentSection);
+  // };
 
-  const handleCloseCommentSection = () => {
-    setIsOpenCommentSection(false);
-  };
+  // const handleCloseCommentSection = () => {
+  //   setIsOpenCommentSection(false);
+  // };
 
-  const checkIsOpenCommentSectionThenClose = () => {
-    if (isOpenCommentSection) {
-      handleCloseCommentSection();
-    }
-  };
+  // const checkIsOpenCommentSectionThenClose = () => {
+  //   if (isOpenCommentSection) {
+  //     handleCloseCommentSection();
+  //   }
+  // };
 
-  //
-  const checkOtherOpenExceptCommentSection = () => {
-    checkIsOpenMenuStatusThenClose();
-    checkIsOpenMenuPriorityThenClose();
-    checkIsOpenDateTimePickerThenClose();
-    checkIsOpenAssigneeThenClose();
-  };
+  // //
+  // const checkOtherOpenExceptCommentSection = () => {
+  //   checkIsOpenMenuStatusThenClose();
+  //   checkIsOpenMenuPriorityThenClose();
+  //   checkIsOpenDateTimePickerThenClose();
+  //   checkIsOpenAssigneeThenClose();
+  // };
 
   // ============================================================================
   // ============================================================================
   return (
-    <Modal open={true}>
-      <div>
-        <Box
-          sx={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            width: (theme) => theme.trelloCustom.MODAL_CARD_WIDTH,
+    <Dialog
+      open={true}
+      onClose={onCloseModalCard}
+      sx={{
+        "& .MuiDialog-paper": {
+          // maxWidth: "sm",
+          maxWidth: "fit-content",
+          maxHeight: "fit-content",
+          borderRadius: 2,
+          margin: 0,
+        },
+      }}
+    >
+      <Box
+        sx={{
+          width: (theme) => theme.trelloCustom.MODAL_CARD_WIDTH,
 
-            // "&::-webkit-scrollbar": {
-            //   width: "5px",
-            //   height: "0",
-            // },
-            // "&::-webkit-scrollbar-thumb": {
-            //   backgroundColor: (theme) =>
-            //     theme.palette.mode === "dark"
-            //       ? theme.trelloCustom.COLOR_463666
-            //       : theme.trelloCustom.COLOR_818181,
-            // },
-            // "&::-webkit-scrollbar-thumb:hover": {
-            //   backgroundColor: (theme) =>
-            //     theme.palette.mode === "dark"
-            //       ? theme.trelloCustom.COLOR_7236AE
-            //       : theme.trelloCustom.COLOR_818181,
-            // },
+          pt: 2,
+          pb: 2,
+          pl: 3.5,
+          pr: 5,
 
-            pt: 2,
-            pb: 3,
-            pl: 3.5,
-            pr: 5,
+          outline: "none",
+          borderRadius: "8px",
+          boxShadow: 24,
 
-            outline: "none",
-            borderRadius: "8px",
-            boxShadow: 24,
-
-            bgcolor: (theme) =>
-              theme.palette.mode === "dark"
-                ? theme.trelloCustom.COLOR_13091B
-                : theme.trelloCustom.COLOR_F5F5F5,
-          }}
-        >
-          {loading ? (
+          bgcolor: (theme) =>
+            theme.palette.mode === "dark"
+              ? theme.trelloCustom.COLOR_13091B
+              : theme.trelloCustom.COLOR_F5F5F5,
+        }}
+      >
+        {loading ? (
+          <Box
+            sx={{
+              width: "100%",
+              height: "400px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 2,
+              fontWeight: "bold",
+            }}
+          >
+            <CircularProgress />
+            Loading Card...
+          </Box>
+        ) : (
+          <Box>
+            {/* title of card and close btn */}
             <Box
               sx={{
-                width: "100%",
-                height: "400px",
                 display: "flex",
                 alignItems: "center",
-                justifyContent: "center",
-                gap: 2,
-                fontWeight: "bold",
+                justifyContent: "space-between",
+                gap: 1,
               }}
             >
-              <CircularProgress />
-              Loading Card...
-            </Box>
-          ) : (
-            <Box>
-              {/* title of card and close btn */}
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  gap: 1,
-                }}
-              >
-                {/* title of card */}
-                {roleOfBoard != "member" || userIsMemberOfCard ? (
-                  <TextField
-                    inputRef={(el) => {
-                      titleRef.current = el?.parentNode;
-                    }}
-                    value={selectedCard?.title}
-                    onChange={(ev) => handleChangeTitle(ev.target.value)}
-                    onBlur={(ev) => {
+              {/* title of card */}
+              {roleOfBoard != "member" || userIsMemberOfCard ? (
+                <TextField
+                  inputRef={(el) => {
+                    titleRef.current = el?.parentNode;
+                  }}
+                  value={selectedCard?.title}
+                  onChange={(ev) => handleChangeTitle(ev.target.value)}
+                  onBlur={(ev) => {
+                    handleEnterTitle(ev);
+                  }}
+                  onKeyDown={(ev) => {
+                    if (ev.key === "Enter") {
                       handleEnterTitle(ev);
-                    }}
-                    onKeyDown={(ev) => {
-                      if (ev.key === "Enter") {
-                        handleEnterTitle(ev);
-                        handleUnfocus();
-                      }
-                    }}
-                    type="text"
-                    variant="outlined"
-                    sx={{
-                      flex: 9,
-                      "& input": {
-                        cursor: "text",
-                        py: 1,
-                        px: 0,
-                        pl: 1.5,
-                        height: "20px",
-                        fontSize: "1.5rem",
-                        fontWeight: "bold",
-                        borderRadius: "6px",
-                        color: (theme) =>
-                          theme.palette.mode === "dark" ? "white" : "black",
-                        bgcolor: "transparent",
-                      },
-                      "& input:hover": {
-                        bgcolor: (theme) =>
-                          theme.palette.mode === "dark"
-                            ? theme.trelloCustom.COLOR_281E38
-                            : theme.trelloCustom.COLOR_E6E6E6,
-                      },
-                      "& input:focus": {
-                        color: (theme) =>
-                          theme.palette.mode === "dark" ? "white" : "black",
-                        bgcolor: (theme) =>
-                          theme.palette.mode === "dark"
-                            ? theme.trelloCustom.COLOR_281E38
-                            : theme.trelloCustom.COLOR_EEEEEE,
-                      },
-
-                      // border outline
-                      "& .MuiOutlinedInput-root": {
-                        "& fieldset": {
-                          borderRadius: "6px",
-                          borderWidth: "2px",
-                          borderColor: "transparent",
-                        },
-                        "&:hover fieldset": {
-                          borderColor: "transparent",
-                        },
-                        "&.Mui-focused fieldset": {
-                          borderColor: (theme) =>
-                            theme.palette.mode === "dark"
-                              ? theme.trelloCustom.COLOR_8A2DCB
-                              : theme.trelloCustom.COLOR_313131,
-                        },
-                      },
-                    }}
-                  />
-                ) : (
-                  <Box
-                    sx={{
-                      cursor: "context-menu",
-                      mt: "-15px",
+                      handleUnfocus();
+                    }
+                  }}
+                  type="text"
+                  variant="outlined"
+                  sx={{
+                    flex: 9,
+                    "& input": {
+                      cursor: "text",
+                      py: 1,
                       px: 0,
                       pl: 1.5,
                       height: "20px",
@@ -1367,57 +1382,74 @@ const CardModal = ({
                       color: (theme) =>
                         theme.palette.mode === "dark" ? "white" : "black",
                       bgcolor: "transparent",
-                    }}
-                  >
-                    {selectedCard?.title}
-                  </Box>
-                )}
+                    },
+                    "& input:hover": {
+                      bgcolor: (theme) =>
+                        theme.palette.mode === "dark"
+                          ? theme.trelloCustom.COLOR_281E38
+                          : theme.trelloCustom.COLOR_E6E6E6,
+                    },
+                    "& input:focus": {
+                      color: (theme) =>
+                        theme.palette.mode === "dark" ? "white" : "black",
+                      bgcolor: (theme) =>
+                        theme.palette.mode === "dark"
+                          ? theme.trelloCustom.COLOR_281E38
+                          : theme.trelloCustom.COLOR_EEEEEE,
+                    },
 
-                {/* save & cancel btn */}
+                    // border outline
+                    "& .MuiOutlinedInput-root": {
+                      "& fieldset": {
+                        borderRadius: "6px",
+                        borderWidth: "2px",
+                        borderColor: "transparent",
+                      },
+                      "&:hover fieldset": {
+                        borderColor: "transparent",
+                      },
+                      "&.Mui-focused fieldset": {
+                        borderColor: (theme) =>
+                          theme.palette.mode === "dark"
+                            ? theme.trelloCustom.COLOR_8A2DCB
+                            : theme.trelloCustom.COLOR_313131,
+                      },
+                    },
+                  }}
+                />
+              ) : (
                 <Box
                   sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    gap: 1,
+                    cursor: "context-menu",
+                    mt: "-15px",
+                    px: 0,
+                    pl: 1.5,
+                    height: "20px",
+                    fontSize: "1.5rem",
+                    fontWeight: "bold",
+                    borderRadius: "6px",
+                    color: (theme) =>
+                      theme.palette.mode === "dark" ? "white" : "black",
+                    bgcolor: "transparent",
                   }}
                 >
-                  {/* save btn */}
-                  {isModifyingCard && (
-                    <Box
-                      onClick={() => handleSaveCardChanges()}
-                      sx={{
-                        flex: 1,
-                        cursor: "pointer",
-                        width: "76px",
-                        height: "35px",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        py: 0.25,
-                        px: 1.25,
-                        fontSize: "0.9rem",
-                        fontWeight: "bold",
-                        borderRadius: "5px",
-                        color: (theme) => theme.trelloCustom.COLOR_7115BA,
-                        bgcolor: (theme) => theme.trelloCustom.COLOR_C985FF,
-                        "&:hover": {
-                          color: "white",
-                          bgcolor: (theme) => theme.trelloCustom.COLOR_8C25DE,
-                        },
-                      }}
-                    >
-                      Save
-                    </Box>
-                  )}
+                  {selectedCard?.title}
+                </Box>
+              )}
 
-                  {/* cancel btn */}
+              {/* save & cancel btn */}
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: 1,
+                }}
+              >
+                {/* save btn */}
+                {isModifyingCard && (
                   <Box
-                    onClick={() =>
-                      isModifyingCard
-                        ? handleCancelModifying()
-                        : handleCancelModifying()
-                    }
+                    onClick={() => handleSaveCardChanges()}
                     sx={{
                       flex: 1,
                       cursor: "pointer",
@@ -1431,298 +1463,565 @@ const CardModal = ({
                       fontSize: "0.9rem",
                       fontWeight: "bold",
                       borderRadius: "5px",
+                      color: (theme) => theme.trelloCustom.COLOR_7115BA,
+                      bgcolor: (theme) => theme.trelloCustom.COLOR_C985FF,
+                      "&:hover": {
+                        color: "white",
+                        bgcolor: (theme) => theme.trelloCustom.COLOR_8C25DE,
+                      },
+                    }}
+                  >
+                    Save
+                  </Box>
+                )}
+
+                {/* cancel btn */}
+                <Box
+                  onClick={() =>
+                    isModifyingCard
+                      ? handleCancelModifying()
+                      : handleCancelModifying()
+                  }
+                  sx={{
+                    flex: 1,
+                    cursor: "pointer",
+                    width: "76px",
+                    height: "35px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    py: 0.25,
+                    px: 1.25,
+                    fontSize: "0.9rem",
+                    fontWeight: "bold",
+                    borderRadius: "5px",
+                    color: (theme) =>
+                      theme.palette.mode === "dark"
+                        ? theme.trelloCustom.COLOR_D7D7D7
+                        : theme.trelloCustom.COLOR_313131,
+                    bgcolor: (theme) =>
+                      theme.palette.mode === "dark"
+                        ? theme.trelloCustom.COLOR_281E38
+                        : theme.trelloCustom.COLOR_E6E6E6,
+                    "&:hover": {
+                      bgcolor: (theme) =>
+                        theme.palette.mode === "dark"
+                          ? theme.trelloCustom.COLOR_463666
+                          : theme.trelloCustom.COLOR_D7D7D7,
+                    },
+                  }}
+                >
+                  {isModifyingCard ? "Cancel" : "Close"}
+                </Box>
+              </Box>
+            </Box>
+
+            {/* updated time */}
+            <Box sx={{ display: "flex", flexDirection: "column", pb: 1.5 }}>
+              {/* content of updated time */}
+              <Box
+                sx={{
+                  pl: 1.5,
+                  display: "flex",
+                  justifyContent: "space-between",
+                  gap: 2,
+                }}
+              >
+                <Box
+                  id="modal-modal-description"
+                  sx={{
+                    cursor: "context-menu",
+                    fontSize: "0.8rem",
+                    fontWeight: "bold",
+                    color: (theme) => theme.trelloCustom.COLOR_818181,
+                    pb: 0,
+                  }}
+                >
+                  {`Updated at ${updatedTimeFormatString}`}
+                </Box>
+              </Box>
+
+              {/* a line to seperate the title and the body of card */}
+              <Box
+                sx={{
+                  ml: 1.5,
+                  mt: 1,
+                  height: "2px",
+                  bgcolor: (theme) =>
+                    theme.palette.mode === "dark"
+                      ? theme.trelloCustom.COLOR_49454E
+                      : theme.trelloCustom.COLOR_D9D9D9,
+                }}
+              ></Box>
+            </Box>
+
+            {/* body of card's details */}
+            <Box
+              sx={{
+                pt: 1.5,
+                pl: 1.5,
+                display: "flex",
+                justifyContent: "space-between",
+                gap: 3,
+              }}
+            >
+              {/* left side */}
+              <Box
+                sx={{
+                  flex: 3,
+                }}
+              >
+                {/* status */}
+                <Box
+                  sx={{
+                    height: "45px",
+                    display: "flex",
+                    alignItems: "center",
+                  }}
+                >
+                  {/* label of status */}
+                  <Box
+                    sx={{
+                      flex: 3,
+                      fontWeight: "bold",
                       color: (theme) =>
                         theme.palette.mode === "dark"
                           ? theme.trelloCustom.COLOR_D7D7D7
                           : theme.trelloCustom.COLOR_313131,
-                      bgcolor: (theme) =>
-                        theme.palette.mode === "dark"
-                          ? theme.trelloCustom.COLOR_281E38
-                          : theme.trelloCustom.COLOR_E6E6E6,
-                      "&:hover": {
-                        bgcolor: (theme) =>
-                          theme.palette.mode === "dark"
-                            ? theme.trelloCustom.COLOR_463666
-                            : theme.trelloCustom.COLOR_D7D7D7,
-                      },
                     }}
                   >
-                    {isModifyingCard ? "Cancel" : "Close"}
+                    Status
                   </Box>
-                </Box>
-              </Box>
 
-              {/* updated time */}
-              <Box sx={{ display: "flex", flexDirection: "column", pb: 1.5 }}>
-                {/* content of updated time */}
-                <Box
-                  sx={{
-                    pl: 1.5,
-                    display: "flex",
-                    justifyContent: "space-between",
-                    gap: 2,
-                  }}
-                >
+                  {/* options of status */}
                   <Box
-                    id="modal-modal-description"
+                    className="dropdown-container"
+                    onMouseEnter={handleHoverStatus}
+                    onMouseLeave={handleMouseLeaveStatus}
                     sx={{
-                      cursor: "context-menu",
-                      fontSize: "0.75rem",
-                      fontWeight: "bold",
-                      color: (theme) => theme.trelloCustom.COLOR_818181,
-                      pb: 0,
-                    }}
-                  >
-                    {`Updated at ${updatedTimeFormatString}`}
-                  </Box>
-                </Box>
-
-                {/* a line to seperate the title and the body of card */}
-                <Box
-                  sx={{
-                    ml: 1.5,
-                    mt: 1,
-                    height: "2px",
-                    bgcolor: (theme) =>
-                      theme.palette.mode === "dark"
-                        ? theme.trelloCustom.COLOR_49454E
-                        : theme.trelloCustom.COLOR_D9D9D9,
-                  }}
-                ></Box>
-              </Box>
-
-              {/* body of card's details */}
-              <Box
-                sx={{
-                  pt: 2,
-                  pl: 1.5,
-                  display: "flex",
-                  justifyContent: "space-between",
-                  gap: 3,
-                }}
-              >
-                {/* left side */}
-                <Box
-                  sx={{
-                    flex: 3,
-                  }}
-                >
-                  {/* status */}
-                  <Box
-                    sx={{
-                      height: "45px",
+                      py: 0.75,
+                      flex: 5,
                       display: "flex",
                       alignItems: "center",
+                      gap: 0.25,
                     }}
                   >
-                    {/* label of status */}
+                    {/* display value of status */}
                     <Box
+                      onClick={(e) => handleOpenStatusMenu(e)}
                       sx={{
-                        flex: 3,
+                        cursor:
+                          roleOfBoard != "member" || userIsMemberOfCard
+                            ? "pointer"
+                            : "context-menu",
+                        width: "fit-content",
+                        px: 1.75,
+                        py: 0.5,
+                        mr: 1,
+                        fontSize: "0.9rem",
                         fontWeight: "bold",
-                        color: (theme) =>
-                          theme.palette.mode === "dark"
-                            ? theme.trelloCustom.COLOR_D7D7D7
-                            : theme.trelloCustom.COLOR_313131,
+                        borderRadius: "4px",
+                        color: `${statusTextColorToDisplay}`,
+                        bgcolor: `${statusBgColorToDisplay}`,
                       }}
                     >
-                      Status
+                      {selectedStatusToDisplay.charAt(0).toUpperCase() +
+                        selectedStatusToDisplay.slice(1)}{" "}
                     </Box>
 
-                    {/* options of status */}
+                    {/* edit btn */}
                     <Box
-                      className="dropdown-container"
-                      onMouseEnter={handleHoverStatus}
-                      onMouseLeave={handleMouseLeaveStatus}
+                      onClick={handleOpenStatusMenu}
                       sx={{
-                        py: 0.75,
-                        flex: 5,
-                        display: "flex",
+                        cursor: "pointer",
+                        width: "fit-content",
+                        px: 1,
+                        py: 0.25,
+                        display: isHoveredStatus ? "flex" : "none",
                         alignItems: "center",
-                        gap: 0.25,
+                        fontSize: "0.9rem",
+                        fontWeight: "bold",
+                        border: "2px solid",
+                        borderRadius: "6px",
+                        borderColor: (theme) => theme.trelloCustom.COLOR_818181,
+                        color: (theme) => theme.trelloCustom.COLOR_818181,
+                        bgcolor: "transparent",
+
+                        "&:hover": {
+                          color: (theme) =>
+                            theme.palette.mode === "dark"
+                              ? theme.trelloCustom.COLOR_D7D7D7
+                              : theme.trelloCustom.COLOR_313131,
+                          borderColor: (theme) =>
+                            theme.palette.mode === "dark"
+                              ? theme.trelloCustom.COLOR_D7D7D7
+                              : theme.trelloCustom.COLOR_313131,
+                        },
                       }}
                     >
-                      {/* display value of status */}
-                      <Box
-                        onClick={() => toggleDropdownMenuStatus()}
-                        sx={{
-                          cursor:
-                            roleOfBoard != "member" || userIsMemberOfCard
-                              ? "pointer"
-                              : "context-menu",
-                          width: "fit-content",
-                          px: 1.75,
-                          py: 0.5,
-                          mr: 1,
-                          fontSize: "0.9rem",
-                          fontWeight: "bold",
-                          borderRadius: "4px",
-                          color: `${statusTextColorToDisplay}`,
-                          bgcolor: `${statusBgColorToDisplay}`,
-                        }}
-                      >
-                        {selectedStatusToDisplay.charAt(0).toUpperCase() +
-                          selectedStatusToDisplay.slice(1)}{" "}
-                      </Box>
+                      <EditIcon sx={{ fontSize: "1.25rem", pr: 0.5 }} />
+                      Edit
+                    </Box>
 
-                      {/* edit btn */}
-                      <Box
-                        onClick={toggleDropdownMenuStatus}
-                        sx={{
-                          cursor: "pointer",
-                          width: "fit-content",
-                          px: 1,
-                          py: 0.25,
-                          display: isHoveredStatus ? "flex" : "none",
-                          alignItems: "center",
-                          fontSize: "0.9rem",
-                          fontWeight: "bold",
-                          border: "2px solid",
-                          borderRadius: "6px",
-                          borderColor: (theme) =>
-                            theme.trelloCustom.COLOR_818181,
-                          color: (theme) => theme.trelloCustom.COLOR_818181,
-                          bgcolor: "transparent",
-
-                          "&:hover": {
-                            color: (theme) =>
-                              theme.palette.mode === "dark"
-                                ? theme.trelloCustom.COLOR_D7D7D7
-                                : theme.trelloCustom.COLOR_313131,
-                            borderColor: (theme) =>
-                              theme.palette.mode === "dark"
-                                ? theme.trelloCustom.COLOR_D7D7D7
-                                : theme.trelloCustom.COLOR_313131,
-                          },
-                        }}
-                      >
-                        <EditIcon sx={{ fontSize: "1.25rem", pr: 0.5 }} />
-                        Edit
-                      </Box>
-
+                    <Menu
+                      id="basic-status-menu"
+                      anchorEl={anchorElStatusMenu}
+                      open={Boolean(anchorElStatusMenu)}
+                      onClose={handleCloseStatusMenu}
+                      sx={{
+                        "& .MuiPaper-root.MuiPopover-paper.MuiMenu-paper": {
+                          borderRadius: "8px",
+                          boxShadow: (theme) =>
+                            theme.palette.mode === "dark"
+                              ? `0px 2px 10px ${theme.trelloCustom.COLOR_411A61}`
+                              : `0px 2px 10px ${theme.trelloCustom.COLOR_818181}`,
+                        },
+                        "& .MuiList-root.MuiMenu-list": {
+                          p: 0,
+                        },
+                      }}
+                    >
                       {/* options menu status */}
-                      {isOpenMenuStatus && (
+                      <Box
+                        className={"dropdown-menu"}
+                        sx={{
+                          bgcolor: (theme) =>
+                            theme.palette.mode === "dark"
+                              ? theme.trelloCustom.COLOR_13091B
+                              : "",
+                          boxShadow: (theme) =>
+                            theme.palette.mode === "dark"
+                              ? `0px 2px 10px ${theme.trelloCustom.COLOR_411A61}`
+                              : "",
+                        }}
+                      >
                         <Box
-                          className={"dropdown-menu"}
+                          className="dropdown-header"
                           sx={{
-                            bgcolor: (theme) =>
+                            color: (theme) =>
                               theme.palette.mode === "dark"
-                                ? theme.trelloCustom.COLOR_13091B
-                                : "",
-                            boxShadow: (theme) =>
-                              theme.palette.mode === "dark"
-                                ? `0px 2px 10px ${theme.trelloCustom.COLOR_411A61}`
+                                ? theme.trelloCustom.COLOR_D7D7D7
                                 : "",
                           }}
                         >
+                          Select status
                           <Box
-                            className="dropdown-header"
+                            onClick={handleCloseStatusMenu}
+                            sx={{ cursor: "pointer" }}
+                          >
+                            <CloseIcon />
+                          </Box>
+                        </Box>
+
+                        {statusLabelData.map((item, index) => (
+                          <Box
+                            key={index}
+                            onClick={() =>
+                              handleChangeStatus(
+                                item.name,
+                                item.textColor,
+                                item.bgColor
+                              )
+                            }
+                            className={`dropdown-item ${
+                              selectedStatusToDisplay == item.name
+                                ? "selected"
+                                : ""
+                            }`}
                             sx={{
-                              color: (theme) =>
-                                theme.palette.mode === "dark"
-                                  ? theme.trelloCustom.COLOR_D7D7D7
-                                  : "",
+                              "&:hover": {
+                                bgcolor: (theme) =>
+                                  theme.palette.mode === "dark"
+                                    ? theme.trelloCustom.COLOR_281E38
+                                    : "",
+                              },
                             }}
                           >
-                            Select status
                             <Box
-                              onClick={toggleDropdownMenuStatus}
-                              sx={{ cursor: "pointer" }}
-                            >
-                              <CloseIcon />
-                            </Box>
-                          </Box>
-
-                          {statusLabelData.map((item, index) => (
-                            <Box
-                              key={index}
-                              onClick={() =>
-                                handleChangeStatus(
-                                  item.name,
-                                  item.textColor,
-                                  item.bgColor
-                                )
-                              }
-                              className={`dropdown-item ${
-                                selectedStatusToDisplay == item.name
-                                  ? "selected"
-                                  : ""
-                              }`}
                               sx={{
-                                // "&.selected": {
-                                //   bgcolor: (theme) =>
-                                //     theme.palette.mode == "dark"
-                                //       ? "#232323"
-                                //       : theme.trelloCustom.COLOR_C0C0C0,
-                                // },
-                                "&:hover": {
-                                  bgcolor: (theme) =>
-                                    theme.palette.mode === "dark"
-                                      ? theme.trelloCustom.COLOR_281E38
-                                      : "",
-                                },
+                                flex: 1,
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "space-between",
+                                px: 1,
                               }}
                             >
                               <Box
                                 sx={{
+                                  marginRight: "10px",
+                                  width: "50px",
                                   flex: 1,
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "space-between",
-                                  px: 1,
+                                  color:
+                                    selectedStatusToDisplay == item.name
+                                      ? "black"
+                                      : "transparent",
+                                  opacity:
+                                    selectedStatusToDisplay === item.name
+                                      ? 1
+                                      : 0,
                                 }}
                               >
+                                <CheckIcon
+                                  sx={{
+                                    color: (theme) =>
+                                      theme.palette.mode === "dark"
+                                        ? "white"
+                                        : "black",
+                                  }}
+                                />
+                              </Box>
+                              <Box sx={{ flex: 4 }}>
                                 <Box
                                   sx={{
-                                    marginRight: "10px",
-                                    width: "50px",
-                                    flex: 1,
-                                    color:
-                                      selectedStatusToDisplay == item.name
-                                        ? "black"
-                                        : "transparent",
-                                    opacity:
-                                      selectedStatusToDisplay === item.name
-                                        ? 1
-                                        : 0,
+                                    cursor: "pointer",
+                                    width: "fit-content",
+                                    px: 1.75,
+                                    py: 0.5,
+                                    fontSize: "0.9rem",
+                                    fontWeight: "bold",
+                                    color: `${item.textColor}`,
+                                    borderRadius: "6px",
+                                    bgcolor: `${item.bgColor}`,
                                   }}
                                 >
-                                  <CheckIcon
-                                    sx={{
-                                      color: (theme) =>
-                                        theme.palette.mode === "dark"
-                                          ? "white"
-                                          : "black",
-                                    }}
-                                  />
-                                </Box>
-                                <Box sx={{ flex: 4 }}>
-                                  <Box
-                                    sx={{
-                                      cursor: "pointer",
-                                      width: "fit-content",
-                                      px: 1.75,
-                                      py: 0.5,
-                                      fontSize: "0.9rem",
-                                      fontWeight: "bold",
-                                      color: `${item.textColor}`,
-                                      borderRadius: "6px",
-                                      bgcolor: `${item.bgColor}`,
-                                    }}
-                                  >
-                                    {item.name.charAt(0).toUpperCase() +
-                                      item.name.slice(1)}
-                                  </Box>
+                                  {item.name.charAt(0).toUpperCase() +
+                                    item.name.slice(1)}
                                 </Box>
                               </Box>
                             </Box>
-                          ))}
-                        </Box>
-                      )}
-                    </Box>
+                          </Box>
+                        ))}
+                      </Box>
+                    </Menu>
+                  </Box>
+                </Box>
+
+                {/* priority */}
+                <Box
+                  sx={{
+                    height: "45px",
+                    display: "flex",
+                    alignItems: "center",
+                  }}
+                >
+                  {/* label of priority */}
+                  <Box
+                    sx={{
+                      flex: 3,
+                      fontWeight: "bold",
+                      color: (theme) =>
+                        theme.palette.mode === "dark"
+                          ? theme.trelloCustom.COLOR_D7D7D7
+                          : theme.trelloCustom.COLOR_313131,
+                    }}
+                  >
+                    Priority
                   </Box>
 
-                  {/* priority */}
+                  {/* options of priority */}
+                  <Box
+                    className="dropdown-container"
+                    onMouseEnter={handleHoverPriority}
+                    onMouseLeave={handleMouseLeavePriority}
+                    sx={{
+                      py: 0.75,
+                      flex: 5,
+                      display: "flex",
+                      alignItems: "center",
+                      fontWeight: "bold",
+                      gap: 0.25,
+                    }}
+                  >
+                    {/* display value of priority */}
+                    <Box
+                      onClick={(e) => handleOpenPriorityMenu(e)}
+                      sx={{
+                        cursor:
+                          roleOfBoard != "member" || userIsMemberOfCard
+                            ? "pointer"
+                            : "context-menu",
+                        width: "fit-content",
+                        px: 1.75,
+                        py: 0.5,
+                        mr: 1,
+                        fontSize: "0.9rem",
+                        fontWeight: "bold",
+                        borderRadius: "4px",
+                        color: `${priorityTextColorToDisplay}`,
+                        bgcolor: `${priorityBgColorToDisplay}`,
+                      }}
+                    >
+                      {selectedPriorityToDisplay.charAt(0).toUpperCase() +
+                        selectedPriorityToDisplay.slice(1)}{" "}
+                    </Box>
+
+                    {/* edit btn */}
+                    <Box
+                      onClick={handleOpenPriorityMenu}
+                      sx={{
+                        cursor: "pointer",
+                        width: "fit-content",
+                        px: 1,
+                        py: 0.25,
+                        display: isHoveredPriority ? "flex" : "none",
+                        alignItems: "center",
+                        fontSize: "0.9rem",
+                        fontWeight: "bold",
+                        border: "2px solid",
+                        borderRadius: "6px",
+                        borderColor: (theme) => theme.trelloCustom.COLOR_8A8A8A,
+                        color: (theme) => theme.trelloCustom.COLOR_818181,
+                        bgcolor: "transparent",
+
+                        "&:hover": {
+                          color: (theme) =>
+                            theme.palette.mode === "dark"
+                              ? theme.trelloCustom.COLOR_D7D7D7
+                              : theme.trelloCustom.COLOR_313131,
+                          borderColor: (theme) =>
+                            theme.palette.mode === "dark"
+                              ? theme.trelloCustom.COLOR_D7D7D7
+                              : theme.trelloCustom.COLOR_313131,
+                        },
+                      }}
+                    >
+                      <EditIcon sx={{ fontSize: "1.25rem", pr: 0.5 }} />
+                      Edit
+                    </Box>
+
+                    <Menu
+                      id="basic-priority-menu"
+                      anchorEl={anchorElPriorityMenu}
+                      open={Boolean(anchorElPriorityMenu)}
+                      onClose={handleClosePriorityMenu}
+                      sx={{
+                        "& .MuiPaper-root.MuiPopover-paper.MuiMenu-paper": {
+                          borderRadius: "8px",
+                          boxShadow: (theme) =>
+                            theme.palette.mode === "dark"
+                              ? `0px 2px 10px ${theme.trelloCustom.COLOR_411A61}`
+                              : `0px 2px 10px ${theme.trelloCustom.COLOR_818181}`,
+                        },
+                        "& .MuiList-root.MuiMenu-list": {
+                          p: 0,
+                        },
+                      }}
+                    >
+                      {/* options menu priority */}
+                      <Box
+                        className="dropdown-menu"
+                        sx={{
+                          bgcolor: (theme) =>
+                            theme.palette.mode === "dark"
+                              ? theme.trelloCustom.COLOR_13091B
+                              : "",
+                          boxShadow: (theme) =>
+                            theme.palette.mode === "dark"
+                              ? `0px 2px 10px ${theme.trelloCustom.COLOR_411A61}`
+                              : "",
+                        }}
+                      >
+                        <Box
+                          className="dropdown-header"
+                          sx={{
+                            color: (theme) =>
+                              theme.palette.mode === "dark"
+                                ? theme.trelloCustom.COLOR_D7D7D7
+                                : "",
+                          }}
+                        >
+                          Select priority
+                          <Box
+                            onClick={handleClosePriorityMenu}
+                            sx={{ cursor: "pointer" }}
+                          >
+                            <CloseIcon />
+                          </Box>
+                        </Box>
+
+                        {priorityLabelData.map((item, index) => (
+                          <Box
+                            key={index}
+                            onClick={() =>
+                              handleChangePriority(
+                                item.name,
+                                item.textColor,
+                                item.bgColor
+                              )
+                            }
+                            className={`dropdown-item ${
+                              selectedPriorityToDisplay === item.name
+                            } ? 'selected' : ''}`}
+                            sx={{
+                              "&:hover": {
+                                bgcolor: (theme) =>
+                                  theme.palette.mode === "dark"
+                                    ? theme.trelloCustom.COLOR_281E38
+                                    : "",
+                              },
+                            }}
+                          >
+                            <Box
+                              sx={{
+                                flex: 1,
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "space-between",
+                                px: 1,
+                              }}
+                            >
+                              <Box
+                                sx={{
+                                  marginRight: "10px",
+                                  width: "50px",
+                                  flex: 1,
+                                  color:
+                                    selectedPriorityToDisplay === item.name
+                                      ? "black"
+                                      : "transparent",
+                                  opacity:
+                                    selectedPriorityToDisplay === item.name
+                                      ? 1
+                                      : 0,
+                                }}
+                              >
+                                <CheckIcon
+                                  sx={{
+                                    color: (theme) =>
+                                      theme.palette.mode === "dark"
+                                        ? "white"
+                                        : "black",
+                                  }}
+                                />
+                              </Box>
+                              <Box sx={{ flex: 4 }}>
+                                <Box
+                                  sx={{
+                                    cursor: "pointer",
+                                    width: "fit-content",
+                                    px: 1.75,
+                                    py: 0.5,
+                                    fontSize: "0.9rem",
+                                    fontWeight: "bold",
+                                    borderRadius: "4px",
+                                    color: `${item.textColor}`,
+                                    bgcolor: `${item.bgColor}`,
+                                  }}
+                                >
+                                  {item.name.charAt(0).toUpperCase() +
+                                    item.name.slice(1)}
+                                </Box>
+                              </Box>
+                            </Box>
+                          </Box>
+                        ))}
+                      </Box>
+                    </Menu>
+                  </Box>
+                </Box>
+
+                {/* Due date */}
+                {selectedCard.deadlineAt != "" && (
                   <Box
                     sx={{
                       height: "45px",
@@ -1730,7 +2029,7 @@ const CardModal = ({
                       alignItems: "center",
                     }}
                   >
-                    {/* label of priority */}
+                    {/* label */}
                     <Box
                       sx={{
                         flex: 3,
@@ -1741,327 +2040,54 @@ const CardModal = ({
                             : theme.trelloCustom.COLOR_313131,
                       }}
                     >
-                      Priority
+                      Due date
                     </Box>
 
-                    {/* options of priority */}
                     <Box
-                      className="dropdown-container"
-                      onMouseEnter={handleHoverPriority}
-                      onMouseLeave={handleMouseLeavePriority}
                       sx={{
-                        py: 0.75,
                         flex: 5,
+                        fontSize: "1.1rem",
+                        fontWeight: "bold",
                         display: "flex",
                         alignItems: "center",
-                        fontWeight: "bold",
-                        gap: 0.25,
+                        gap: 0.75,
                       }}
                     >
-                      {/* display value of priority */}
-                      <Box
-                        onClick={() => toggleDropdownMenuPriority()}
-                        sx={{
-                          cursor:
-                            roleOfBoard != "member" || userIsMemberOfCard
-                              ? "pointer"
-                              : "context-menu",
-                          width: "fit-content",
-                          px: 1.75,
-                          py: 0.5,
-                          mr: 1,
-                          fontSize: "0.9rem",
-                          fontWeight: "bold",
-                          borderRadius: "4px",
-                          color: `${priorityTextColorToDisplay}`,
-                          bgcolor: `${priorityBgColorToDisplay}`,
-                        }}
-                      >
-                        {selectedPriorityToDisplay.charAt(0).toUpperCase() +
-                          selectedPriorityToDisplay.slice(1)}{" "}
+                      <Box>
+                        {formatDateToDisplay(selectedCard.deadlineAt)[0]}
                       </Box>
-
-                      {/* edit btn */}
-                      <Box
-                        onClick={toggleDropdownMenuPriority}
+                      <FiberManualRecordIcon
                         sx={{
-                          cursor: "pointer",
-                          width: "fit-content",
-                          px: 1,
-                          py: 0.25,
-                          display: isHoveredPriority ? "flex" : "none",
-                          alignItems: "center",
-                          fontSize: "0.9rem",
-                          fontWeight: "bold",
-                          border: "2px solid",
-                          borderRadius: "6px",
-                          borderColor: (theme) =>
-                            theme.trelloCustom.COLOR_8A8A8A,
-                          color: (theme) => theme.trelloCustom.COLOR_818181,
-                          bgcolor: "transparent",
-
-                          "&:hover": {
-                            color: (theme) =>
-                              theme.palette.mode === "dark"
-                                ? theme.trelloCustom.COLOR_D7D7D7
-                                : theme.trelloCustom.COLOR_313131,
-                            borderColor: (theme) =>
-                              theme.palette.mode === "dark"
-                                ? theme.trelloCustom.COLOR_D7D7D7
-                                : theme.trelloCustom.COLOR_313131,
+                          "&.MuiSvgIcon-root": {
+                            width: ".5em",
                           },
                         }}
-                      >
-                        <EditIcon sx={{ fontSize: "1.25rem", pr: 0.5 }} />
-                        Edit
+                      />
+                      <Box>
+                        {formatDateToDisplay(selectedCard.deadlineAt)[1]}
                       </Box>
-
-                      {/* options menu priority */}
-                      {isOpenMenuPriority && (
-                        <Box
-                          className="dropdown-menu"
-                          sx={{
-                            bgcolor: (theme) =>
-                              theme.palette.mode === "dark"
-                                ? theme.trelloCustom.COLOR_13091B
-                                : "",
-                            boxShadow: (theme) =>
-                              theme.palette.mode === "dark"
-                                ? `0px 2px 10px ${theme.trelloCustom.COLOR_411A61}`
-                                : "",
-                          }}
-                        >
-                          <Box
-                            className="dropdown-header"
-                            sx={{
-                              color: (theme) =>
-                                theme.palette.mode === "dark"
-                                  ? theme.trelloCustom.COLOR_D7D7D7
-                                  : "",
-                            }}
-                          >
-                            Select priority
-                            <Box
-                              onClick={toggleDropdownMenuPriority}
-                              sx={{ cursor: "pointer" }}
-                            >
-                              <CloseIcon />
-                            </Box>
-                          </Box>
-
-                          {priorityLabelData.map((item, index) => (
-                            <Box
-                              key={index}
-                              onClick={() =>
-                                handleChangePriority(
-                                  item.name,
-                                  item.textColor,
-                                  item.bgColor
-                                )
-                              }
-                              className={`dropdown-item ${
-                                selectedPriorityToDisplay === item.name
-                              } ? 'selected' : ''}`}
-                              sx={{
-                                "&:hover": {
-                                  bgcolor: (theme) =>
-                                    theme.palette.mode === "dark"
-                                      ? theme.trelloCustom.COLOR_281E38
-                                      : "",
-                                },
-                              }}
-                            >
-                              <Box
-                                sx={{
-                                  flex: 1,
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "space-between",
-                                  px: 1,
-                                }}
-                              >
-                                <Box
-                                  sx={{
-                                    marginRight: "10px",
-                                    width: "50px",
-                                    flex: 1,
-                                    color:
-                                      selectedPriorityToDisplay === item.name
-                                        ? "black"
-                                        : "transparent",
-                                    opacity:
-                                      selectedPriorityToDisplay === item.name
-                                        ? 1
-                                        : 0,
-                                  }}
-                                >
-                                  <CheckIcon
-                                    sx={{
-                                      color: (theme) =>
-                                        theme.palette.mode === "dark"
-                                          ? "white"
-                                          : "black",
-                                    }}
-                                  />
-                                </Box>
-                                <Box sx={{ flex: 4 }}>
-                                  <Box
-                                    sx={{
-                                      cursor: "pointer",
-                                      width: "fit-content",
-                                      px: 1.75,
-                                      py: 0.5,
-                                      fontSize: "0.9rem",
-                                      fontWeight: "bold",
-                                      borderRadius: "4px",
-                                      color: `${item.textColor}`,
-                                      bgcolor: `${item.bgColor}`,
-                                    }}
-                                  >
-                                    {item.name.charAt(0).toUpperCase() +
-                                      item.name.slice(1)}
-                                  </Box>
-                                </Box>
-                              </Box>
-                            </Box>
-                          ))}
-                        </Box>
-                      )}
                     </Box>
                   </Box>
+                )}
 
-                  {/* Due date */}
-                  {selectedCard.deadlineAt != "" && (
-                    <Box
-                      sx={{
-                        height: "45px",
-                        display: "flex",
-                        alignItems: "center",
-                      }}
-                    >
-                      {/* label of priority */}
-                      <Box
-                        sx={{
-                          flex: 3,
-                          fontWeight: "bold",
-                          color: (theme) =>
-                            theme.palette.mode === "dark"
-                              ? theme.trelloCustom.COLOR_D7D7D7
-                              : theme.trelloCustom.COLOR_313131,
-                        }}
-                      >
-                        Due date
-                      </Box>
+                <Tabs>
+                  <StyledTabList data-color-scheme={colorScheme}>
+                    <StyledTab data-color-scheme={colorScheme}>
+                      Comments
+                    </StyledTab>
+                    <StyledTab data-color-scheme={colorScheme}>
+                      Description
+                    </StyledTab>
+                  </StyledTabList>
 
-                      <Box
-                        sx={{
-                          flex: 5,
-                          fontSize: "1.1rem",
-                          fontWeight: "bold",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 0.75,
-                        }}
-                      >
-                        <Box>
-                          {formatDateToDisplay(selectedCard.deadlineAt)[0]}
-                        </Box>
-                        <FiberManualRecordIcon
-                          sx={{
-                            "&.MuiSvgIcon-root": {
-                              width: ".5em",
-                            },
-                          }}
-                        />
-                        <Box>
-                          {formatDateToDisplay(selectedCard.deadlineAt)[1]}
-                        </Box>
-                      </Box>
-                    </Box>
-                  )}
+                  <StyledTabPanel>
+                    <CommentSection
+                      card={card}
+                      userIsMemberOfCard={userIsMemberOfCard}
+                    />
+                  </StyledTabPanel>
 
-                  {/* description */}
-                  <Box
-                    onMouseEnter={handleEnterDescriptionField}
-                    onMouseLeave={handleLeaveDescriptionField}
-                    sx={{
-                      mt: 1,
-                      width: "100%",
-                      minWidth: "360px",
-                      display: "flex",
-                      alignItems: "start",
-                      flexDirection: "column",
-                    }}
-                  >
-                    {/* label of description & edit btn */}
-                    <Box
-                      sx={{
-                        width: "100%",
-                        height: "25px",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      {/* label of description */}
-                      <Box
-                        sx={{
-                          fontWeight: "bold",
-                          color: (theme) =>
-                            theme.palette.mode === "dark"
-                              ? theme.trelloCustom.COLOR_D7D7D7
-                              : theme.trelloCustom.COLOR_313131,
-                        }}
-                      >
-                        Description
-                      </Box>
-
-                      {/* edit btn */}
-                      <Box
-                        onClick={() => {
-                          checkIsOpenMenuStatusThenClose();
-                          checkIsOpenMenuPriorityThenClose();
-                          checkIsOpenDateTimePickerThenClose();
-
-                          toggleOpenDescriptionFieldCard();
-                        }}
-                        sx={{
-                          cursor: "pointer",
-                          width: "fit-content",
-                          px: 1,
-                          py: 0.25,
-                          display: isHoveredDescriptionField
-                            ? isOpenDescriptionFieldCard
-                              ? "none"
-                              : "flex"
-                            : "none",
-                          alignItems: "center",
-                          fontSize: "0.9rem",
-                          fontWeight: "bold",
-                          border: "2px solid",
-                          borderRadius: "6px",
-                          borderColor: (theme) =>
-                            theme.trelloCustom.COLOR_8A8A8A,
-                          color: (theme) => theme.trelloCustom.COLOR_818181,
-                          bgcolor: "transparent",
-
-                          "&:hover": {
-                            color: (theme) =>
-                              theme.palette.mode === "dark"
-                                ? theme.trelloCustom.COLOR_D7D7D7
-                                : theme.trelloCustom.COLOR_313131,
-                            borderColor: (theme) =>
-                              theme.palette.mode === "dark"
-                                ? theme.trelloCustom.COLOR_D7D7D7
-                                : theme.trelloCustom.COLOR_313131,
-                          },
-                        }}
-                      >
-                        <EditIcon sx={{ fontSize: "1.25rem", pr: 0.5 }} />
-                        Edit
-                      </Box>
-                    </Box>
-
+                  <StyledTabPanel>
                     {/* text area */}
                     <Box
                       sx={{
@@ -2072,6 +2098,9 @@ const CardModal = ({
                       {/* button to display the field */}
                       {!isOpenDescriptionFieldCard && (
                         <Box
+                          onClick={() => {
+                            toggleOpenDescriptionFieldCard();
+                          }}
                           style={{
                             overflowX:
                               descriptionCardToDisplay == ""
@@ -2085,7 +2114,9 @@ const CardModal = ({
                                 : "context-menu",
                             width: "100%",
                             height:
-                              descriptionCardToDisplay == "" ? "80px" : "200px",
+                              descriptionCardToDisplay == ""
+                                ? "80px"
+                                : "fit-content",
                             py: 1,
                             px: 1.75,
                             border: "2px solid",
@@ -2102,11 +2133,6 @@ const CardModal = ({
                             },
                           }}
                         >
-                          {/* descriptionCardToDisplay != "<p><br></p>" &&
-          descriptionCardToDisplay != "<h1><br></h1>" &&
-          descriptionCardToDisplay != "<h2><br></h2>" &&
-          descriptionCardToDisplay != "<h3><br></h3>" &&
-          descriptionCardToDisplay != ""  */}
                           <Box>
                             {checkDescriptionData(descriptionCardToDisplay) ? (
                               <div
@@ -2144,1204 +2170,580 @@ const CardModal = ({
                         />
                       )}
                     </Box>
-                  </Box>
-                </Box>
+                  </StyledTabPanel>
+                </Tabs>
+              </Box>
 
-                {/* right side */}
+              {/* right side */}
+              <Box
+                sx={{
+                  flex: 1.25,
+                  display: "flex",
+                  flexDirection: "column",
+                  alignContent: "center",
+                  gap: 1.5,
+                }}
+              >
+                {/* show/invite members of card */}
                 <Box
                   sx={{
-                    flex: 1.25,
                     display: "flex",
-                    flexDirection: "column",
-                    alignContent: "center",
-                    gap: 1.5,
                   }}
                 >
-                  {/* show/invite members of card */}
+                  {/* active member btn */}
                   <Box
+                    onClick={(e) => handleOpenAssignee(e)}
                     sx={{
+                      cursor: "pointer",
+                      position: "relative",
+                      width: "100%",
+                      height: "2.5em",
+                      fontSize: "0.9rem",
+                      fontWeight: "bold",
+                      pl: 2,
+                      pr: 0.25,
                       display: "flex",
-                    }}
-                  >
-                    {/* active member btn */}
-                    <Box
-                      onClick={() => handleOpenAssignee()}
-                      sx={{
-                        cursor: "pointer",
-                        position: "relative",
-                        width: "100%",
-                        height: "2.5em",
-                        fontSize: "0.9rem",
-                        fontWeight: "bold",
-                        pl: 2,
-                        pr: 0.25,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        borderRadius: "4px",
-                        color: (theme) =>
-                          theme.palette.mode === "dark"
-                            ? theme.trelloCustom.COLOR_D7D7D7
-                            : theme.trelloCustom.COLOR_313131,
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      borderRadius: "4px",
+                      color: (theme) =>
+                        theme.palette.mode === "dark"
+                          ? theme.trelloCustom.COLOR_D7D7D7
+                          : theme.trelloCustom.COLOR_313131,
+                      bgcolor: (theme) =>
+                        theme.palette.mode === "dark"
+                          ? theme.trelloCustom.COLOR_281E38
+                          : theme.trelloCustom.COLOR_E6E6E6,
+                      "&:hover": {
                         bgcolor: (theme) =>
                           theme.palette.mode === "dark"
-                            ? theme.trelloCustom.COLOR_281E38
-                            : theme.trelloCustom.COLOR_E6E6E6,
+                            ? theme.trelloCustom.COLOR_463666
+                            : theme.trelloCustom.COLOR_D7D7D7,
+                      },
+                    }}
+                  >
+                    Assignee
+                    {/* icon */}
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        width: "40px",
+                        height: "40px",
+                        borderRadius: "20px",
                         "&:hover": {
-                          bgcolor: (theme) =>
-                            theme.palette.mode === "dark"
-                              ? theme.trelloCustom.COLOR_463666
-                              : theme.trelloCustom.COLOR_D7D7D7,
+                          bgcolor: "#ffffff14",
                         },
                       }}
                     >
-                      Assignee
-                      {/* icon */}
-                      <Box
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          width: "40px",
-                          height: "40px",
-                          borderRadius: "20px",
-                          "&:hover": {
-                            bgcolor: "#ffffff14",
-                          },
-                        }}
-                      >
-                        <PeopleIcon />
-                      </Box>
+                      <PeopleIcon />
                     </Box>
+                  </Box>
 
-                    {/* modal members */}
+                  {/* modal members */}
+                  <Menu
+                    id="basic-assignee"
+                    anchorEl={anchorElAssignee}
+                    open={Boolean(anchorElAssignee)}
+                    onClose={handleCloseAssignee}
+                    sx={{
+                      "& .MuiPaper-root.MuiPopover-paper.MuiMenu-paper": {
+                        borderRadius: "8px",
+                        boxShadow: (theme) =>
+                          theme.palette.mode === "dark"
+                            ? `0px 2px 10px ${theme.trelloCustom.COLOR_411A61}`
+                            : `0px 2px 10px ${theme.trelloCustom.COLOR_818181}`,
+                      },
+                      "& .MuiList-root.MuiMenu-list": {
+                        p: 0,
+                      },
+                    }}
+                  >
                     <Box
                       sx={{
-                        position: "relative",
-                        width: "0",
+                        width: "350px",
+                        gap: 1.25,
+                        px: 2,
+                        py: 1.5,
+                        borderRadius: "8px",
+                        bgcolor: (theme) =>
+                          theme.palette.mode === "dark"
+                            ? theme.trelloCustom.COLOR_13091B
+                            : theme.trelloCustom.COLOR_F8F8F8,
+                        boxShadow: (theme) =>
+                          theme.palette.mode === "dark"
+                            ? `0px 2px 10px ${theme.trelloCustom.COLOR_411A61}`
+                            : `0px 2px 10px ${theme.trelloCustom.COLOR_818181}`,
                       }}
                     >
-                      {isOpenAssignee && (
+                      {/* title & close btn */}
+                      <Box
+                        sx={{
+                          mb: 1.5,
+                          width: "100%",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                        }}
+                      >
+                        {/* title */}
                         <Box
                           sx={{
-                            zIndex: "9999",
-                            // left: "-400px",
-                            // top: 0,
-                            //
-                            left: "55px",
-                            top: "-107px",
-                            //
-                            position: "absolute",
-                            width: "350px",
-                            gap: 1.25,
-                            px: 2,
-                            py: 1.5,
-                            borderRadius: "8px",
-                            bgcolor: (theme) =>
-                              theme.palette.mode === "dark"
-                                ? theme.trelloCustom.COLOR_13091B
-                                : theme.trelloCustom.COLOR_F8F8F8,
-                            boxShadow: (theme) =>
-                              theme.palette.mode === "dark"
-                                ? `0px 2px 10px ${theme.trelloCustom.COLOR_411A61}`
-                                : `0px 2px 10px ${theme.trelloCustom.COLOR_313131}`,
+                            pl: 0.25,
+                            fontSize: "1.25rem",
+                            fontWeight: "bold",
                           }}
                         >
-                          {/* title & close btn */}
-                          <Box
-                            sx={{
-                              mb: 1.5,
-                              width: "100%",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "space-between",
-                            }}
-                          >
+                          Assignee
+                        </Box>
+
+                        {/* buttons component */}
+                        {/* close btn */}
+                        <Box
+                          onClick={() => handleCloseAssignee()}
+                          sx={{
+                            cursor: "pointer",
+                            width: "70px",
+                            height: "35px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            py: 0.25,
+                            px: 1.25,
+                            fontSize: "0.9rem",
+                            fontWeight: "bold",
+                            borderRadius: "5px",
+                            color: (theme) =>
+                              theme.palette.mode === "dark"
+                                ? theme.trelloCustom.COLOR_D7D7D7
+                                : theme.trelloCustom.COLOR_313131,
+                            bgcolor: (theme) =>
+                              theme.palette.mode === "dark"
+                                ? theme.trelloCustom.COLOR_281E38
+                                : theme.trelloCustom.COLOR_E6E6E6,
+                            "&:hover": {
+                              bgcolor: (theme) =>
+                                theme.palette.mode === "dark"
+                                  ? theme.trelloCustom.COLOR_463666
+                                  : theme.trelloCustom.COLOR_D7D7D7,
+                            },
+                          }}
+                        >
+                          {/* <CloseIcon /> */}
+                          Close
+                        </Box>
+                      </Box>
+
+                      {/* input search + invite other member */}
+                      <TextField
+                        id="filled-search"
+                        label="Search member"
+                        variant="filled"
+                        value={searchQuery}
+                        onChange={handleSearchChange}
+                        InputProps={{
+                          endAdornment: searchQuery && (
+                            <IconButton onClick={() => setSearchQuery("")}>
+                              <ClearIcon />
+                            </IconButton>
+                          ),
+                        }}
+                        sx={{
+                          width: "100%",
+                          mb: 1.5,
+                          "& .MuiFormLabel-root": {
+                            "&.MuiInputLabel-root": {
+                              color: (theme) =>
+                                theme.palette.mode === "dark"
+                                  ? theme.trelloCustom.COLOR_D7D7D7
+                                  : theme.trelloCustom.COLOR_313131,
+                            },
+                          },
+                          "& .MuiInputBase-root": {
+                            "&.MuiFilledInput-root::after": {
+                              borderColor: (theme) =>
+                                theme.palette.mode === "dark"
+                                  ? theme.trelloCustom.COLOR_D7D7D7
+                                  : theme.trelloCustom.COLOR_313131,
+                            },
+                          },
+                        }}
+                      />
+
+                      {/* list members in card and board */}
+                      <Box
+                        sx={{
+                          maxHeight: "300px",
+                          overflow: "auto",
+                        }}
+                      >
+                        {/* list members of card */}
+                        {newFilteredMembers.filter(
+                          (member) => member.cardInvited
+                        ).length > 0 && (
+                          <Box>
                             {/* title */}
                             <Box
                               sx={{
-                                pl: 0.25,
-                                fontSize: "1.25rem",
-                                fontWeight: "bold",
-                              }}
-                            >
-                              Assignee
-                            </Box>
-
-                            {/* buttons component */}
-                            {/* close btn */}
-                            <Box
-                              onClick={() => handleCloseAssignee()}
-                              sx={{
-                                // height: "30px",
-                                // width: "30px",
-                                // cursor: "pointer",
-                                // display: "flex",
-                                // alignItems: "center",
-                                // justifyContent: "center",
-                                // borderRadius: "6px",
-                                // "&:hover": {
-                                //   bgcolor: (theme) =>
-                                //     theme.palette.mode === "dark"
-                                //       ? theme.trelloCustom.COLOR_281E38
-                                //       : theme.trelloCustom.COLOR_D7D7D7,
-                                // },
-
-                                cursor: "pointer",
-                                width: "70px",
-                                height: "35px",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                py: 0.25,
-                                px: 1.25,
-                                fontSize: "0.9rem",
-                                fontWeight: "bold",
-                                borderRadius: "5px",
                                 color: (theme) =>
                                   theme.palette.mode === "dark"
                                     ? theme.trelloCustom.COLOR_D7D7D7
                                     : theme.trelloCustom.COLOR_313131,
-                                bgcolor: (theme) =>
-                                  theme.palette.mode === "dark"
-                                    ? theme.trelloCustom.COLOR_281E38
-                                    : theme.trelloCustom.COLOR_E6E6E6,
-                                "&:hover": {
-                                  bgcolor: (theme) =>
-                                    theme.palette.mode === "dark"
-                                      ? theme.trelloCustom.COLOR_463666
-                                      : theme.trelloCustom.COLOR_D7D7D7,
-                                },
+                                mb: 0.5,
                               }}
                             >
-                              {/* <CloseIcon /> */}
-                              Close
+                              Members of card
                             </Box>
-                          </Box>
 
-                          {/* input search + invite other member */}
-                          <TextField
-                            id="filled-search"
-                            label="Search member"
-                            variant="filled"
-                            value={searchQuery}
-                            onChange={handleSearchChange}
-                            InputProps={{
-                              endAdornment: searchQuery && (
-                                <IconButton onClick={() => setSearchQuery("")}>
-                                  <ClearIcon />
-                                </IconButton>
-                              ),
-                            }}
-                            sx={{
-                              width: "100%",
-                              mb: 1.5,
-                              "& .MuiFormLabel-root": {
-                                "&.MuiInputLabel-root": {
-                                  color: (theme) =>
-                                    theme.palette.mode === "dark"
-                                      ? theme.trelloCustom.COLOR_D7D7D7
-                                      : theme.trelloCustom.COLOR_313131,
-                                },
-                              },
-                              "& .MuiInputBase-root": {
-                                "&.MuiFilledInput-root::after": {
-                                  borderColor: (theme) =>
-                                    theme.palette.mode === "dark"
-                                      ? theme.trelloCustom.COLOR_D7D7D7
-                                      : theme.trelloCustom.COLOR_313131,
-                                },
-                              },
-                            }}
-                          />
-
-                          {/* list members in card and board */}
-                          <Box
-                            sx={{
-                              maxHeight: "300px",
-                              overflow: "auto",
-                            }}
-                          >
-                            {/* list members of card */}
-                            {newFilteredMembers.filter(
-                              (member) => member.cardInvited
-                            ).length > 0 && (
-                              <Box>
-                                {/* title */}
-                                <Box
-                                  sx={{
-                                    color: (theme) =>
-                                      theme.palette.mode === "dark"
-                                        ? theme.trelloCustom.COLOR_D7D7D7
-                                        : theme.trelloCustom.COLOR_313131,
-                                    mb: 0.5,
-                                  }}
-                                >
-                                  Members of card
-                                </Box>
-
-                                {/* list of members of card */}
-                                <Box
-                                  sx={{
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    alignItems: "start",
-                                    justifyContent: "start",
-                                  }}
-                                >
-                                  {newFilteredMembers
-                                    .filter((member) => member.cardInvited)
-                                    .map((user) => (
-                                      <Box
-                                        key={user.userId}
-                                        onMouseEnter={() =>
-                                          handleEnterUserCardArea(user)
-                                        }
-                                        onMouseLeave={() =>
-                                          handleLeaveUserCardArea()
-                                        }
-                                        sx={{
-                                          width: "100%",
-                                          height: "60px",
-                                          display: "flex",
-                                          alignItems: "center",
-                                          justifyContent: "space-between",
-                                          px: 1,
-                                          mb: 0.5,
-                                          borderRadius: "6px",
-
-                                          "&:hover": {
-                                            bgcolor: (theme) =>
-                                              theme.palette.mode === "dark"
-                                                ? theme.trelloCustom
-                                                    .COLOR_281E38
-                                                : theme.trelloCustom
-                                                    .COLOR_E6E6E6,
-                                          },
-                                        }}
-                                      >
-                                        {/* avatar & short name of user */}
-                                        <Box
-                                          sx={{
-                                            width: "40px",
-                                            height: "40px",
-                                            display: "flex",
-                                            alignItems: "center",
-                                            justifyContent: "center",
-                                            borderRadius: "50%",
-                                            color: (theme) =>
-                                              theme.palette.mode === "dark"
-                                                ? theme.trelloCustom
-                                                    .COLOR_F8F8F8
-                                                : theme.trelloCustom
-                                                    .COLOR_F8F8F8,
-                                            bgcolor: (theme) =>
-                                              theme.palette.mode === "dark"
-                                                ? theme.trelloCustom
-                                                    .COLOR_C200D3
-                                                : theme.trelloCustom
-                                                    .COLOR_C0C0C0,
-                                          }}
-                                        >
-                                          {/* A */}
-                                          {user.username
-                                            .charAt(0)
-                                            .toUpperCase()}
-                                        </Box>
-
-                                        {/* name + username + button remove */}
-                                        <Box
-                                          sx={{
-                                            width: `calc(100% - 40px)`,
-                                            height: "100%",
-                                            display: "flex",
-                                            alignItems: "center",
-                                            justifyContent: "space-between",
-                                          }}
-                                        >
-                                          {/* name and username */}
-                                          <Box
-                                            sx={{
-                                              px: 1,
-                                              display: "flex",
-                                              flexDirection: "column",
-                                              alignItems: "start",
-                                            }}
-                                          >
-                                            {/* name */}
-                                            <Box
-                                              sx={{
-                                                fontSize: "1.05rem",
-                                                color: (theme) =>
-                                                  theme.palette.mode === "dark"
-                                                    ? theme.trelloCustom
-                                                        .COLOR_D7D7D7
-                                                    : theme.trelloCustom
-                                                        .COLOR_313131,
-                                              }}
-                                            >
-                                              {/* afgh assd */}
-                                              {user.username}
-                                            </Box>
-
-                                            {/* @ name */}
-                                            <Box
-                                              sx={{
-                                                fontSize: ".85rem",
-                                                color: (theme) =>
-                                                  theme.palette.mode === "dark"
-                                                    ? theme.trelloCustom
-                                                        .COLOR_D7D7D7
-                                                    : theme.trelloCustom
-                                                        .COLOR_313131,
-                                              }}
-                                            >
-                                              {/* @afgh_assd */}
-                                              {user.email}
-                                            </Box>
-                                          </Box>
-
-                                          {/* button remove  */}
-                                          {(roleOfBoard !== "member" ||
-                                            userIsMemberOfCard) &&
-                                            isHoveredUserCardArea ===
-                                              user.userId && (
-                                              <Tooltip title="Remove user from this card">
-                                                <Box
-                                                  onClick={() =>
-                                                    handleTransferTheCard(
-                                                      user,
-                                                      "remove"
-                                                    )
-                                                  }
-                                                  sx={{
-                                                    cursor: "pointer",
-                                                    px: 0.5,
-                                                    py: 0.5,
-                                                    mr: 0.5,
-                                                    display: "flex",
-                                                    alignItems: "center",
-                                                    justifyContent: "center",
-                                                    borderRadius: "8px",
-                                                    "&:hover": {
-                                                      bgcolor: (theme) =>
-                                                        theme.palette.mode ===
-                                                        "dark"
-                                                          ? theme.trelloCustom
-                                                              .COLOR_463666
-                                                          : theme.trelloCustom
-                                                              .COLOR_C0C0C0,
-                                                    },
-                                                  }}
-                                                >
-                                                  <RemoveCircleOutlineIcon />
-                                                </Box>
-                                              </Tooltip>
-                                            )}
-                                        </Box>
-                                      </Box>
-                                    ))}
-                                </Box>
-                              </Box>
-                            )}
-
-                            {/* list members of board */}
-                            {newFilteredMembers.filter(
-                              (member) => !member.cardInvited
-                            ).length > 0 && (
-                              <Box>
-                                {/* title */}
-                                <Box
-                                  sx={{
-                                    color: (theme) =>
-                                      theme.palette.mode === "dark"
-                                        ? theme.trelloCustom.COLOR_D7D7D7
-                                        : theme.trelloCustom.COLOR_313131,
-                                    mb: 0.5,
-                                  }}
-                                >
-                                  Members of board
-                                </Box>
-
-                                {/* list of members of board */}
-                                <Box
-                                  sx={{
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    alignItems: "start",
-                                    justifyContent: "start",
-                                  }}
-                                >
-                                  {newFilteredMembers
-                                    .filter((member) => !member.cardInvited)
-                                    .map((user) => (
-                                      <Box
-                                        key={user.userId}
-                                        onMouseEnter={() =>
-                                          handleEnterUserBoardArea(user)
-                                        }
-                                        onMouseLeave={() =>
-                                          handleLeaveUserBoardArea()
-                                        }
-                                        sx={{
-                                          width: "100%",
-                                          height: "60px",
-                                          display: "flex",
-                                          alignItems: "center",
-                                          justifyContent: "space-between",
-                                          px: 1,
-                                          mb: 0.5,
-                                          borderRadius: "6px",
-
-                                          "&:hover": {
-                                            bgcolor: (theme) =>
-                                              theme.palette.mode === "dark"
-                                                ? theme.trelloCustom
-                                                    .COLOR_281E38
-                                                : theme.trelloCustom
-                                                    .COLOR_E6E6E6,
-                                          },
-                                        }}
-                                      >
-                                        {/* avatar & short name of user */}
-                                        <Box
-                                          sx={{
-                                            width: "40px",
-                                            height: "40px",
-                                            display: "flex",
-                                            alignItems: "center",
-                                            justifyContent: "center",
-                                            borderRadius: "50%",
-                                            color: (theme) =>
-                                              theme.palette.mode === "dark"
-                                                ? theme.trelloCustom
-                                                    .COLOR_F8F8F8
-                                                : theme.trelloCustom
-                                                    .COLOR_F8F8F8,
-                                            bgcolor: (theme) =>
-                                              theme.palette.mode === "dark"
-                                                ? theme.trelloCustom
-                                                    .COLOR_C200D3
-                                                : theme.trelloCustom
-                                                    .COLOR_C0C0C0,
-                                          }}
-                                        >
-                                          {/* A */}
-                                          {user.username
-                                            .charAt(0)
-                                            .toUpperCase()}
-                                        </Box>
-
-                                        {/* name + username + button add */}
-                                        <Box
-                                          sx={{
-                                            width: `calc(100% - 40px)`,
-                                            height: "100%",
-                                            display: "flex",
-                                            alignItems: "center",
-                                            justifyContent: "space-between",
-                                          }}
-                                        >
-                                          {/* name and username */}
-                                          <Box
-                                            sx={{
-                                              px: 1,
-                                              display: "flex",
-                                              flexDirection: "column",
-                                              alignItems: "start",
-                                            }}
-                                          >
-                                            {/* name */}
-                                            <Box
-                                              sx={{
-                                                color: (theme) =>
-                                                  theme.palette.mode === "dark"
-                                                    ? theme.trelloCustom
-                                                        .COLOR_D7D7D7
-                                                    : theme.trelloCustom
-                                                        .COLOR_313131,
-                                                fontSize: "1.05rem",
-                                              }}
-                                            >
-                                              {/* afgh assd */}
-                                              {user.username}
-                                            </Box>
-
-                                            {/* @ name */}
-                                            <Box
-                                              sx={{
-                                                fontSize: ".85rem",
-                                                color: (theme) =>
-                                                  theme.palette.mode === "dark"
-                                                    ? theme.trelloCustom
-                                                        .COLOR_D7D7D7
-                                                    : theme.trelloCustom
-                                                        .COLOR_313131,
-                                              }}
-                                            >
-                                              {/* @afgh_assd */}
-                                              {user.email}
-                                            </Box>
-                                          </Box>
-
-                                          {/* button add  */}
-                                          {(roleOfBoard !== "member" ||
-                                            userIsMemberOfCard) &&
-                                            isHoveredUserBoardArea ===
-                                              user.userId && (
-                                              <Tooltip title="Add user into this card">
-                                                <Box
-                                                  onClick={() =>
-                                                    handleTransferTheCard(
-                                                      user,
-                                                      "add"
-                                                    )
-                                                  }
-                                                  sx={{
-                                                    cursor: "pointer",
-                                                    px: 0.5,
-                                                    py: 0.5,
-                                                    mr: 0.5,
-                                                    display: "flex",
-                                                    alignItems: "center",
-                                                    justifyContent: "center",
-                                                    borderRadius: "8px",
-                                                    "&:hover": {
-                                                      bgcolor: (theme) =>
-                                                        theme.palette.mode ===
-                                                        "dark"
-                                                          ? theme.trelloCustom
-                                                              .COLOR_463666
-                                                          : theme.trelloCustom
-                                                              .COLOR_C0C0C0,
-                                                    },
-                                                  }}
-                                                >
-                                                  <AddIcon />
-                                                </Box>
-                                              </Tooltip>
-                                            )}
-                                        </Box>
-                                      </Box>
-                                    ))}
-                                </Box>
-                              </Box>
-                            )}
-                          </Box>
-                        </Box>
-                      )}
-                    </Box>
-                  </Box>
-
-                  {/* pick a alarm/reminder date for card */}
-                  {(roleOfBoard != "member" || userIsMemberOfCard) && (
-                    <Box
-                      sx={{
-                        display: "flex",
-                      }}
-                    >
-                      {/* active due date btn */}
-                      <Box
-                        onClick={() => handleOpenDateTimePicker()}
-                        sx={{
-                          cursor: "pointer",
-                          position: "relative",
-                          height: "2.5em",
-                          width: "100%",
-                          fontSize: "0.9rem",
-                          fontWeight: "bold",
-                          pl: 2,
-                          pr: 0.25,
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "space-between",
-                          borderRadius: "4px",
-                          color: (theme) =>
-                            theme.palette.mode === "dark"
-                              ? theme.trelloCustom.COLOR_D7D7D7
-                              : theme.trelloCustom.COLOR_313131,
-                          bgcolor: (theme) =>
-                            theme.palette.mode === "dark"
-                              ? theme.trelloCustom.COLOR_281E38
-                              : theme.trelloCustom.COLOR_E6E6E6,
-                          "&:hover": {
-                            bgcolor: (theme) =>
-                              theme.palette.mode === "dark"
-                                ? theme.trelloCustom.COLOR_463666
-                                : theme.trelloCustom.COLOR_D7D7D7,
-                          },
-                        }}
-                      >
-                        Schedule
-                        {/* icon */}
-                        <Box
-                          sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            width: "40px",
-                            height: "40px",
-                            borderRadius: "20px",
-                            "&:hover": {
-                              bgcolor: "#ffffff14",
-                            },
-                          }}
-                        >
-                          <CalendarMonthIcon />
-                        </Box>
-                      </Box>
-
-                      {/* modal pick date & time */}
-                      <Box
-                        sx={{
-                          position: "relative",
-                          width: "0",
-                        }}
-                      >
-                        {isOpenDateTimePicker && (
-                          <Box
-                            sx={{
-                              // top: "100px",
-                              // left: "-580px",
-                              //
-                              top: "0px",
-                              left: "50px",
-                              //
-                              position: "absolute",
-                              width: "360px",
-                              gap: 1.25,
-                              display: "flex",
-                              flexDirection: "column",
-                              px: 2,
-                              pt: 2,
-                              pb: 0.5,
-                              borderRadius: "8px",
-                              bgcolor: (theme) =>
-                                theme.palette.mode === "dark"
-                                  ? theme.trelloCustom.COLOR_13091B
-                                  : theme.trelloCustom.COLOR_F8F8F8,
-                              boxShadow: (theme) =>
-                                theme.palette.mode === "dark"
-                                  ? `0px 2px 10px ${theme.trelloCustom.COLOR_411A61}`
-                                  : `0px 2px 10px ${theme.trelloCustom.COLOR_313131}`,
-                            }}
-                          >
-                            {/* banner for representing OVERDUE or COMING */}
-                            {isOverdueDeadline != null && (
-                              <Box
-                                sx={{
-                                  mb: 0.75,
-                                  height: "35px",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-
-                                  fontWeight: "bold",
-
-                                  borderRadius: "6px",
-                                  border: (theme) =>
-                                    isOverdueDeadline
-                                      ? `1px solid transparent`
-                                      : `1px solid ${theme.trelloCustom.COLOR_268FB0}`,
-                                  color: (theme) =>
-                                    isOverdueDeadline
-                                      ? theme.trelloCustom.COLOR_DF0606
-                                      : theme.trelloCustom.COLOR_268FB0,
-                                  bgcolor: (theme) =>
-                                    isOverdueDeadline
-                                      ? theme.trelloCustom.COLOR_FF9D9D
-                                      : theme.trelloCustom.COLOR_D9F4F8,
-                                }}
-                              >
-                                {isOverdueDeadline ? "OVERDUE" : "COMING"}
-                              </Box>
-                            )}
-
-                            {/* date ̃& time picker */}
-                            <LocalizationProvider dateAdapter={AdapterDayjs}>
-                              <Box
-                                sx={{
-                                  display: "flex",
-                                  gap: 2,
-                                  height: "40px",
-                                }}
-                              >
-                                {/* date picker */}
-                                <Box onClick={() => handleOpenDatePicker()}>
-                                  <DatePicker
-                                    label={"Choose date"}
-                                    views={["year", "month", "day"]}
-                                    format="DD-MM-YYYY"
-                                    value={valueDatePickerDayJS}
-                                    onChange={(date) =>
-                                      handleChangeDatePicker(date)
+                            {/* list of members of card */}
+                            <Box
+                              sx={{
+                                display: "flex",
+                                flexDirection: "column",
+                                alignItems: "start",
+                                justifyContent: "start",
+                              }}
+                            >
+                              {newFilteredMembers
+                                .filter((member) => member.cardInvited)
+                                .map((user) => (
+                                  <Box
+                                    key={user.userId}
+                                    onMouseEnter={() =>
+                                      handleEnterUserCardArea(user)
                                     }
-                                    slotProps={{
-                                      textField: {
-                                        size: "small",
-                                      },
-                                    }}
+                                    onMouseLeave={() =>
+                                      handleLeaveUserCardArea()
+                                    }
                                     sx={{
-                                      height: "100%",
+                                      width: "100%",
+                                      height: "60px",
+                                      display: "flex",
+                                      alignItems: "center",
+                                      justifyContent: "space-between",
+                                      px: 1,
+                                      mb: 0.5,
                                       borderRadius: "6px",
-                                      bgcolor: (theme) =>
-                                        theme.palette.mode === "dark"
-                                          ? theme.trelloCustom.COLOR_281E38
-                                          : theme.trelloCustom.COLOR_EEEEEE,
+
                                       "&:hover": {
                                         bgcolor: (theme) =>
                                           theme.palette.mode === "dark"
-                                            ? theme.trelloCustom.COLOR_463666
+                                            ? theme.trelloCustom.COLOR_281E38
                                             : theme.trelloCustom.COLOR_E6E6E6,
                                       },
-                                      "& .MuiOutlinedInput-input": {
-                                        pl: 2,
-                                      },
-                                      "& .MuiInputLabel-root": {
-                                        "&.MuiInputLabel-root": {
-                                          mb: 1,
-                                          pl: 0.25,
-                                          fontWeight: "bold",
-                                          fontSize: "1rem",
-                                          color: (theme) =>
-                                            theme.palette.mode === "dark"
-                                              ? theme.trelloCustom.COLOR_D7D7D7
-                                              : "black",
-                                        },
-                                      },
-                                      "& .MuiOutlinedInput-root": {
-                                        border: "none",
-                                        borderColor: "transparent",
-                                        fontSize: "1rem",
-                                        color: (theme) =>
-                                          theme.palette.mode === "dark"
-                                            ? theme.trelloCustom.COLOR_D7D7D7
-                                            : "black",
-                                        "&.MuiOutlinedInput-notchedOutline": {
-                                          border: "none",
-                                          borderColor: "transparent",
-                                        },
-                                      },
-
-                                      "& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline":
-                                        {
-                                          borderColor: "transparent",
-                                        },
-
-                                      "& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline":
-                                        {
-                                          border: "none",
-                                          borderColor: "transparent",
-                                        },
-                                      "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
-                                        {
-                                          border: "none",
-                                          borderColor: "transparent",
-                                        },
-                                    }}
-                                  />
-                                </Box>
-
-                                {/* timer picker */}
-                                <TimePicker
-                                  label="Choose timer"
-                                  value={valueTimePickerDayJS}
-                                  onChange={(newValue) =>
-                                    handleChangeTimePicker(newValue)
-                                  }
-                                  slotProps={{
-                                    textField: {
-                                      size: "small",
-                                    },
-                                  }}
-                                  sx={{
-                                    height: "100%",
-                                    borderRadius: "6px",
-                                    "& .MuiOutlinedInput-input": {
-                                      pl: 2,
-                                    },
-                                    bgcolor: (theme) =>
-                                      theme.palette.mode === "dark"
-                                        ? theme.trelloCustom.COLOR_281E38
-                                        : theme.trelloCustom.COLOR_EEEEEE,
-                                    "&:hover": {
-                                      bgcolor: (theme) =>
-                                        theme.palette.mode === "dark"
-                                          ? theme.trelloCustom.COLOR_463666
-                                          : theme.trelloCustom.COLOR_E6E6E6,
-                                    },
-                                    "& .MuiInputLabel-root": {
-                                      "&.MuiInputLabel-root": {
-                                        pl: 0.25,
-                                        fontWeight: "bold",
-                                        fontSize: "1rem",
-                                        color: (theme) =>
-                                          theme.palette.mode === "dark"
-                                            ? theme.trelloCustom.COLOR_D7D7D7
-                                            : "black",
-                                      },
-                                    },
-                                    "& .MuiOutlinedInput-root": {
-                                      border: "none",
-                                      borderColor: "transparent",
-                                      fontSize: "1rem",
-                                      color: (theme) =>
-                                        theme.palette.mode === "dark"
-                                          ? theme.trelloCustom.COLOR_D7D7D7
-                                          : "black",
-                                      "&.MuiOutlinedInput-notchedOutline": {
-                                        border: "none",
-                                        borderColor: "transparent",
-                                      },
-                                    },
-                                    "& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline":
-                                      {
-                                        borderColor: "transparent",
-                                      },
-                                    "& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline":
-                                      {
-                                        border: "none",
-                                        borderColor: "transparent",
-                                      },
-                                    "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
-                                      {
-                                        border: "none",
-                                        borderColor: "transparent",
-                                      },
-                                  }}
-                                />
-                              </Box>
-                            </LocalizationProvider>
-
-                            {/* notify before & notify unit */}
-                            {checkIsShowButtonNotifyBeforeAndNotifyUnit() && (
-                              <Box
-                                sx={{
-                                  mt: 0.5,
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                  gap: 2,
-                                }}
-                              >
-                                {/* Notify Before */}
-                                <FormControl
-                                  fullWidth
-                                  sx={{
-                                    "& .MuiFormLabel-root": {
-                                      "&.MuiInputLabel-root": {
-                                        mb: 1,
-                                        pl: 0.25,
-                                        fontWeight: "bold",
-                                        fontSize: "1rem",
-                                        color: (theme) =>
-                                          theme.palette.mode === "dark"
-                                            ? theme.trelloCustom.COLOR_D7D7D7
-                                            : theme.trelloCustom.COLOR_313131,
-                                      },
-                                    },
-
-                                    "& .MuiOutlinedInput-root": {
-                                      fontSize: "1rem",
-                                      height: "40px",
-
-                                      color: (theme) =>
-                                        theme.palette.mode === "dark"
-                                          ? theme.trelloCustom.COLOR_D7D7D7
-                                          : theme.trelloCustom.COLOR_313131,
-                                      bgcolor: (theme) =>
-                                        theme.palette.mode === "dark"
-                                          ? theme.trelloCustom.COLOR_281E38
-                                          : theme.trelloCustom.COLOR_E6E6E6,
-                                    },
-                                    "& .MuiOutlinedInput-root:hover": {
-                                      bgcolor: (theme) =>
-                                        theme.palette.mode === "dark"
-                                          ? theme.trelloCustom.COLOR_463666
-                                          : theme.trelloCustom.COLOR_E6E6E6,
-                                    },
-
-                                    "& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline":
-                                      {
-                                        borderColor: "transparent",
-                                      },
-                                    "& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline":
-                                      {
-                                        border: "none",
-                                        borderColor: "transparent",
-                                      },
-                                    "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
-                                      {
-                                        border: "none",
-                                        borderColor: "transparent",
-                                      },
-                                  }}
-                                >
-                                  <InputLabel id="select-notify-before-label">
-                                    Notifying time
-                                  </InputLabel>
-
-                                  <Select
-                                    labelId="select-notify-before-label"
-                                    id="select-notify-before"
-                                    value={valueNotifyBefore}
-                                    label="Notifying time"
-                                    onChange={handleChangeValueNotifyBefore}
-                                    sx={{
-                                      "& .MuiOutlinedInput-input": {
-                                        pl: 2,
-                                      },
                                     }}
                                   >
-                                    {getNotifyBeforeOptions().map((option) => (
-                                      <MenuItem key={option} value={option}>
-                                        {option}
-                                      </MenuItem>
-                                    ))}
-                                  </Select>
-                                </FormControl>
-
-                                {/* Notify unit */}
-                                <FormControl
-                                  fullWidth
-                                  sx={{
-                                    "& .MuiFormLabel-root": {
-                                      "&.MuiInputLabel-root": {
-                                        mb: 1,
-                                        pl: 0.25,
-                                        fontWeight: "bold",
-                                        fontSize: "1rem",
+                                    {/* avatar & short name of user */}
+                                    <Box
+                                      sx={{
+                                        width: "40px",
+                                        height: "40px",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        borderRadius: "50%",
                                         color: (theme) =>
                                           theme.palette.mode === "dark"
-                                            ? theme.trelloCustom.COLOR_D7D7D7
-                                            : theme.trelloCustom.COLOR_313131,
-                                      },
-                                    },
+                                            ? theme.trelloCustom.COLOR_F8F8F8
+                                            : theme.trelloCustom.COLOR_F8F8F8,
+                                        bgcolor: (theme) =>
+                                          theme.palette.mode === "dark"
+                                            ? theme.trelloCustom.COLOR_C200D3
+                                            : theme.trelloCustom.COLOR_C0C0C0,
+                                      }}
+                                    >
+                                      {/* A */}
+                                      {user.username.charAt(0).toUpperCase()}
+                                    </Box>
 
-                                    "& .MuiOutlinedInput-root": {
-                                      fontSize: "1rem",
-                                      height: "40px",
+                                    {/* name + username + button remove */}
+                                    <Box
+                                      sx={{
+                                        width: `calc(100% - 40px)`,
+                                        height: "100%",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "space-between",
+                                      }}
+                                    >
+                                      {/* name and username */}
+                                      <Box
+                                        sx={{
+                                          px: 1,
+                                          display: "flex",
+                                          flexDirection: "column",
+                                          alignItems: "start",
+                                        }}
+                                      >
+                                        {/* name */}
+                                        <Box
+                                          sx={{
+                                            fontSize: "1.05rem",
+                                            color: (theme) =>
+                                              theme.palette.mode === "dark"
+                                                ? theme.trelloCustom
+                                                    .COLOR_D7D7D7
+                                                : theme.trelloCustom
+                                                    .COLOR_313131,
+                                          }}
+                                        >
+                                          {/* afgh assd */}
+                                          {user.username}
+                                        </Box>
 
-                                      color: (theme) =>
-                                        theme.palette.mode === "dark"
-                                          ? theme.trelloCustom.COLOR_D7D7D7
-                                          : theme.trelloCustom.COLOR_313131,
-                                      bgcolor: (theme) =>
-                                        theme.palette.mode === "dark"
-                                          ? theme.trelloCustom.COLOR_281E38
-                                          : theme.trelloCustom.COLOR_E6E6E6,
-                                    },
-                                    "& .MuiOutlinedInput-root:hover": {
-                                      bgcolor: (theme) =>
-                                        theme.palette.mode === "dark"
-                                          ? theme.trelloCustom.COLOR_463666
-                                          : theme.trelloCustom.COLOR_E6E6E6,
-                                    },
+                                        {/* @ name */}
+                                        <Box
+                                          sx={{
+                                            fontSize: ".85rem",
+                                            color: (theme) =>
+                                              theme.palette.mode === "dark"
+                                                ? theme.trelloCustom
+                                                    .COLOR_D7D7D7
+                                                : theme.trelloCustom
+                                                    .COLOR_313131,
+                                          }}
+                                        >
+                                          {/* @afgh_assd */}
+                                          {user.email}
+                                        </Box>
+                                      </Box>
 
-                                    "& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline":
-                                      {
-                                        borderColor: "transparent",
-                                      },
-                                    "& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline":
-                                      {
-                                        border: "none",
-                                        borderColor: "transparent",
-                                      },
-                                    "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
-                                      {
-                                        border: "none",
-                                        borderColor: "transparent",
-                                      },
-                                  }}
-                                >
-                                  <InputLabel id="select-notify-unit-label">
-                                    Unit of notifying time
-                                  </InputLabel>
+                                      {/* button remove  */}
+                                      {(roleOfBoard !== "member" ||
+                                        userIsMemberOfCard) &&
+                                        isHoveredUserCardArea ===
+                                          user.userId && (
+                                          <Tooltip title="Remove user from this card">
+                                            <Box
+                                              onClick={() =>
+                                                handleTransferTheCard(
+                                                  user,
+                                                  "remove"
+                                                )
+                                              }
+                                              sx={{
+                                                cursor: "pointer",
+                                                px: 0.5,
+                                                py: 0.5,
+                                                mr: 0.5,
+                                                display: "flex",
+                                                alignItems: "center",
+                                                justifyContent: "center",
+                                                borderRadius: "8px",
+                                                "&:hover": {
+                                                  bgcolor: (theme) =>
+                                                    theme.palette.mode ===
+                                                    "dark"
+                                                      ? theme.trelloCustom
+                                                          .COLOR_463666
+                                                      : theme.trelloCustom
+                                                          .COLOR_C0C0C0,
+                                                },
+                                              }}
+                                            >
+                                              <RemoveCircleOutlineIcon />
+                                            </Box>
+                                          </Tooltip>
+                                        )}
+                                    </Box>
+                                  </Box>
+                                ))}
+                            </Box>
+                          </Box>
+                        )}
 
-                                  <Select
-                                    labelId="select-notify-unit-label"
-                                    id="select-notify-unit"
-                                    value={valueNotifyUnit}
-                                    label="Unit of notifying time"
-                                    onChange={handleChangeValueNotifyUnit}
-                                    sx={{
-                                      "& .MuiOutlinedInput-input": {
-                                        pl: 2,
-                                      },
-                                    }}
-                                  >
-                                    <MenuItem value={"minute"}>minute</MenuItem>
-                                    <MenuItem value={"hour"}>hour</MenuItem>
-                                    <MenuItem value={"day"}>day</MenuItem>
-                                    <MenuItem value={"week"}>week</MenuItem>
-                                  </Select>
-                                </FormControl>
-                              </Box>
-                            )}
-
-                            {/* remove and save btn */}
+                        {/* list members of board */}
+                        {newFilteredMembers.filter(
+                          (member) => !member.cardInvited
+                        ).length > 0 && (
+                          <Box>
+                            {/* title */}
                             <Box
                               sx={{
-                                mt: 0.25,
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "space-between",
-                                gap: 2,
-                                mb:
-                                  checkChangesOfDateTime() ||
-                                  !checkIsShowButtonRemoveDateTime()
-                                    ? 1.25
-                                    : 0,
-                                height:
-                                  checkChangesOfDateTime() ||
-                                  !checkIsShowButtonRemoveDateTime()
-                                    ? "35px"
-                                    : 0,
+                                color: (theme) =>
+                                  theme.palette.mode === "dark"
+                                    ? theme.trelloCustom.COLOR_D7D7D7
+                                    : theme.trelloCustom.COLOR_313131,
+                                mb: 0.5,
                               }}
                             >
-                              {/* save btn */}
-                              {checkChangesOfDateTime() && (
-                                <Box
-                                  onClick={() => handleSaveDateAndTime()}
-                                  variant="contained"
-                                  size="medium"
-                                  sx={{
-                                    cursor: "pointer",
-                                    height: "100%",
-                                    width: "100%",
-                                    // width: "calc(150px - 50px)",
-                                    pl: 2.5,
-                                    pr: 2.5,
-                                    pt: 0.25,
-                                    pb: 0.25,
-                                    fontSize: "0.95rem",
-                                    fontWeight: "bold",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                    borderRadius: "6px",
-                                    color: (theme) =>
-                                      theme.palette.mode === "dark"
-                                        ? theme.trelloCustom.COLOR_7115BA
-                                        : theme.trelloCustom.COLOR_7115BA,
-                                    bgcolor: (theme) =>
-                                      theme.trelloCustom.COLOR_C985FF,
-                                    borderColor: (theme) =>
-                                      theme.palette.mode === "dark"
-                                        ? "#555555"
-                                        : "#1b71a7",
-                                    "&:hover": {
-                                      borderRadius: "20px",
-                                      color: "white",
-                                      bgcolor: (theme) =>
-                                        theme.trelloCustom.COLOR_8C25DE,
-                                    },
-                                  }}
-                                >
-                                  Accept
-                                </Box>
-                              )}
+                              Members of board
+                            </Box>
 
-                              {/* remove btn */}
+                            {/* list of members of board */}
+                            <Box
+                              sx={{
+                                display: "flex",
+                                flexDirection: "column",
+                                alignItems: "start",
+                                justifyContent: "start",
+                              }}
+                            >
+                              {newFilteredMembers
+                                .filter((member) => !member.cardInvited)
+                                .map((user) => (
+                                  <Box
+                                    key={user.userId}
+                                    onMouseEnter={() =>
+                                      handleEnterUserBoardArea(user)
+                                    }
+                                    onMouseLeave={() =>
+                                      handleLeaveUserBoardArea()
+                                    }
+                                    sx={{
+                                      width: "100%",
+                                      height: "60px",
+                                      display: "flex",
+                                      alignItems: "center",
+                                      justifyContent: "space-between",
+                                      px: 1,
+                                      mb: 0.5,
+                                      borderRadius: "6px",
 
-                              {checkChangesOfDateTime() ? (
-                                <Box
-                                  onClick={() => handleCancelDateAndTime()}
-                                  variant="contained"
-                                  size="medium"
-                                  sx={{
-                                    cursor: "pointer",
-                                    height: "100%",
-                                    width: "100%",
-                                    pl: 2.5,
-                                    pr: 2.5,
-                                    pt: 0.25,
-                                    pb: 0.25,
-                                    fontSize: "0.95rem",
-                                    fontWeight: "bold",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                    borderRadius: "6px",
-                                    color: (theme) =>
-                                      theme.palette.mode === "dark"
-                                        ? theme.trelloCustom.COLOR_D7D7D7
-                                        : theme.trelloCustom.COLOR_313131,
-                                    bgcolor: (theme) =>
-                                      theme.palette.mode === "dark"
-                                        ? theme.trelloCustom.COLOR_463666
-                                        : theme.trelloCustom.COLOR_E6E6E6,
-                                    "&:hover": {
-                                      borderRadius: "20px",
-                                      bgcolor: (theme) =>
-                                        theme.palette.mode === "dark"
-                                          ? theme.trelloCustom.COLOR_281E38
-                                          : theme.trelloCustom.COLOR_D7D7D7,
-                                    },
-                                  }}
-                                >
-                                  Cancel
-                                </Box>
-                              ) : checkIsShowButtonRemoveDateTime() ? null : (
-                                <Box
-                                  onClick={() => handleRemoveDateAndTime()}
-                                  variant="contained"
-                                  size="medium"
-                                  sx={{
-                                    cursor: "pointer",
-                                    height: "100%",
-                                    width: "100%",
-                                    pl: 2.5,
-                                    pr: 2.5,
-                                    pt: 0.25,
-                                    pb: 0.25,
-                                    fontSize: "0.95rem",
-                                    fontWeight: "bold",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                    borderRadius: "6px",
-                                    color: (theme) =>
-                                      theme.palette.mode === "dark"
-                                        ? theme.trelloCustom.COLOR_D7D7D7
-                                        : theme.trelloCustom.COLOR_313131,
-                                    bgcolor: (theme) =>
-                                      theme.palette.mode === "dark"
-                                        ? theme.trelloCustom.COLOR_463666
-                                        : theme.trelloCustom.COLOR_E6E6E6,
-                                    "&:hover": {
-                                      borderRadius: "20px",
-                                      bgcolor: (theme) =>
-                                        theme.palette.mode === "dark"
-                                          ? theme.trelloCustom.COLOR_281E38
-                                          : theme.trelloCustom.COLOR_D7D7D7,
-                                    },
-                                  }}
-                                >
-                                  Remove
-                                </Box>
-                              )}
+                                      "&:hover": {
+                                        bgcolor: (theme) =>
+                                          theme.palette.mode === "dark"
+                                            ? theme.trelloCustom.COLOR_281E38
+                                            : theme.trelloCustom.COLOR_E6E6E6,
+                                      },
+                                    }}
+                                  >
+                                    {/* avatar & short name of user */}
+                                    <Box
+                                      sx={{
+                                        width: "40px",
+                                        height: "40px",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        borderRadius: "50%",
+                                        color: (theme) =>
+                                          theme.palette.mode === "dark"
+                                            ? theme.trelloCustom.COLOR_F8F8F8
+                                            : theme.trelloCustom.COLOR_F8F8F8,
+                                        bgcolor: (theme) =>
+                                          theme.palette.mode === "dark"
+                                            ? theme.trelloCustom.COLOR_C200D3
+                                            : theme.trelloCustom.COLOR_C0C0C0,
+                                      }}
+                                    >
+                                      {user.username.charAt(0).toUpperCase()}
+                                    </Box>
+
+                                    {/* name + username + button add */}
+                                    <Box
+                                      sx={{
+                                        width: `calc(100% - 40px)`,
+                                        height: "100%",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "space-between",
+                                      }}
+                                    >
+                                      {/* name and username */}
+                                      <Box
+                                        sx={{
+                                          px: 1,
+                                          display: "flex",
+                                          flexDirection: "column",
+                                          alignItems: "start",
+                                        }}
+                                      >
+                                        {/* name */}
+                                        <Box
+                                          sx={{
+                                            color: (theme) =>
+                                              theme.palette.mode === "dark"
+                                                ? theme.trelloCustom
+                                                    .COLOR_D7D7D7
+                                                : theme.trelloCustom
+                                                    .COLOR_313131,
+                                            fontSize: "1.05rem",
+                                          }}
+                                        >
+                                          {user.username}
+                                        </Box>
+
+                                        {/* @ name */}
+                                        <Box
+                                          sx={{
+                                            fontSize: ".85rem",
+                                            color: (theme) =>
+                                              theme.palette.mode === "dark"
+                                                ? theme.trelloCustom
+                                                    .COLOR_D7D7D7
+                                                : theme.trelloCustom
+                                                    .COLOR_313131,
+                                          }}
+                                        >
+                                          {user.email}
+                                        </Box>
+                                      </Box>
+
+                                      {/* button add  */}
+                                      {(roleOfBoard !== "member" ||
+                                        userIsMemberOfCard) &&
+                                        isHoveredUserBoardArea ===
+                                          user.userId && (
+                                          <Tooltip title="Add user into this card">
+                                            <Box
+                                              onClick={() =>
+                                                handleTransferTheCard(
+                                                  user,
+                                                  "add"
+                                                )
+                                              }
+                                              sx={{
+                                                cursor: "pointer",
+                                                px: 0.5,
+                                                py: 0.5,
+                                                mr: 0.5,
+                                                display: "flex",
+                                                alignItems: "center",
+                                                justifyContent: "center",
+                                                borderRadius: "8px",
+                                                "&:hover": {
+                                                  bgcolor: (theme) =>
+                                                    theme.palette.mode ===
+                                                    "dark"
+                                                      ? theme.trelloCustom
+                                                          .COLOR_463666
+                                                      : theme.trelloCustom
+                                                          .COLOR_C0C0C0,
+                                                },
+                                              }}
+                                            >
+                                              <AddIcon />
+                                            </Box>
+                                          </Tooltip>
+                                        )}
+                                    </Box>
+                                  </Box>
+                                ))}
                             </Box>
                           </Box>
                         )}
                       </Box>
                     </Box>
-                  )}
+                  </Menu>
+                </Box>
 
-                  {/* show comment section */}
+                {/* pick a alarm/reminder date for card */}
+                {(roleOfBoard != "member" || userIsMemberOfCard) && (
                   <Box
                     sx={{
                       display: "flex",
                     }}
                   >
-                    {/* active show comment button */}
+                    {/* active due date btn */}
                     <Box
-                      onClick={() => handleOpenCommentSection()}
+                      onClick={(e) => handleOpenDateTimePicker(e)}
                       sx={{
                         cursor: "pointer",
                         position: "relative",
-                        width: "100%",
                         height: "2.5em",
+                        width: "100%",
                         fontSize: "0.9rem",
                         fontWeight: "bold",
                         pl: 2,
@@ -3366,7 +2768,7 @@ const CardModal = ({
                         },
                       }}
                     >
-                      Comments
+                      Schedule
                       {/* icon */}
                       <Box
                         sx={{
@@ -3381,115 +2783,551 @@ const CardModal = ({
                           },
                         }}
                       >
-                        <QuestionAnswerIcon />
+                        <CalendarMonthIcon />
                       </Box>
                     </Box>
 
-                    {/* modal comment */}
-                    <Box
+                    {/* modal pick date & time */}
+                    <Menu
+                      id="basic-date-time"
+                      anchorEl={anchorElDateTime}
+                      open={Boolean(anchorElDateTime)}
+                      onClose={handleCloseDateTimePicker}
                       sx={{
-                        position: "relative",
-                        width: "0",
+                        "& .MuiPaper-root.MuiPopover-paper.MuiMenu-paper": {
+                          borderRadius: "8px",
+                          boxShadow: (theme) =>
+                            theme.palette.mode === "dark"
+                              ? `0px 2px 10px ${theme.trelloCustom.COLOR_411A61}`
+                              : `0px 2px 10px ${theme.trelloCustom.COLOR_818181}`,
+                        },
+                        "& .MuiList-root.MuiMenu-list": {
+                          p: 0,
+                        },
                       }}
                     >
-                      {isOpenCommentSection && (
-                        <Box
-                          sx={{
-                            zIndex: 1,
-                            left: "-400px",
-                            top: "-320px",
-                            //
-                            // left: "50px",
-                            // top: "-320px",
-                            //
-                            position: "absolute",
-                            width: "420px",
-                            px: 2,
-                            py: 1.5,
-                            borderRadius: "8px",
-                            bgcolor: (theme) =>
-                              theme.palette.mode === "dark"
-                                ? theme.trelloCustom.COLOR_13091B
-                                : theme.trelloCustom.COLOR_F8F8F8,
-                            boxShadow: (theme) =>
-                              theme.palette.mode === "dark"
-                                ? `0px 2px 10px ${theme.trelloCustom.COLOR_411A61}`
-                                : `0px 2px 10px ${theme.trelloCustom.COLOR_313131}`,
-
-                            display: "flex",
-                            flexDirection: "column",
-                          }}
-                        >
-                          {/* title & close btn */}
+                      <Box
+                        sx={{
+                          width: "360px",
+                          gap: 1.25,
+                          display: "flex",
+                          flexDirection: "column",
+                          px: 2,
+                          pt: 2,
+                          pb: 0.5,
+                          borderRadius: "8px",
+                          bgcolor: (theme) =>
+                            theme.palette.mode === "dark"
+                              ? theme.trelloCustom.COLOR_13091B
+                              : theme.trelloCustom.COLOR_F8F8F8,
+                        }}
+                      >
+                        {/* banner for representing OVERDUE or COMING */}
+                        {isOverdueDeadline != null && (
                           <Box
                             sx={{
-                              width: "100%",
+                              mb: 0.75,
+                              height: "35px",
                               display: "flex",
                               alignItems: "center",
-                              justifyContent: "space-between",
+                              justifyContent: "center",
+
+                              fontWeight: "bold",
+
+                              borderRadius: "6px",
+                              border: (theme) =>
+                                isOverdueDeadline
+                                  ? `1px solid transparent`
+                                  : `1px solid ${theme.trelloCustom.COLOR_268FB0}`,
+                              color: (theme) =>
+                                isOverdueDeadline
+                                  ? theme.trelloCustom.COLOR_DF0606
+                                  : theme.trelloCustom.COLOR_268FB0,
+                              bgcolor: (theme) =>
+                                isOverdueDeadline
+                                  ? theme.trelloCustom.COLOR_FF9D9D
+                                  : theme.trelloCustom.COLOR_D9F4F8,
                             }}
                           >
-                            {/* title */}
-                            <Box
-                              sx={{
-                                fontSize: "1.25rem",
-                                fontWeight: "bold",
-                              }}
-                            >
-                              Comments
+                            {isOverdueDeadline ? "OVERDUE" : "COMING"}
+                          </Box>
+                        )}
+
+                        {/* date ̃& time picker */}
+                        <LocalizationProvider dateAdapter={AdapterDayjs}>
+                          <Box
+                            sx={{
+                              display: "flex",
+                              gap: 2,
+                              height: "40px",
+                            }}
+                          >
+                            {/* date picker */}
+                            {/* <Box onClick={() => handleOpenDatePicker()}> */}
+                            <Box onClick={() => {}}>
+                              <DatePicker
+                                label={"Choose date"}
+                                views={["year", "month", "day"]}
+                                format="DD-MM-YYYY"
+                                value={valueDatePickerDayJS}
+                                onChange={(date) =>
+                                  handleChangeDatePicker(date)
+                                }
+                                slotProps={{
+                                  textField: {
+                                    size: "small",
+                                  },
+                                }}
+                                sx={{
+                                  height: "100%",
+                                  borderRadius: "6px",
+                                  bgcolor: (theme) =>
+                                    theme.palette.mode === "dark"
+                                      ? theme.trelloCustom.COLOR_281E38
+                                      : theme.trelloCustom.COLOR_EEEEEE,
+                                  "&:hover": {
+                                    bgcolor: (theme) =>
+                                      theme.palette.mode === "dark"
+                                        ? theme.trelloCustom.COLOR_463666
+                                        : theme.trelloCustom.COLOR_E6E6E6,
+                                  },
+                                  "& .MuiOutlinedInput-input": {
+                                    pl: 2,
+                                  },
+                                  "& .MuiInputLabel-root": {
+                                    "&.MuiInputLabel-root": {
+                                      mb: 1,
+                                      pl: 0.25,
+                                      fontWeight: "bold",
+                                      fontSize: "1rem",
+                                      color: (theme) =>
+                                        theme.palette.mode === "dark"
+                                          ? theme.trelloCustom.COLOR_D7D7D7
+                                          : "black",
+                                    },
+                                  },
+                                  "& .MuiOutlinedInput-root": {
+                                    border: "none",
+                                    borderColor: "transparent",
+                                    fontSize: "1rem",
+                                    color: (theme) =>
+                                      theme.palette.mode === "dark"
+                                        ? theme.trelloCustom.COLOR_D7D7D7
+                                        : "black",
+                                    "&.MuiOutlinedInput-notchedOutline": {
+                                      border: "none",
+                                      borderColor: "transparent",
+                                    },
+                                  },
+
+                                  "& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline":
+                                    {
+                                      borderColor: "transparent",
+                                    },
+
+                                  "& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline":
+                                    {
+                                      border: "none",
+                                      borderColor: "transparent",
+                                    },
+                                  "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
+                                    {
+                                      border: "none",
+                                      borderColor: "transparent",
+                                    },
+                                }}
+                              />
                             </Box>
 
-                            {/* buttons component */}
-                            {/* close btn */}
+                            {/* timer picker */}
+                            <TimePicker
+                              label="Choose timer"
+                              value={valueTimePickerDayJS}
+                              onChange={(newValue) =>
+                                handleChangeTimePicker(newValue)
+                              }
+                              slotProps={{
+                                textField: {
+                                  size: "small",
+                                },
+                              }}
+                              sx={{
+                                height: "100%",
+                                borderRadius: "6px",
+                                "& .MuiOutlinedInput-input": {
+                                  pl: 2,
+                                },
+                                bgcolor: (theme) =>
+                                  theme.palette.mode === "dark"
+                                    ? theme.trelloCustom.COLOR_281E38
+                                    : theme.trelloCustom.COLOR_EEEEEE,
+                                "&:hover": {
+                                  bgcolor: (theme) =>
+                                    theme.palette.mode === "dark"
+                                      ? theme.trelloCustom.COLOR_463666
+                                      : theme.trelloCustom.COLOR_E6E6E6,
+                                },
+                                "& .MuiInputLabel-root": {
+                                  "&.MuiInputLabel-root": {
+                                    pl: 0.25,
+                                    fontWeight: "bold",
+                                    fontSize: "1rem",
+                                    color: (theme) =>
+                                      theme.palette.mode === "dark"
+                                        ? theme.trelloCustom.COLOR_D7D7D7
+                                        : "black",
+                                  },
+                                },
+                                "& .MuiOutlinedInput-root": {
+                                  border: "none",
+                                  borderColor: "transparent",
+                                  fontSize: "1rem",
+                                  color: (theme) =>
+                                    theme.palette.mode === "dark"
+                                      ? theme.trelloCustom.COLOR_D7D7D7
+                                      : "black",
+                                  "&.MuiOutlinedInput-notchedOutline": {
+                                    border: "none",
+                                    borderColor: "transparent",
+                                  },
+                                },
+                                "& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline":
+                                  {
+                                    borderColor: "transparent",
+                                  },
+                                "& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline":
+                                  {
+                                    border: "none",
+                                    borderColor: "transparent",
+                                  },
+                                "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
+                                  {
+                                    border: "none",
+                                    borderColor: "transparent",
+                                  },
+                              }}
+                            />
+                          </Box>
+                        </LocalizationProvider>
+
+                        {/* notify before & notify unit */}
+                        {checkIsShowButtonNotifyBeforeAndNotifyUnit() && (
+                          <Box
+                            sx={{
+                              mt: 0.5,
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              gap: 2,
+                            }}
+                          >
+                            {/* Notify Before */}
+                            <FormControl
+                              fullWidth
+                              sx={{
+                                "& .MuiFormLabel-root": {
+                                  "&.MuiInputLabel-root": {
+                                    mb: 1,
+                                    pl: 0.25,
+                                    fontWeight: "bold",
+                                    fontSize: "1rem",
+                                    color: (theme) =>
+                                      theme.palette.mode === "dark"
+                                        ? theme.trelloCustom.COLOR_D7D7D7
+                                        : theme.trelloCustom.COLOR_313131,
+                                  },
+                                },
+
+                                "& .MuiOutlinedInput-root": {
+                                  fontSize: "1rem",
+                                  height: "40px",
+
+                                  color: (theme) =>
+                                    theme.palette.mode === "dark"
+                                      ? theme.trelloCustom.COLOR_D7D7D7
+                                      : theme.trelloCustom.COLOR_313131,
+                                  bgcolor: (theme) =>
+                                    theme.palette.mode === "dark"
+                                      ? theme.trelloCustom.COLOR_281E38
+                                      : theme.trelloCustom.COLOR_E6E6E6,
+                                },
+                                "& .MuiOutlinedInput-root:hover": {
+                                  bgcolor: (theme) =>
+                                    theme.palette.mode === "dark"
+                                      ? theme.trelloCustom.COLOR_463666
+                                      : theme.trelloCustom.COLOR_E6E6E6,
+                                },
+
+                                "& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline":
+                                  {
+                                    borderColor: "transparent",
+                                  },
+                                "& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline":
+                                  {
+                                    border: "none",
+                                    borderColor: "transparent",
+                                  },
+                                "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
+                                  {
+                                    border: "none",
+                                    borderColor: "transparent",
+                                  },
+                              }}
+                            >
+                              <InputLabel id="select-notify-before-label">
+                                Notifying time
+                              </InputLabel>
+
+                              <Select
+                                labelId="select-notify-before-label"
+                                id="select-notify-before"
+                                value={valueNotifyBefore}
+                                label="Notifying time"
+                                onChange={handleChangeValueNotifyBefore}
+                                sx={{
+                                  "& .MuiOutlinedInput-input": {
+                                    pl: 2,
+                                  },
+                                }}
+                              >
+                                {getNotifyBeforeOptions().map((option) => (
+                                  <MenuItem key={option} value={option}>
+                                    {option}
+                                  </MenuItem>
+                                ))}
+                              </Select>
+                            </FormControl>
+
+                            {/* Notify unit */}
+                            <FormControl
+                              fullWidth
+                              sx={{
+                                "& .MuiFormLabel-root": {
+                                  "&.MuiInputLabel-root": {
+                                    mb: 1,
+                                    pl: 0.25,
+                                    fontWeight: "bold",
+                                    fontSize: "1rem",
+                                    color: (theme) =>
+                                      theme.palette.mode === "dark"
+                                        ? theme.trelloCustom.COLOR_D7D7D7
+                                        : theme.trelloCustom.COLOR_313131,
+                                  },
+                                },
+
+                                "& .MuiOutlinedInput-root": {
+                                  fontSize: "1rem",
+                                  height: "40px",
+
+                                  color: (theme) =>
+                                    theme.palette.mode === "dark"
+                                      ? theme.trelloCustom.COLOR_D7D7D7
+                                      : theme.trelloCustom.COLOR_313131,
+                                  bgcolor: (theme) =>
+                                    theme.palette.mode === "dark"
+                                      ? theme.trelloCustom.COLOR_281E38
+                                      : theme.trelloCustom.COLOR_E6E6E6,
+                                },
+                                "& .MuiOutlinedInput-root:hover": {
+                                  bgcolor: (theme) =>
+                                    theme.palette.mode === "dark"
+                                      ? theme.trelloCustom.COLOR_463666
+                                      : theme.trelloCustom.COLOR_E6E6E6,
+                                },
+
+                                "& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline":
+                                  {
+                                    borderColor: "transparent",
+                                  },
+                                "& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline":
+                                  {
+                                    border: "none",
+                                    borderColor: "transparent",
+                                  },
+                                "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
+                                  {
+                                    border: "none",
+                                    borderColor: "transparent",
+                                  },
+                              }}
+                            >
+                              <InputLabel id="select-notify-unit-label">
+                                Unit of notifying time
+                              </InputLabel>
+
+                              <Select
+                                labelId="select-notify-unit-label"
+                                id="select-notify-unit"
+                                value={valueNotifyUnit}
+                                label="Unit of notifying time"
+                                onChange={handleChangeValueNotifyUnit}
+                                sx={{
+                                  "& .MuiOutlinedInput-input": {
+                                    pl: 2,
+                                  },
+                                }}
+                              >
+                                <MenuItem value={"minute"}>minute</MenuItem>
+                                <MenuItem value={"hour"}>hour</MenuItem>
+                                <MenuItem value={"day"}>day</MenuItem>
+                                <MenuItem value={"week"}>week</MenuItem>
+                              </Select>
+                            </FormControl>
+                          </Box>
+                        )}
+
+                        {/* remove and save btn */}
+                        <Box
+                          sx={{
+                            mt: 0.25,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            gap: 2,
+                            mb:
+                              checkChangesOfDateTime() ||
+                              !checkIsShowButtonRemoveDateTime()
+                                ? 1.25
+                                : 0,
+                            height:
+                              checkChangesOfDateTime() ||
+                              !checkIsShowButtonRemoveDateTime()
+                                ? "35px"
+                                : 0,
+                          }}
+                        >
+                          {/* save btn */}
+                          {checkChangesOfDateTime() && (
                             <Box
-                              onClick={() => handleCloseCommentSection()}
+                              onClick={() => handleSaveDateAndTime()}
+                              variant="contained"
+                              size="medium"
                               sx={{
                                 cursor: "pointer",
-                                width: "70px",
-                                height: "35px",
+                                height: "100%",
+                                width: "100%",
+                                // width: "calc(150px - 50px)",
+                                pl: 2.5,
+                                pr: 2.5,
+                                pt: 0.25,
+                                pb: 0.25,
+                                fontSize: "0.95rem",
+                                fontWeight: "bold",
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
-                                py: 0.25,
-                                px: 1.25,
-                                fontSize: "0.9rem",
+                                borderRadius: "6px",
+                                color: (theme) =>
+                                  theme.palette.mode === "dark"
+                                    ? theme.trelloCustom.COLOR_7115BA
+                                    : theme.trelloCustom.COLOR_7115BA,
+                                bgcolor: (theme) =>
+                                  theme.trelloCustom.COLOR_C985FF,
+                                borderColor: (theme) =>
+                                  theme.palette.mode === "dark"
+                                    ? "#555555"
+                                    : "#1b71a7",
+                                "&:hover": {
+                                  borderRadius: "20px",
+                                  color: "white",
+                                  bgcolor: (theme) =>
+                                    theme.trelloCustom.COLOR_8C25DE,
+                                },
+                              }}
+                            >
+                              Accept
+                            </Box>
+                          )}
+
+                          {/* remove btn */}
+                          {checkChangesOfDateTime() ? (
+                            <Box
+                              onClick={() => handleCancelDateAndTime()}
+                              variant="contained"
+                              size="medium"
+                              sx={{
+                                cursor: "pointer",
+                                height: "100%",
+                                width: "100%",
+                                pl: 2.5,
+                                pr: 2.5,
+                                pt: 0.25,
+                                pb: 0.25,
+                                fontSize: "0.95rem",
                                 fontWeight: "bold",
-                                borderRadius: "5px",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                borderRadius: "6px",
                                 color: (theme) =>
                                   theme.palette.mode === "dark"
                                     ? theme.trelloCustom.COLOR_D7D7D7
                                     : theme.trelloCustom.COLOR_313131,
                                 bgcolor: (theme) =>
                                   theme.palette.mode === "dark"
-                                    ? theme.trelloCustom.COLOR_281E38
+                                    ? theme.trelloCustom.COLOR_463666
                                     : theme.trelloCustom.COLOR_E6E6E6,
                                 "&:hover": {
+                                  borderRadius: "20px",
                                   bgcolor: (theme) =>
                                     theme.palette.mode === "dark"
-                                      ? theme.trelloCustom.COLOR_463666
+                                      ? theme.trelloCustom.COLOR_281E38
                                       : theme.trelloCustom.COLOR_D7D7D7,
                                 },
                               }}
                             >
-                              Close
+                              Cancel
                             </Box>
-                          </Box>
-
-                          <CommentSection
-                            card={card}
-                            userIsMemberOfCard={userIsMemberOfCard}
-                          />
+                          ) : checkIsShowButtonRemoveDateTime() ? null : (
+                            <Box
+                              onClick={() => handleRemoveDateAndTime()}
+                              variant="contained"
+                              size="medium"
+                              sx={{
+                                cursor: "pointer",
+                                height: "100%",
+                                width: "100%",
+                                pl: 2.5,
+                                pr: 2.5,
+                                pt: 0.25,
+                                pb: 0.25,
+                                fontSize: "0.95rem",
+                                fontWeight: "bold",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                borderRadius: "6px",
+                                color: (theme) =>
+                                  theme.palette.mode === "dark"
+                                    ? theme.trelloCustom.COLOR_D7D7D7
+                                    : theme.trelloCustom.COLOR_313131,
+                                bgcolor: (theme) =>
+                                  theme.palette.mode === "dark"
+                                    ? theme.trelloCustom.COLOR_463666
+                                    : theme.trelloCustom.COLOR_E6E6E6,
+                                "&:hover": {
+                                  borderRadius: "20px",
+                                  bgcolor: (theme) =>
+                                    theme.palette.mode === "dark"
+                                      ? theme.trelloCustom.COLOR_281E38
+                                      : theme.trelloCustom.COLOR_D7D7D7,
+                                },
+                              }}
+                            >
+                              Remove
+                            </Box>
+                          )}
                         </Box>
-                      )}
-                    </Box>
+                      </Box>
+                    </Menu>
                   </Box>
-                </Box>
+                )}
               </Box>
             </Box>
-          )}
-        </Box>
-      </div>
-    </Modal>
+          </Box>
+        )}
+      </Box>
+    </Dialog>
   );
 };
 

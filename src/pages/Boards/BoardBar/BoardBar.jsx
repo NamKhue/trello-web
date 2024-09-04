@@ -94,27 +94,27 @@ function BoardBar({
 
   // ================================================================================================
   // INVITE MEMBER
-  const [openModalInviteMember, setOpenModalInviteMember] = useState(false);
+  // const [openModalInviteMember, setOpenModalInviteMember] = useState(false);
   const [recipientEmail, setRecipientEmail] = useState("");
 
-  const checkModalMembersInBoardIsClose = () => {
-    if (openModalMembersInBoard) {
-      handleCloseModalMembersInBoard();
-    }
-    if (openModalMoreOptions) {
-      handleCloseModalMoreOptions();
-    }
-  };
+  // const checkModalMembersInBoardIsClose = () => {
+  //   if (openModalMembersInBoard) {
+  //     handleCloseModalMembersInBoard();
+  //   }
+  //   if (openModalMoreOptions) {
+  //     handleCloseModalMoreOptions();
+  //   }
+  // };
 
-  const handleOpenModalInviteMember = () => {
-    checkModalMembersInBoardIsClose();
-    setOpenModalInviteMember(!openModalInviteMember);
-  };
+  // const handleOpenModalInviteMember = () => {
+  //   checkModalMembersInBoardIsClose();
+  //   setOpenModalInviteMember(!openModalInviteMember);
+  // };
 
-  const handleCloseModalInviteMember = () => {
-    setRecipientEmail("");
-    setOpenModalInviteMember(false);
-  };
+  // const handleCloseModalInviteMember = () => {
+  //   setRecipientEmail("");
+  //   setOpenModalInviteMember(false);
+  // };
 
   const handleChangeRecipientEmail = (event) => {
     setRecipientEmail(event.target.value);
@@ -134,7 +134,7 @@ function BoardBar({
 
       inviteUserIntoBoard(invitation);
 
-      handleCloseModalInviteMember();
+      handleCloseMenuInviteMember();
     } else {
       toast.error("Please check the email again.");
     }
@@ -142,28 +142,28 @@ function BoardBar({
 
   // ================================================================================================
   // MEMBERS IN BOARD
-  const [openModalMembersInBoard, setOpenModalMembersInBoard] = useState(false);
+  // const [openModalMembersInBoard, setOpenModalMembersInBoard] = useState(false);
   const [searchQueryMembersInBoard, setSearchQueryMembersInBoard] =
     useState("");
 
-  const checkModalInviteMemberIsClose = () => {
-    if (openModalInviteMember) {
-      handleCloseModalInviteMember();
-    }
-    if (openModalMoreOptions) {
-      handleCloseModalMoreOptions();
-    }
-  };
+  // const checkModalInviteMemberIsClose = () => {
+  //   if (openModalInviteMember) {
+  //     handleCloseModalInviteMember();
+  //   }
+  //   if (openModalMoreOptions) {
+  //     handleCloseModalMoreOptions();
+  //   }
+  // };
 
-  const handleOpenModalMembersInBoard = () => {
-    checkModalInviteMemberIsClose();
-    setOpenModalMembersInBoard(!openModalMembersInBoard);
-  };
+  // const handleOpenModalMembersInBoard = () => {
+  //   checkModalInviteMemberIsClose();
+  //   setOpenModalMembersInBoard(!openModalMembersInBoard);
+  // };
 
-  const handleCloseModalMembersInBoard = () => {
-    setSearchQueryMembersInBoard("");
-    setOpenModalMembersInBoard(false);
-  };
+  // const handleCloseModalMembersInBoard = () => {
+  //   setSearchQueryMembersInBoard("");
+  //   setOpenModalMembersInBoard(false);
+  // };
 
   const handleChangeSearchMemberInBoard = (event) => {
     setSearchQueryMembersInBoard(event.target.value);
@@ -347,26 +347,26 @@ function BoardBar({
   };
 
   // ================================================================================================
-  const [openModalMoreOptions, setOpenModalMoreOptions] = useState(false);
+  // const [openModalMoreOptions, setOpenModalMoreOptions] = useState(false);
 
-  const handleOpenModalMoreOptions = () => {
-    checkModalMoreOptions();
+  // const handleOpenModalMoreOptions = () => {
+  //   checkModalMoreOptions();
 
-    setOpenModalMoreOptions(!openModalMoreOptions);
-  };
+  //   setOpenModalMoreOptions(!openModalMoreOptions);
+  // };
 
-  const handleCloseModalMoreOptions = () => {
-    setOpenModalMoreOptions(false);
-  };
+  // const handleCloseModalMoreOptions = () => {
+  //   setOpenModalMoreOptions(false);
+  // };
 
-  const checkModalMoreOptions = () => {
-    if (openModalInviteMember) {
-      handleCloseModalInviteMember();
-    }
-    if (openModalMembersInBoard) {
-      handleCloseModalMembersInBoard();
-    }
-  };
+  // const checkModalMoreOptions = () => {
+  //   if (openModalInviteMember) {
+  //     handleCloseModalInviteMember();
+  //   }
+  //   if (openModalMembersInBoard) {
+  //     handleCloseModalMembersInBoard();
+  //   }
+  // };
 
   //
   const confirmDeleteColumn = useConfirm();
@@ -383,6 +383,47 @@ function BoardBar({
         deleteBoard();
       })
       .catch(() => {});
+  };
+
+  // ================================================================================================
+  // ================================================================================================
+  //
+  const [anchorElMenuInviteMember, setAnchorElMenuInviteMember] =
+    useState(null);
+
+  const handleOpenMenuInviteMember = (event) => {
+    setAnchorElMenuInviteMember(event.currentTarget);
+  };
+
+  const handleCloseMenuInviteMember = () => {
+    setRecipientEmail("");
+    setAnchorElMenuInviteMember(null);
+  };
+
+  //
+  const [anchorElModalMembersInBoard, setAnchorElModalMembersInBoard] =
+    useState(null);
+
+  const handleOpenModalMembersInBoard = (event) => {
+    setAnchorElModalMembersInBoard(event.currentTarget);
+  };
+
+  const handleCloseModalMembersInBoard = () => {
+    setSearchQueryMembersInBoard("");
+    setAnchorElModalMembersInBoard(null);
+  };
+
+  //
+  const [anchorElModalMoreOptions, setAnchorElModalMoreOptions] =
+    useState(null);
+
+  const handleOpenModalMoreOptions = (event) => {
+    setAnchorElModalMoreOptions(event.currentTarget);
+  };
+
+  const handleCloseModalMoreOptions = () => {
+    setRecipientEmail("");
+    setAnchorElModalMoreOptions(null);
   };
 
   // ================================================================================================
@@ -523,10 +564,6 @@ function BoardBar({
                     },
                     "&.Mui-focused fieldset": {
                       borderColor: "transparent",
-                      // borderColor: (theme) =>
-                      //   theme.palette.mode === "dark"
-                      //     ? theme.trelloCustom.COLOR_8A2DCB
-                      //     : theme.trelloCustom.COLOR_313131,
                     },
                   },
                 }}
@@ -554,32 +591,6 @@ function BoardBar({
               </Box>
             )}
           </Tooltip>
-
-          {/* </Tooltip>
-        <Chip
-          sx={MENU_STYLES}
-          icon={<LockPersonIcon />}
-          label={capitalizeFirstLetter(board?.type)}
-          onClick={() => {}}
-        />
-        <Chip 
-          sx={MENU_STYLES} 
-          icon={<AddToDriveIcon />} 
-          label="Add to google drive" 
-          onClick={() => {}}
-        />
-        <Chip 
-          sx={MENU_STYLES} 
-          icon={<BoltIcon />} 
-          label="Automation" 
-          onClick={() => {}}
-        />
-        <Chip 
-          sx={MENU_STYLES} 
-          icon={<FilterListIcon />} 
-          label="Filters" 
-          onClick={() => {}}
-        /> */}
         </Box>
 
         {/* right side */}
@@ -600,7 +611,7 @@ function BoardBar({
                 <Button
                   variant="outlined"
                   sx={BUTTON_BOARD_BAR_STYLE}
-                  onClick={() => handleOpenModalInviteMember()}
+                  onClick={(e) => handleOpenMenuInviteMember(e)}
                 >
                   <PersonAddAltIcon sx={{ mr: 1 }} />
                   Invite
@@ -611,7 +622,7 @@ function BoardBar({
 
           <Tooltip title={"Members of board"} arrow>
             <Button
-              onClick={() => handleOpenModalMembersInBoard()}
+              onClick={(e) => handleOpenModalMembersInBoard(e)}
               variant="outlined"
               sx={BUTTON_BOARD_BAR_STYLE}
             >
@@ -623,7 +634,7 @@ function BoardBar({
           {(roleOfBoard === "creator" || roleOfBoard === "owner") && (
             <Tooltip title={"More options"} arrow>
               <Box
-                onClick={() => handleOpenModalMoreOptions()}
+                onClick={(e) => handleOpenModalMoreOptions(e)}
                 variant="outlined"
                 sx={{
                   cursor: "pointer",
@@ -646,13 +657,22 @@ function BoardBar({
       </Box>
 
       {/* modal invite */}
-      {openModalInviteMember && (
+      <Menu
+        id="basic-invite-memmber-menu"
+        anchorEl={anchorElMenuInviteMember}
+        open={Boolean(anchorElMenuInviteMember)}
+        onClose={handleCloseMenuInviteMember}
+        sx={{
+          "& .MuiPaper-root.MuiPopover-paper.MuiMenu-paper": {
+            borderRadius: "8px",
+          },
+          "& .MuiList-root.MuiMenu-list": {
+            p: 0,
+          },
+        }}
+      >
         <Box
           sx={{
-            zIndex: "999",
-            right: "20px",
-            top: "110px",
-            position: "absolute",
             width: "350px",
             gap: 1.25,
             px: 2,
@@ -730,7 +750,7 @@ function BoardBar({
 
               {/* close btn */}
               <Box
-                onClick={() => handleCloseModalInviteMember()}
+                onClick={() => handleCloseMenuInviteMember()}
                 sx={{
                   height: "30px",
                   width: "30px",
@@ -978,16 +998,25 @@ function BoardBar({
             </Box>
           </Box>
         </Box>
-      )}
+      </Menu>
 
       {/* modal members */}
-      {openModalMembersInBoard && (
+      <Menu
+        id="basic-members-menu"
+        anchorEl={anchorElModalMembersInBoard}
+        open={Boolean(anchorElModalMembersInBoard)}
+        onClose={handleCloseModalMembersInBoard}
+        sx={{
+          "& .MuiPaper-root.MuiPopover-paper.MuiMenu-paper": {
+            borderRadius: "8px",
+          },
+          "& .MuiList-root.MuiMenu-list": {
+            p: 0,
+          },
+        }}
+      >
         <Box
           sx={{
-            zIndex: "999",
-            right: "20px",
-            top: "110px",
-            position: "absolute",
             width: "360px",
             gap: 1.25,
             px: 2,
@@ -1360,16 +1389,25 @@ function BoardBar({
             )}
           </Box>
         </Box>
-      )}
+      </Menu>
 
       {/* modal more options */}
-      {openModalMoreOptions && (
+      <Menu
+        id="basic-more-options-menu"
+        anchorEl={anchorElModalMoreOptions}
+        open={Boolean(anchorElModalMoreOptions)}
+        onClose={handleCloseModalMoreOptions}
+        sx={{
+          "& .MuiPaper-root.MuiPopover-paper.MuiMenu-paper": {
+            borderRadius: "8px",
+          },
+          "& .MuiList-root.MuiMenu-list": {
+            p: 0,
+          },
+        }}
+      >
         <Box
           sx={{
-            zIndex: "999",
-            right: "20px",
-            top: "110px",
-            position: "absolute",
             width: "300px",
             gap: 1.25,
             px: 2,
@@ -1462,7 +1500,7 @@ function BoardBar({
             </Box>
           </Box>
         </Box>
-      )}
+      </Menu>
     </Box>
   );
 }

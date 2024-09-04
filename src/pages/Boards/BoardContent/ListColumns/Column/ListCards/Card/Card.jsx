@@ -10,7 +10,6 @@ import CardMedia from "@mui/material/CardMedia";
 import Typography from "@mui/material/Typography";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
-import Stack from "@mui/material/Stack";
 import AvatarGroup from "@mui/material/AvatarGroup";
 import Avatar from "@mui/material/Avatar";
 
@@ -73,6 +72,19 @@ function Card({
   }, [card]);
 
   // ============================================================================
+  //socket
+
+  // new-comment
+  useEffect(() => {
+    if (card && !card._id.includes("placeholder-card")) {
+      socket.on("new-comment", () => {
+        getCommentsAPI(card._id, card.boardId).then((resComments) => {
+          setComments(resComments);
+        });
+      });
+    }
+  }, [card]);
+
   useEffect(() => {
     // add-user-into-card
     socket.on("add-user-into-card", async (actorId, filteredMembers) => {
@@ -116,34 +128,19 @@ function Card({
     border: isDragging ? "2px solid #2ECC71" : undefined,
   };
 
-  // const shouldShowCardActions = () => {
-  //   return (
-  //     !!card?.memberIds?.length ||
-  //     !!card?.comments?.length ||
-  //     !!card?.attachments?.length
-  //   );
-  // };
-
   const shouldShowLabel = () => {
     return !!card?.status?.length || !!card?.priority?.length;
   };
 
   const shouldShowIconRepresenting = () => {
-    return !!card?.description?.length || !!card?.attachments?.length;
+    return (
+      !!card?.description?.length ||
+      !!card?.attachments?.length ||
+      !!comments?.length
+    );
   };
 
   const shouldShowDateAndMember = () => {
-    // if (card?.title == "làm tài liệu báo cáo test 2") {
-    //   console.log(
-    //     'card?.deadlineAt.split(" ")[0].split("-") ',
-    //     card?.deadlineAt.split(" ")[0].split("-")
-    //   );
-    //   console.log(
-    //     'card?.deadlineAt.split(" ")[0].split("-")[2] ',
-    //     card?.deadlineAt.split(" ")[0].split("-")[2]
-    //   );
-    // }
-
     return !!card?.deadlineAt || !!card?.members?.length;
   };
 
@@ -342,12 +339,13 @@ function Card({
                   />
                 )}
 
-                {/* {!!card?.attachments?.length && <CgAttachment />} */}
-                <CgAttachment
-                  style={{
-                    fontSize: ".9rem",
-                  }}
-                />
+                {!!card?.attachments?.length && (
+                  <CgAttachment
+                    style={{
+                      fontSize: ".9rem",
+                    }}
+                  />
+                )}
 
                 {!!comments.length && (
                   <QuestionAnswerIcon
@@ -364,7 +362,7 @@ function Card({
               <Box
                 sx={{
                   mt: 0.5,
-                  height: "20px",
+                  // height: "20px",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "space-between",
@@ -424,12 +422,22 @@ function Card({
                 {/* member */}
                 {card.members.length && (
                   <AvatarGroup
-                    max={4}
+                    max={2}
                     sx={{
+                      mr: "5px",
+                      display: "flex",
+                      flexDirection: "row",
+                      "&.MuiAvatar-root": {
+                        transform: "translateX(-8px)",
+                        zIndex: 1,
+                      },
+                      //
                       "&.MuiAvatarGroup-root .MuiAvatar-root": {
-                        fontSize: "1rem",
-                        height: "30px",
-                        width: "30px",
+                        mr: "-5px",
+                        fontSize: ".75rem",
+                        // fontWeight: "bold",
+                        height: "26px",
+                        width: "26px",
                         border: (theme) =>
                           theme.palette.mode === "dark"
                             ? `1px solid ${theme.trelloCustom.COLOR_7236AE}`
@@ -445,49 +453,25 @@ function Card({
                       },
                     }}
                   >
-                    <Stack direction="row" spacing={-0.75}>
-                      {card.members.map((cardMember) => (
-                        <Box key={cardMember.userId}>
-                          <Tooltip
-                            title={cardMember.username}
-                            placement="bottom"
-                            arrow
-                          >
-                            <Avatar
-                              alt={cardMember.username.toUpperCase()}
-                              src="#"
-                            />
-                          </Tooltip>
-                        </Box>
-                      ))}
-                    </Stack>
+                    {card.members.map((cardMember) => (
+                      <Box key={cardMember.userId}>
+                        <Tooltip
+                          title={cardMember.username}
+                          placement="bottom"
+                          arrow
+                        >
+                          <Avatar
+                            alt={cardMember.username.toUpperCase()}
+                            src="#"
+                          />
+                        </Tooltip>
+                      </Box>
+                    ))}
                   </AvatarGroup>
                 )}
               </Box>
             )}
           </CardContent>
-
-          {/* {shouldShowCardActions() && (
-            <CardActions sx={{ p: "0 4px 8px 4px" }}>
-              {!!card?.memberIds?.length && (
-                <Button size="small" startIcon={<GroupIcon />}>
-                  {card?.memberIds?.length}
-                </Button>
-              )}
-
-              {!!card?.comments?.length && (
-                <Button size="small" startIcon={<CommentIcon />}>
-                  {card?.comments?.length}
-                </Button>
-              )}
-
-              {!!card?.attachments?.length && (
-                <Button size="small" startIcon={<AttachFileIcon />}>
-                  {card?.attachments?.length}
-                </Button>
-              )}
-            </CardActions>
-          )} */}
         </MuiCard>
       </div>
 
