@@ -167,14 +167,25 @@ const Notification = () => {
   }, [listNotifications, navigate, location]);
 
   // ============================================================================
-  const [isOpenNotification, setIsOpenNotification] = useState(false);
+  // const [isOpenNotification, setIsOpenNotification] = useState(false);
+
+  // const handleOpenNotification = () => {
+  //   setIsOpenNotification(!isOpenNotification);
+  // };
+
+  //
+  const [anchorElNotification, setAnchorElNotification] = useState(null);
+
+  const handleOpenNotification = (event) => {
+    setAnchorElNotification(event.currentTarget);
+  };
+
+  const handleCloseNotification = () => {
+    setAnchorElNotification(null);
+  };
 
   // ============================================================================
   const [tabValue, setTabValue] = useState("all");
-
-  const handleOpenNotification = () => {
-    setIsOpenNotification(!isOpenNotification);
-  };
 
   //
   const handleTabChange = (event, newValue) => {
@@ -460,7 +471,7 @@ const Notification = () => {
     <Box>
       {/* noti icon to active noti component */}
       <Badge
-        onClick={() => handleOpenNotification()}
+        onClick={(e) => handleOpenNotification(e)}
         color="secondary"
         variant="dot"
         sx={{
@@ -528,15 +539,25 @@ const Notification = () => {
       </Badge>
 
       {/* noti component */}
-      {isOpenNotification && (
+      <Menu
+        id="basic-notification"
+        anchorEl={anchorElNotification}
+        open={Boolean(anchorElNotification)}
+        onClose={handleCloseNotification}
+        sx={{
+          "& .MuiPaper-root.MuiPopover-paper.MuiMenu-paper": {
+            borderRadius: 2,
+          },
+          "& .MuiList-root.MuiMenu-list": {
+            p: 0,
+          },
+        }}
+      >
         <Box
           sx={{
-            position: "absolute",
             maxWidth: "450px",
             maxHeight: "500px",
             overflow: "hidden",
-            top: "50px",
-            right: "20px",
             py: 1,
             borderRadius: "16px",
             boxShadow: 24,
@@ -577,68 +598,70 @@ const Notification = () => {
             </Box>
 
             {/* <Box
-              onClick={() => handleMarkAllAsRead()}
-              sx={{
-                cursor: "pointer",
-                px: 1,
-                mr: 0.5,
-                height: "30px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 0.75,
-                fontSize: ".9rem",
-                fontWeight: "bold",
-                border: "2px solid #ccc",
-                borderRadius: "8px",
-                borderColor: "transparent",
-                color: (theme) =>
-                  theme.palette.mode === "dark"
-                    ? theme.trelloCustom.COLOR_B469FF
-                    : theme.trelloCustom.COLOR_7236AE,
-                "&:hover": {
-                  borderColor: (theme) =>
-                    theme.palette.mode === "dark"
-                      ? theme.trelloCustom.COLOR_B469FF
-                      : theme.trelloCustom.COLOR_7236AE,
-                },
-              }}
-            >
-              <DoneAllIcon sx={{ fontSize: "1.3rem" }} />
-              Mark all as read
-            </Box> */}
-
-            <Box>
-              <Box
-                onClick={(e) =>
-                  handleOpenMenuOptionsForNotificationComponent(e)
-                }
+                onClick={() => handleMarkAllAsRead()}
                 sx={{
                   cursor: "pointer",
-                  width: "35px",
-                  height: "35px",
+                  px: 1,
                   mr: 0.5,
+                  height: "30px",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-
-                  borderRadius: "50%",
-
+                  gap: 0.75,
+                  fontSize: ".9rem",
+                  fontWeight: "bold",
+                  border: "2px solid #ccc",
+                  borderRadius: "8px",
+                  borderColor: "transparent",
                   color: (theme) =>
                     theme.palette.mode === "dark"
                       ? theme.trelloCustom.COLOR_B469FF
                       : theme.trelloCustom.COLOR_7236AE,
-
                   "&:hover": {
-                    bgcolor: (theme) =>
+                    borderColor: (theme) =>
                       theme.palette.mode === "dark"
-                        ? theme.trelloCustom.COLOR_2C194D
-                        : theme.trelloCustom.COLOR_E8D1FF,
+                        ? theme.trelloCustom.COLOR_B469FF
+                        : theme.trelloCustom.COLOR_7236AE,
                   },
                 }}
               >
-                <MoreHorizIcon />
-              </Box>
+                <DoneAllIcon sx={{ fontSize: "1.3rem" }} />
+                Mark all as read
+              </Box> */}
+
+            <Box>
+              {listNotifications.length > 0 && (
+                <Box
+                  onClick={(e) =>
+                    handleOpenMenuOptionsForNotificationComponent(e)
+                  }
+                  sx={{
+                    cursor: "pointer",
+                    width: "35px",
+                    height: "35px",
+                    mr: 0.5,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+
+                    borderRadius: "50%",
+
+                    color: (theme) =>
+                      theme.palette.mode === "dark"
+                        ? theme.trelloCustom.COLOR_B469FF
+                        : theme.trelloCustom.COLOR_7236AE,
+
+                    "&:hover": {
+                      bgcolor: (theme) =>
+                        theme.palette.mode === "dark"
+                          ? theme.trelloCustom.COLOR_2C194D
+                          : theme.trelloCustom.COLOR_E8D1FF,
+                    },
+                  }}
+                >
+                  <MoreHorizIcon />
+                </Box>
+              )}
 
               {/* menu open from each noti */}
               <Menu
@@ -742,7 +765,8 @@ const Notification = () => {
           <Box
             sx={{
               width: "450px",
-              height: !filteredNotifications.length ? "350px" : null,
+              height: !filteredNotifications.length ? "350px" : "fit-content",
+              maxHeight: "350px",
               overflow: "scroll",
 
               px: 2,
@@ -906,6 +930,7 @@ const Notification = () => {
                           notification.type.toUpperCase() === "REPLY") && (
                           <Box
                             sx={{
+                              cursor: "context-menu",
                               width: "fit-content",
                               py: 0.75,
                               px: 2,
@@ -1136,7 +1161,7 @@ const Notification = () => {
             </MenuItem>
           </Menu>
         </Box>
-      )}
+      </Menu>
     </Box>
   );
 };

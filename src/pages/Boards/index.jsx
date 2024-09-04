@@ -885,85 +885,87 @@ function HomePage() {
               </Box>
 
               {/* pagination */}
-              <Box
-                sx={{
-                  height: `${paginationHeight}`,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "flex-end",
-                  position: "relative",
-                }}
-              >
-                <Pagination
-                  count={Math.ceil(boards.length / itemsPerPage)}
-                  page={page}
-                  onChange={handleChangePaginationPage}
-                  color="secondary"
+              {boards.length > 0 && (
+                <Box
                   sx={{
-                    "& .MuiPagination-ul": {
-                      gap: 1.25,
-                    },
-                    "& .MuiButtonBase-root.MuiPaginationItem-root": {
-                      height: "40px",
-                      minWidth: "40px",
-                      borderRadius: "6px",
-                      fontSize: "1rem",
-
-                      color: (theme) =>
-                        theme.palette.mode === "dark"
-                          ? theme.trelloCustom.COLOR_E6E6E6
-                          : theme.trelloCustom.COLOR_790283,
-                      bgcolor: (theme) =>
-                        theme.palette.mode === "dark"
-                          ? theme.trelloCustom.COLOR_51247C
-                          : theme.trelloCustom.COLOR_DDADF0,
-                      "&:hover": {
-                        color: (theme) =>
-                          theme.palette.mode === "dark"
-                            ? theme.trelloCustom.COLOR_E6E6E6
-                            : theme.trelloCustom.COLOR_F8F8F8,
-                        bgcolor: (theme) =>
-                          theme.palette.mode === "dark"
-                            ? theme.trelloCustom.COLOR_1E0734
-                            : theme.trelloCustom.COLOR_9357CF,
-                      },
-                    },
-                    "& .MuiButtonBase-root.MuiPaginationItem-root:hover": {
-                      color: (theme) =>
-                        theme.palette.mode === "dark"
-                          ? theme.trelloCustom.COLOR_E6E6E6
-                          : theme.trelloCustom.COLOR_790283,
-                      bgcolor: (theme) =>
-                        theme.palette.mode === "dark"
-                          ? theme.trelloCustom.COLOR_51247C
-                          : theme.trelloCustom.COLOR_DDADF0,
-                      "&:hover": {
-                        color: (theme) =>
-                          theme.palette.mode === "dark"
-                            ? theme.trelloCustom.COLOR_E6E6E6
-                            : theme.trelloCustom.COLOR_F8F8F8,
-                        bgcolor: (theme) =>
-                          theme.palette.mode === "dark"
-                            ? theme.trelloCustom.COLOR_1E0734
-                            : theme.trelloCustom.COLOR_9357CF,
-                      },
-                    },
-                    "& .MuiButtonBase-root.MuiPaginationItem-root.Mui-selected":
-                      {
-                        borderRadius: "6px",
-                        color: "white",
-                        bgcolor: (theme) =>
-                          theme.palette.mode === "dark"
-                            ? theme.trelloCustom.COLOR_1E0734
-                            : theme.trelloCustom.COLOR_9357CF,
-                        boxShadow: (theme) =>
-                          theme.palette.mode === "dark"
-                            ? `0 0 10px ${theme.trelloCustom.COLOR_1E252A}`
-                            : `0 0 10px ${theme.trelloCustom.COLOR_9357CF}`,
-                      },
+                    height: `${paginationHeight}`,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "flex-end",
+                    position: "relative",
                   }}
-                />
-              </Box>
+                >
+                  <Pagination
+                    count={Math.ceil(boards.length / itemsPerPage)}
+                    page={page}
+                    onChange={handleChangePaginationPage}
+                    color="secondary"
+                    sx={{
+                      "& .MuiPagination-ul": {
+                        gap: 1.25,
+                      },
+                      "& .MuiButtonBase-root.MuiPaginationItem-root": {
+                        height: "40px",
+                        minWidth: "40px",
+                        borderRadius: "6px",
+                        fontSize: "1rem",
+
+                        color: (theme) =>
+                          theme.palette.mode === "dark"
+                            ? theme.trelloCustom.COLOR_E6E6E6
+                            : theme.trelloCustom.COLOR_790283,
+                        bgcolor: (theme) =>
+                          theme.palette.mode === "dark"
+                            ? theme.trelloCustom.COLOR_51247C
+                            : theme.trelloCustom.COLOR_DDADF0,
+                        "&:hover": {
+                          color: (theme) =>
+                            theme.palette.mode === "dark"
+                              ? theme.trelloCustom.COLOR_E6E6E6
+                              : theme.trelloCustom.COLOR_F8F8F8,
+                          bgcolor: (theme) =>
+                            theme.palette.mode === "dark"
+                              ? theme.trelloCustom.COLOR_1E0734
+                              : theme.trelloCustom.COLOR_9357CF,
+                        },
+                      },
+                      "& .MuiButtonBase-root.MuiPaginationItem-root:hover": {
+                        color: (theme) =>
+                          theme.palette.mode === "dark"
+                            ? theme.trelloCustom.COLOR_E6E6E6
+                            : theme.trelloCustom.COLOR_790283,
+                        bgcolor: (theme) =>
+                          theme.palette.mode === "dark"
+                            ? theme.trelloCustom.COLOR_51247C
+                            : theme.trelloCustom.COLOR_DDADF0,
+                        "&:hover": {
+                          color: (theme) =>
+                            theme.palette.mode === "dark"
+                              ? theme.trelloCustom.COLOR_E6E6E6
+                              : theme.trelloCustom.COLOR_F8F8F8,
+                          bgcolor: (theme) =>
+                            theme.palette.mode === "dark"
+                              ? theme.trelloCustom.COLOR_1E0734
+                              : theme.trelloCustom.COLOR_9357CF,
+                        },
+                      },
+                      "& .MuiButtonBase-root.MuiPaginationItem-root.Mui-selected":
+                        {
+                          borderRadius: "6px",
+                          color: "white",
+                          bgcolor: (theme) =>
+                            theme.palette.mode === "dark"
+                              ? theme.trelloCustom.COLOR_1E0734
+                              : theme.trelloCustom.COLOR_9357CF,
+                          boxShadow: (theme) =>
+                            theme.palette.mode === "dark"
+                              ? `0 0 10px ${theme.trelloCustom.COLOR_1E252A}`
+                              : `0 0 10px ${theme.trelloCustom.COLOR_9357CF}`,
+                        },
+                    }}
+                  />
+                </Box>
+              )}
             </Box>
           </Box>
 

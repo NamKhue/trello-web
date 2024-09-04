@@ -169,6 +169,11 @@ function Board() {
           setRoleOfBoard(res);
         });
 
+        // refresh all members in board
+        fetchAllMembersAPI(boardId).then((res) => {
+          setAllMembersInBoard(res);
+        });
+
         // fetch again the board's data
         fetchBoardDetailsAPI(boardId)
           .then((board) => {
@@ -202,14 +207,37 @@ function Board() {
           });
       });
 
-      socket.on("remove-user", async () => {
-        // load all members in board
-        fetchAllMembersAPI(boardId).then((res) => {
-          setAllMembersInBoard(res);
-        });
+      socket.on("remove-user", async (removedUserId) => {
+        if (loggedInUser && board) {
+          if (loggedInUser._id != removedUserId) {
+            // load all members in board
+            fetchAllMembersAPI(boardId).then((res) => {
+              setAllMembersInBoard(res);
+            });
+
+            // remove user from all cards
+            board.columns.forEach((column) => {
+              if (!isEmpty(column.cards)) {
+                column.cards.forEach((card) => {
+                  let existRemovedUser = card.members.some(
+                    (member) => member.userId == removedUserId
+                  );
+
+                  if (existRemovedUser) {
+                    card.members = card.members.filter(
+                      (member) => member.userId != removedUserId
+                    );
+                  }
+                });
+              }
+            });
+
+            setBoard(board);
+          }
+        }
       });
     }
-  }, [allMembersInBoard, boardId, navigate]);
+  }, [allMembersInBoard, boardId, navigate, board, loggedInUser]);
 
   // ============================================================================
   // remove no need properties
