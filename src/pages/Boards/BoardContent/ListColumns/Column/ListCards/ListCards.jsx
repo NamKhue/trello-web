@@ -9,7 +9,7 @@ import {
 // { cards }
 function ListCards({
   roleOfBoard,
-  column,
+  // column,
   cards,
   deleteCardDetails,
 
@@ -70,8 +70,8 @@ function ListCards({
             //   console.log("fsdf");
             //   handleCardClick(card);
             // }}
-            column={column}
-            cards={cards}
+            // column={column}
+            // cards={cards}
             card={card}
             deleteCardDetails={deleteCardDetails}
             handleCardClick={handleCardClick}

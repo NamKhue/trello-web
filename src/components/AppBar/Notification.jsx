@@ -546,7 +546,7 @@ const Notification = () => {
         onClose={handleCloseNotification}
         sx={{
           "& .MuiPaper-root.MuiPopover-paper.MuiMenu-paper": {
-            borderRadius: 2,
+            borderRadius: 4,
           },
           "& .MuiList-root.MuiMenu-list": {
             p: 0,
@@ -863,9 +863,11 @@ const Notification = () => {
                   >
                     {/* noti's ava of actor */}
                     <Box
-                      sx={{
-                        flex: 1,
-                      }}
+                      sx={
+                        {
+                          // flex: 1,
+                        }
+                      }
                     >
                       <Box
                         sx={{
@@ -894,6 +896,8 @@ const Notification = () => {
 
                     <Box
                       sx={{
+                        flex: 1,
+
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "space-between",
