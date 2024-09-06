@@ -35,7 +35,6 @@ import ListCards from "./ListCards/ListCards";
 
 import socket from "~/utils/socket/socket";
 
-// { column }
 function Column({
   isDraggingDnD,
 
@@ -196,199 +195,6 @@ function Column({
     }
   };
 
-  // let newColumnTitleEdit = "";
-  // const handleRenameColumn = (column) => {
-  //   column.title = column.title.trim();
-  //   newColumnTitleEdit = column.title;
-
-  //   // mở modal
-  //   const editColumnModal = showModal(ConfirmationDialog, {
-  //     title: column.title,
-  //     onConfirm: () => {
-  //       newColumnTitleEdit = newColumnTitleEdit.trim();
-  //       // check sự tồn tại/trùng lặp của dữ liệu thông tin đã được thay đổi
-  //       // nếu tồn tại
-  //       if (!columns.map((col) => col.title).includes(newColumnTitleEdit)) {
-  //         // set new data UI for column
-  //         column.title = newColumnTitleEdit;
-
-  //         // call api update Board & DB
-  //         updateColumnDetailsAPI(column._id, { title: column.title }).then(
-  //           (res) => {
-  //             toast.success(res?.modifyColumnResult);
-  //           }
-  //         );
-
-  //         editColumnModal.hide();
-  //       } else {
-  //         // nếu dữ liệu y hệt
-  //         if (newColumnTitleEdit === column.title) {
-  //           toast.info("This new infomation is the same as the old ones");
-  //         } else {
-  //           toast.info("The infomation that you have been modified is existed");
-  //         }
-  //       }
-  //     },
-  //     onCancel: () => {
-  //       editColumnModal.hide();
-  //     },
-  //   });
-  // };
-
-  // const ConfirmationDialog = ({ title, onCancel, onConfirm, ...props }) => (
-  //   <Dialog
-  //     sx={{
-  //       maxWidth: "false",
-  //     }}
-  //     {...props}
-  //   >
-  //     <div
-  //       style={{
-  //         width: 300,
-  //         paddingLeft: "30px",
-  //         paddingRight: "30px",
-  //       }}
-  //     >
-  //       <DialogTitle
-  //         style={{
-  //           paddingLeft: "0",
-  //         }}
-  //         sx={{
-  //           "& .MuiTypography-root": {
-  //             margin: "0 auto",
-  //           },
-  //         }}
-  //       >
-  //         Edit Column
-  //       </DialogTitle>
-
-  //       <TextField
-  //         sx={{
-  //           width: "100%",
-  //           "& .MuiOutlinedInput-root": {
-  //             padding: "5px",
-  //             color: (theme) =>
-  //               theme.palette.mode === "dark" ? "white" : "black",
-  //           },
-  //         }}
-  //         label="New title"
-  //         autoFocus
-  //         type="text"
-  //         size="small"
-  //         variant="outlined"
-  //         defaultValue={title}
-  //         onChange={(ev) => (newColumnTitleEdit = ev.target.value)}
-  //         onKeyDown={(ev) => {
-  //           if (ev.key === "Enter") {
-  //             ev.preventDefault();
-
-  //             onConfirm();
-  //           }
-  //         }}
-  //       />
-
-  //       <DialogActions
-  //         sx={{
-  //           paddingLeft: 0,
-  //           paddingRight: 0,
-  //         }}
-  //       >
-  //         <Button onClick={onCancel} color="error">
-  //           Cancel
-  //         </Button>
-  //         <Button onClick={onConfirm} variant="outlined" color="info">
-  //           Confirm
-  //         </Button>
-  //       </DialogActions>
-  //     </div>
-  //   </Dialog>
-  // );
-
-  // const { showModal } = useModal();
-  // const handleRenameColumn = () => {
-  //   const editColumnModal = showModal(membersModal, {
-  //     title: "Members",
-  //     onConfirm: () => {
-  //       editColumnModal.hide();
-  //     },
-  //     onCancel: () => {
-  //       editColumnModal.hide();
-  //     },
-  //   });
-  // };
-
-  // const membersModal = ({ title, onCancel, onConfirm, ...props }) => (
-  //   <Dialog
-  //     sx={{
-  //       maxWidth: "false",
-  //     }}
-  //     {...props}
-  //   >
-  //     <div
-  //       style={{
-  //         width: 300,
-  //         paddingLeft: "30px",
-  //         paddingRight: "30px",
-  //         display: "flex",
-  //         alignItems: "center",
-  //         justifyContent: "center",
-  //       }}
-  //     >
-  //       <DialogTitle
-  //         style={{
-  //           paddingLeft: "0",
-  //         }}
-  //         sx={{
-  //           "& .MuiTypography-root": {
-  //             margin: "0 auto",
-  //           },
-  //         }}
-  //       >
-  //         Edit Column
-  //       </DialogTitle>
-
-  //       <TextField
-  //         sx={{
-  //           width: "100%",
-  //           "& .MuiOutlinedInput-root": {
-  //             padding: "5px",
-  //             color: (theme) =>
-  //               theme.palette.mode === "dark" ? "white" : "black",
-  //           },
-  //         }}
-  //         label="New title"
-  //         autoFocus
-  //         type="text"
-  //         size="small"
-  //         variant="outlined"
-  //         defaultValue={title}
-  //         onChange={(ev) => (newColumnTitleEdit = ev.target.value)}
-  //         onKeyDown={(ev) => {
-  //           if (ev.key === "Enter") {
-  //             ev.preventDefault();
-
-  //             onConfirm();
-  //           }
-  //         }}
-  //       />
-
-  //       <DialogActions
-  //         sx={{
-  //           paddingLeft: 0,
-  //           paddingRight: 0,
-  //         }}
-  //       >
-  //         <Button onClick={onCancel} color="error">
-  //           Cancel
-  //         </Button>
-  //         <Button onClick={onConfirm} variant="outlined" color="info">
-  //           Confirm
-  //         </Button>
-  //       </DialogActions>
-  //     </div>
-  //   </Dialog>
-  // );
-
   const [focusedOnTitleColumn, setFocusedOnTitleColumn] = useState(false);
   const [isHoveredTitleColumn, setIsHoveredTitleColumn] = useState(false);
   const handleMouseHoverTitleColumn = () => {
@@ -460,131 +266,140 @@ function Column({
         >
           {/* title + input for changing title */}
           {roleOfBoard != "member" ? (
-            <TextField
-              onMouseEnter={handleMouseHoverTitleColumn}
-              onMouseLeave={handleMouseLeaveTitleColumn}
-              inputRef={textFieldRefTitleColumn}
-              type="text"
-              variant="outlined"
-              value={
+            <Tooltip
+              placement="top-start"
+              title={
                 column?.title != newColumnTitle ? newColumnTitle : column?.title
               }
-              onChange={(e) => setNewColumnTitle(e.target.value)}
-              onKeyDown={(ev) => {
-                if (ev.key === "Enter") {
-                  ev.preventDefault();
-                  ev.target.blur();
+            >
+              <TextField
+                onMouseEnter={handleMouseHoverTitleColumn}
+                onMouseLeave={handleMouseLeaveTitleColumn}
+                inputRef={textFieldRefTitleColumn}
+                type="text"
+                variant="outlined"
+                value={
+                  column?.title != newColumnTitle
+                    ? newColumnTitle
+                    : column?.title
                 }
-              }}
-              onFocus={() => setFocusedOnTitleColumn(true)}
-              onBlur={() => {
-                handleRenameColumnDirectly(column, newColumnTitle.trim());
-                setFocusedOnTitleColumn(false);
-              }}
-              InputProps={{
-                endAdornment: (
-                  // edit btn
-                  <InputAdornment
-                    position="end"
-                    onClick={handleFieldsetClickTitleColumn}
-                  >
-                    {(isHoveredTitleColumn || focusedOnTitleColumn) && (
-                      <Box
-                        onClick={handleFieldsetClickTitleColumn}
-                        sx={{
-                          cursor: "pointer",
-                          width: "30px",
-                          height: "30px",
-                          px: 0.8,
-                          mr: 0.5,
-                          display: "flex",
-                          alignItems: "center",
-                          fontSize: "0.9rem",
-                          fontWeight: "bold",
-                          borderRadius: "6px",
+                onChange={(e) => setNewColumnTitle(e.target.value)}
+                onKeyDown={(ev) => {
+                  if (ev.key === "Enter") {
+                    ev.preventDefault();
+                    ev.target.blur();
+                  }
+                }}
+                onFocus={() => setFocusedOnTitleColumn(true)}
+                onBlur={() => {
+                  handleRenameColumnDirectly(column, newColumnTitle.trim());
+                  setFocusedOnTitleColumn(false);
+                }}
+                InputProps={{
+                  endAdornment: (
+                    // edit btn
+                    <InputAdornment
+                      position="end"
+                      onClick={handleFieldsetClickTitleColumn}
+                    >
+                      {(isHoveredTitleColumn || focusedOnTitleColumn) && (
+                        <Box
+                          onClick={handleFieldsetClickTitleColumn}
+                          sx={{
+                            cursor: "pointer",
+                            width: "30px",
+                            height: "30px",
+                            px: 0.8,
+                            mr: 0.5,
+                            display: "flex",
+                            alignItems: "center",
+                            fontSize: "0.9rem",
+                            fontWeight: "bold",
+                            borderRadius: "6px",
 
-                          bgcolor: "transparent",
-                          color: (theme) =>
-                            theme.palette.mode === "dark"
-                              ? theme.trelloCustom.COLOR_D7D7D7
-                              : theme.trelloCustom.COLOR_313131,
-
-                          "&:hover": {
-                            bgcolor: (theme) =>
+                            bgcolor: "transparent",
+                            color: (theme) =>
                               theme.palette.mode === "dark"
-                                ? theme.trelloCustom.COLOR_281E38
-                                : theme.trelloCustom.COLOR_C0C0C0,
-                          },
-                        }}
-                      >
-                        <EditIcon sx={{ fontSize: "1.25rem", pr: 0.5 }} />
-                      </Box>
-                    )}
-                  </InputAdornment>
-                ),
-              }}
-              sx={{
-                "& input": {
-                  cursor: "pointer",
-                  pt: 0.8,
-                  pb: 0.8,
-                  pl: 0,
-                  height: "15px",
-                  fontSize: "1rem",
-                  fontWeight: "bold",
-                  border: "2px solid",
-                  borderRadius: "6px",
-                  borderColor: "transparent",
-                  bgcolor: "transparent",
-                  color: (theme) =>
-                    theme.palette.mode === "dark" ? "white" : "black",
-                },
-                "& input:hover": {
-                  bgcolor: "transparent",
-                },
-                "& input:focus": {
-                  pl: 1.5,
-                  pr: 1.5,
-                  color: (theme) =>
-                    theme.palette.mode === "dark"
-                      ? "white"
-                      : theme.trelloCustom.COLOR_8025C0,
-                  bgcolor: (theme) =>
-                    theme.palette.mode === "dark"
-                      ? theme.trelloCustom.COLOR_281E38
-                      : theme.trelloCustom.COLOR_F8F8F8,
-                  borderColor: (theme) =>
-                    theme.palette.mode === "dark"
-                      ? theme.trelloCustom.COLOR_281E38
-                      : theme.trelloCustom.COLOR_313131,
-                },
-                "& .MuiInputBase-input": {
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                },
+                                ? theme.trelloCustom.COLOR_D7D7D7
+                                : theme.trelloCustom.COLOR_313131,
 
-                // border outline
-                "& .MuiOutlinedInput-root": {
-                  cursor: "pointer",
-                  pr: 0,
-                  "& fieldset": {
+                            "&:hover": {
+                              bgcolor: (theme) =>
+                                theme.palette.mode === "dark"
+                                  ? theme.trelloCustom.COLOR_281E38
+                                  : theme.trelloCustom.COLOR_C0C0C0,
+                            },
+                          }}
+                        >
+                          <EditIcon sx={{ fontSize: "1.25rem", pr: 0.5 }} />
+                        </Box>
+                      )}
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{
+                  "& input": {
+                    cursor: "pointer",
+                    pt: 0.8,
+                    pb: 0.8,
+                    pl: 0,
+                    height: "15px",
+                    fontSize: "1rem",
+                    fontWeight: "bold",
+                    border: "2px solid",
                     borderRadius: "6px",
-                    borderWidth: "2px",
                     borderColor: "transparent",
+                    bgcolor: "transparent",
+                    color: (theme) =>
+                      theme.palette.mode === "dark" ? "white" : "black",
                   },
-                  "&:hover fieldset": {
-                    borderColor: "transparent",
+                  "& input:hover": {
+                    bgcolor: "transparent",
                   },
-                  "&.Mui-focused fieldset": {
-                    borderColor: "transparent",
-                    // borderColor: (theme) =>
-                    //   theme.palette.mode === "dark"
-                    //     ? theme.trelloCustom.COLOR_8A2DCB
-                    //     : theme.trelloCustom.COLOR_313131,
+                  "& input:focus": {
+                    pl: 1.5,
+                    pr: 1.5,
+                    color: (theme) =>
+                      theme.palette.mode === "dark"
+                        ? "white"
+                        : theme.trelloCustom.COLOR_8025C0,
+                    bgcolor: (theme) =>
+                      theme.palette.mode === "dark"
+                        ? theme.trelloCustom.COLOR_281E38
+                        : theme.trelloCustom.COLOR_F8F8F8,
+                    borderColor: (theme) =>
+                      theme.palette.mode === "dark"
+                        ? theme.trelloCustom.COLOR_281E38
+                        : theme.trelloCustom.COLOR_313131,
                   },
-                },
-              }}
-            />
+                  "& .MuiInputBase-input": {
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  },
+
+                  // border outline
+                  "& .MuiOutlinedInput-root": {
+                    cursor: "pointer",
+                    pr: 0,
+                    "& fieldset": {
+                      borderRadius: "6px",
+                      borderWidth: "2px",
+                      borderColor: "transparent",
+                    },
+                    "&:hover fieldset": {
+                      borderColor: "transparent",
+                    },
+                    "&.Mui-focused fieldset": {
+                      borderColor: "transparent",
+                      // borderColor: (theme) =>
+                      //   theme.palette.mode === "dark"
+                      //     ? theme.trelloCustom.COLOR_8A2DCB
+                      //     : theme.trelloCustom.COLOR_313131,
+                    },
+                  },
+                }}
+              />
+            </Tooltip>
           ) : (
             <Box
               sx={{
@@ -719,8 +534,8 @@ function Column({
 
         {/* list card */}
         <ListCards
+          openNewCardForm={openNewCardForm}
           roleOfBoard={roleOfBoard}
-          // column={column}
           cards={orderedCards}
           deleteCardDetails={deleteCardDetails}
           handleCardClick={handleCardClick}
@@ -729,6 +544,7 @@ function Column({
         {/* footer of column */}
         {roleOfBoard != "member" ? (
           <Box
+            data-no-dnd="true"
             sx={{
               pl: 1.65,
               pr: 1.65,
@@ -740,8 +556,9 @@ function Column({
                   height: (theme) =>
                     theme.trelloCustom.columnFooterHeightActive,
                   display: "flex",
+                  alignItems: "center",
                   justifyContent: "center",
-                  pt: 0.75,
+                  // pt: 0.75,
                 }}
               >
                 <Button

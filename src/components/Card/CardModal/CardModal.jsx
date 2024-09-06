@@ -2117,6 +2117,7 @@ const CardModal = ({
                               descriptionCardToDisplay == ""
                                 ? "80px"
                                 : "fit-content",
+                            maxHeight: "300px",
                             py: 1,
                             px: 1.75,
                             border: "2px solid",

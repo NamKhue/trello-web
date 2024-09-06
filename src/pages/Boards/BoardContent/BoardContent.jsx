@@ -100,9 +100,9 @@ function BoardContent({
       setOrderedColumns(updatedBoard.columns);
     });
 
-    return () => {
-      socket.off("update-board");
-    };
+    // return () => {
+    //   socket.off("update-board");
+    // };
   }, []);
 
   // tìm 1 column theo cardId

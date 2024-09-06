@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+
 import Box from "@mui/material/Box";
 import Card from "./Card/Card";
 
@@ -6,15 +8,25 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 
-// { cards }
 function ListCards({
   roleOfBoard,
-  // column,
+  openNewCardForm,
+
   cards,
   deleteCardDetails,
 
   handleCardClick,
 }) {
+  const [higherHeightOfColumn, setHigherOfNewColumnForm] = useState("10px");
+
+  useEffect(() => {
+    if (openNewCardForm) {
+      setHigherOfNewColumnForm("50px");
+    } else {
+      setHigherOfNewColumnForm("10px");
+    }
+  }, [openNewCardForm]);
+
   return (
     <SortableContext
       items={cards?.map((card) => card._id)}
@@ -25,8 +37,8 @@ function ListCards({
           outline: "none",
           pl: 1,
           pr: 1,
-          pb: 1,
-          m: "0 5px",
+          mx: "5px",
+          mb: !openNewCardForm ? "4px" : "12px",
           color: (theme) => (theme.palette.mode === "dark" ? "white" : "black"),
           display: "flex",
           flexDirection: "column",
@@ -39,7 +51,8 @@ function ListCards({
               ${theme.trelloCustom.boardContentHeight} - 
               ${theme.spacing(5)} - 
               ${theme.trelloCustom.columnHeaderHeight} - 
-              ${theme.trelloCustom.columnFooterHeightActive}
+              ${theme.trelloCustom.columnFooterHeightActive} -
+              ${higherHeightOfColumn}
             )`
               : `calc(
               ${theme.trelloCustom.boardContentHeight} - 
@@ -66,12 +79,6 @@ function ListCards({
           <Card
             key={card._id}
             roleOfBoard={roleOfBoard}
-            // onClick={() => {
-            //   console.log("fsdf");
-            //   handleCardClick(card);
-            // }}
-            // column={column}
-            // cards={cards}
             card={card}
             deleteCardDetails={deleteCardDetails}
             handleCardClick={handleCardClick}

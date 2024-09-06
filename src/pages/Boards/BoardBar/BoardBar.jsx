@@ -71,9 +71,9 @@ function BoardBar({
         }
       });
 
-      return () => {
-        socket.off("update-board");
-      };
+      // return () => {
+      //   socket.off("update-board");
+      // };
     }
   }, [board]);
 
