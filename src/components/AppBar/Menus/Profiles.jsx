@@ -150,6 +150,12 @@ function Profiles() {
           MenuListProps={{
             "aria-labelledby": "basic-button-profiles",
           }}
+          sx={{
+            "& .MuiPaper-root.MuiPopover-paper.MuiMenu-paper": {
+              width: "180px",
+              borderRadius: "8px",
+            },
+          }}
         >
           <Box
             sx={{
@@ -161,22 +167,32 @@ function Profiles() {
               alignItems: "center",
             }}
           >
-            <Avatar sx={{ ml: 1.5, width: 45, height: 45, mr: 2 }} />
-            <Box
+            <Avatar
               sx={{
-                flex: 1,
-
-                width: "100px",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-
-                fontSize: "1.15rem",
-                fontWeight: "bold",
+                ml: 1.5,
+                width: 45,
+                height: 45,
+                mr: 2,
               }}
-            >
-              {loggedInUser.username.charAt(0).toUpperCase() +
-                loggedInUser.username.slice(1)}
-            </Box>
+            />
+
+            <Tooltip title={loggedInUser.email}>
+              <Box
+                sx={{
+                  flex: 1,
+
+                  width: "100px",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+
+                  fontSize: "1.15rem",
+                  fontWeight: "bold",
+                }}
+              >
+                {loggedInUser.username.charAt(0).toUpperCase() +
+                  loggedInUser.username.slice(1)}
+              </Box>
+            </Tooltip>
           </Box>
           <Divider />
 

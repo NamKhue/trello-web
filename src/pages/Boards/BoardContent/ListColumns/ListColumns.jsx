@@ -154,7 +154,7 @@ function ListColumns({
                 key={column._id}
                 isDraggingDnD={isDraggingDnD}
                 roleOfBoard={roleOfBoard}
-                columns={columns}
+                // columns={columns}
                 column={column}
                 modifyColumn={modifyColumn}
                 deleteColumnDetails={deleteColumnDetails}

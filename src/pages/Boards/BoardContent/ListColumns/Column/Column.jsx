@@ -33,6 +33,8 @@ import EditIcon from "@mui/icons-material/Edit";
 
 import ListCards from "./ListCards/ListCards";
 
+import socket from "~/utils/socket/socket";
+
 // { column }
 function Column({
   isDraggingDnD,
@@ -86,21 +88,17 @@ function Column({
 
   // ============================================================================
   // socket when board is change
-  // useEffect(() => {
-  //   socket.on("update-column", (updatedColumn) => {
-  //     console.log("here 1");
+  useEffect(() => {
+    socket.on("update-column", (updatedColumn) => {
+      if (updatedColumn._id === column._id) {
+        setNewColumnTitle(updatedColumn.title);
+      }
+    });
 
-  //     if (updatedColumn._id === column._id) {
-  //       console.log("here 2");
-
-  //       setColumn(updatedColumn);
-  //     }
-  //   });
-
-  //   return () => {
-  //     socket.off("update-column");
-  //   };
-  // }, [column]);
+    return () => {
+      socket.off("update-column");
+    };
+  }, [column]);
 
   // const handleDoubleClick = (event, column) => {
   //   if (event.detail === 2) {
@@ -722,7 +720,7 @@ function Column({
         {/* list card */}
         <ListCards
           roleOfBoard={roleOfBoard}
-          column={column}
+          // column={column}
           cards={orderedCards}
           deleteCardDetails={deleteCardDetails}
           handleCardClick={handleCardClick}

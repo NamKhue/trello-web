@@ -99,6 +99,27 @@ function Board() {
     }
   }, [boardLoadedCount, boardId, roleOfBoard, board, navigate]);
 
+  // load more other data
+  useEffect(() => {
+    if (loadedOtherDataCount < 1 && board != null) {
+      setLoadedOtherDataCount(loadedOtherDataCount + 1);
+
+      // load role of user in board
+      // lấy dữ liệu vai trò của bảng từ boardUser qua api
+      // get the user's role in current board
+      fetchRoleOfBoardsAPI(board._id).then((res) => {
+        setRoleOfBoard(res);
+      });
+
+      // load all members in board
+      fetchAllMembersAPI(board._id).then((res) => {
+        setAllMembersInBoard(res);
+      });
+
+      setLoading(false);
+    }
+  }, [loadedOtherDataCount, board]);
+
   // ============================================================================
   // socket when board is change
   useEffect(() => {
@@ -129,27 +150,6 @@ function Board() {
       socket.off("update-board");
     };
   }, [boardId, loggedInUser]);
-
-  // load more other data
-  useEffect(() => {
-    if (loadedOtherDataCount < 1 && board != null) {
-      setLoadedOtherDataCount(loadedOtherDataCount + 1);
-
-      // load role of user in board
-      // lấy dữ liệu vai trò của bảng từ boardUser qua api
-      // get the user's role in current board
-      fetchRoleOfBoardsAPI(board._id).then((res) => {
-        setRoleOfBoard(res);
-      });
-
-      // load all members in board
-      fetchAllMembersAPI(board._id).then((res) => {
-        setAllMembersInBoard(res);
-      });
-
-      setLoading(false);
-    }
-  }, [loadedOtherDataCount, board]);
 
   // ================================================================================================
   useEffect(() => {
@@ -301,6 +301,7 @@ function Board() {
 
     setBoard(newBoard);
     socket.emit("update-board", board._id, newBoard);
+    socket.emit("update-column", board._id, newColumn);
     // socket.emit("update-board", newBoard);
 
     try {

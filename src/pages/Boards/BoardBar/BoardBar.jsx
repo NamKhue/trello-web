@@ -33,6 +33,8 @@ import {
 
 // import { capitalizeFirstLetter } from "~/utils/formatters";
 
+import socket from "~/utils/socket/socket";
+
 const BUTTON_BOARD_BAR_STYLE = {
   borderRadius: "4px",
   color: "white",
@@ -59,6 +61,22 @@ function BoardBar({
   removeMemberOutOfBoard,
   changeRoleOfMember,
 }) {
+  // ============================================================================
+  // socket when board's title is change
+  useEffect(() => {
+    if (board) {
+      socket.on("update-board", (updateBoard) => {
+        if (updateBoard._id === board._id) {
+          setNewBoardTitle(updateBoard.title);
+        }
+      });
+
+      return () => {
+        socket.off("update-board");
+      };
+    }
+  }, [board]);
+
   // ================================================================================================
   const [newBoardTitle, setNewBoardTitle] = useState(board?.title);
   // ================================================================================================

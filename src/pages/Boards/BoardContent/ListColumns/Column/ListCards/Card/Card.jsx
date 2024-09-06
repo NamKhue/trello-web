@@ -420,7 +420,7 @@ function Card({
                 )}
 
                 {/* member */}
-                {card.members.length && (
+                {card.members && (
                   <AvatarGroup
                     max={2}
                     sx={{
