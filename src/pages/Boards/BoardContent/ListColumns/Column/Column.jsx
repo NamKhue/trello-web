@@ -553,12 +553,12 @@ function Column({
             {!openNewCardForm ? (
               <Box
                 sx={{
-                  height: (theme) =>
-                    theme.trelloCustom.columnFooterHeightActive,
+                  // height: (theme) =>
+                  //   theme.trelloCustom.columnFooterHeightActive,
                   display: "flex",
-                  alignItems: "center",
+                  alignItems: "start",
                   justifyContent: "center",
-                  // pt: 0.75,
+                  pb: 1.25,
                 }}
               >
                 <Button
@@ -620,6 +620,7 @@ function Column({
                     size="small"
                     variant="outlined"
                     autoFocus
+                    // multiline
                     value={newCardTitle}
                     onChange={(e) => setNewCardTitle(e.target.value)}
                     onKeyDown={(ev) => {
@@ -697,6 +698,11 @@ function Column({
                               ? theme.trelloCustom.COLOR_D7D7D7
                               : theme.trelloCustom.COLOR_818181,
                         },
+                      },
+
+                      //
+                      "& .MuiInputBase-input.MuiOutlinedInput-input": {
+                        color: "black",
                       },
                     }}
                   />

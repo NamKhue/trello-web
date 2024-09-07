@@ -863,35 +863,27 @@ const Notification = () => {
                   >
                     {/* noti's ava of actor */}
                     <Box
-                      sx={
-                        {
-                          // flex: 1,
-                        }
-                      }
-                    >
-                      <Box
-                        sx={{
-                          height: "45px",
-                          width: "45px",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
+                      sx={{
+                        height: "45px",
+                        width: "45px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
 
-                          borderRadius: "10px",
-                          fontWeight: "bold",
-                          fontSize: "1.1rem",
-                          color: (theme) =>
-                            theme.palette.mode === "dark"
-                              ? theme.trelloCustom.COLOR_B469FF
-                              : theme.trelloCustom.COLOR_7236AE,
-                          bgcolor: (theme) =>
-                            theme.palette.mode === "dark"
-                              ? theme.trelloCustom.COLOR_3A135F
-                              : theme.trelloCustom.COLOR_EDDAFF,
-                        }}
-                      >
-                        {notification.actorName.charAt(0).toUpperCase()}
-                      </Box>
+                        borderRadius: "10px",
+                        fontWeight: "bold",
+                        fontSize: "1.1rem",
+                        color: (theme) =>
+                          theme.palette.mode === "dark"
+                            ? theme.trelloCustom.COLOR_B469FF
+                            : theme.trelloCustom.COLOR_7236AE,
+                        bgcolor: (theme) =>
+                          theme.palette.mode === "dark"
+                            ? theme.trelloCustom.COLOR_3A135F
+                            : theme.trelloCustom.COLOR_EDDAFF,
+                      }}
+                    >
+                      {notification.actorName.charAt(0).toUpperCase()}
                     </Box>
 
                     <Box
@@ -901,13 +893,14 @@ const Notification = () => {
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "space-between",
-                        gap: 2,
+                        // gap: 2,
                       }}
                     >
                       {/* noti's content */}
                       <Box
                         sx={{
-                          flex: 9,
+                          width: "270px",
+
                           display: "flex",
                           flexDirection: "column",
                           gap: 0.75,
@@ -917,6 +910,8 @@ const Notification = () => {
                         <Typography
                           variant="body1"
                           sx={{
+                            overflow: "hidden",
+                            textOverflow: "clip",
                             fontWeight: notification.markIsRead
                               ? "normal"
                               : "bold",
@@ -1078,7 +1073,7 @@ const Notification = () => {
                       {/* noti's menu options */}
                       <Box
                         sx={{
-                          flex: 1,
+                          // flex: 1,
 
                           display: "flex",
                           alignItems: "center",

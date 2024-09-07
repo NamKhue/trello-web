@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { styled } from "@mui/system";
 
 import { useConfirm } from "material-ui-confirm";
 // import { useModal } from "mui-modal-provider";
@@ -25,6 +26,11 @@ import { useAuth } from "~/hooks/useAuth";
 import socket from "~/utils/socket/socket";
 
 import { getCommentsAPI } from "~/apis";
+
+const ClipTypography = styled(Typography)(() => ({
+  overflow: "hidden",
+  textOverflow: "clip",
+}));
 
 function Card({
   roleOfBoard,
@@ -313,7 +319,8 @@ function Card({
             )}
 
             {/* title */}
-            <Typography>{card?.title}</Typography>
+            {/* <Typography>{card?.title}</Typography> */}
+            <ClipTypography variant="body2">{card?.title}</ClipTypography>
 
             {/* icon representing for description & attachment */}
             {shouldShowIconRepresenting() && (
