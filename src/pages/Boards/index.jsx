@@ -90,31 +90,8 @@ function HomePage() {
   // load data
   useEffect(() => {
     if (loadedCount < 1) {
-      // call api to get data of all boards
-      fetchAllBoardsAPI().then(async (board) => {
-        setLoadedCount(loadedCount + 1);
-
-        // set for all boards
-        setAllBoards(sortListViaCreatedOrUpdatedTime(board));
-
-        // first set boards be all boards with ALL ROLES
-        setBoards(sortListViaCreatedOrUpdatedTime(board));
-      });
-
-      // set boards with ROLE `CREATOR`
-      fetchMyBoardsAPI().then(async (board) => {
-        setMyBoards(sortListViaCreatedOrUpdatedTime(board));
-      });
-
-      // set boards with ROLE `OWNER` - đồng sáng lập or cùng sở hữu
-      fetchOwnerBoardsAPI().then(async (board) => {
-        setOwnerBoards(sortListViaCreatedOrUpdatedTime(board));
-      });
-
-      // set boards with ROLE `MEMBER`
-      fetchMemberBoardsAPI().then(async (board) => {
-        setMemberBoards(sortListViaCreatedOrUpdatedTime(board));
-      });
+      reloadHomepageWhenThereAreChanges();
+      setLoadedCount(loadedCount + 1);
     }
   }, [loadedCount]);
   // ============================================================================
@@ -128,6 +105,11 @@ function HomePage() {
 
       // first set boards be all boards with ALL ROLES
       setBoards(sortListViaCreatedOrUpdatedTime(board));
+    });
+
+    // set boards with ROLE `CREATOR`
+    fetchMyBoardsAPI().then(async (board) => {
+      setMyBoards(sortListViaCreatedOrUpdatedTime(board));
     });
 
     // set boards with ROLE `OWNER` - đồng sáng lập or cùng sở hữu

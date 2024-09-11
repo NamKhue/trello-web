@@ -78,6 +78,47 @@ function BoardBar({
   }, [board]);
 
   // ================================================================================================
+  //
+  const [anchorElMenuInviteMember, setAnchorElMenuInviteMember] =
+    useState(null);
+
+  const handleOpenMenuInviteMember = (event) => {
+    setAnchorElMenuInviteMember(event.currentTarget);
+  };
+
+  const handleCloseMenuInviteMember = () => {
+    setRecipientEmail("");
+    setAnchorElMenuInviteMember(null);
+  };
+
+  //
+  const [anchorElModalMembersInBoard, setAnchorElModalMembersInBoard] =
+    useState(null);
+
+  const handleOpenModalMembersInBoard = (event) => {
+    setAnchorElModalMembersInBoard(event.currentTarget);
+  };
+
+  const handleCloseModalMembersInBoard = () => {
+    setSearchQueryMembersInBoard("");
+    setAnchorElModalMembersInBoard(null);
+  };
+
+  //
+  const [anchorElModalMoreOptions, setAnchorElModalMoreOptions] =
+    useState(null);
+
+  const handleOpenModalMoreOptions = (event) => {
+    setAnchorElModalMoreOptions(event.currentTarget);
+  };
+
+  const handleCloseModalMoreOptions = () => {
+    setRecipientEmail("");
+    setAnchorElModalMoreOptions(null);
+  };
+  // ================================================================================================
+
+  // ================================================================================================
   const [newBoardTitle, setNewBoardTitle] = useState(board?.title);
   // ================================================================================================
   // RENAME TITLE FOR BOARD
@@ -278,7 +319,7 @@ function BoardBar({
 
   // ================================================================================================
   useEffect(() => {
-    if (board) {
+    if (board && anchorElMenuInviteMember) {
       getPublicInvitationAPI(board._id)
         .then((res) => {
           const resInvitationForPublic = res;
@@ -293,7 +334,7 @@ function BoardBar({
           setPublicInvitationLink("");
         });
     }
-  }, [board]);
+  }, [board, anchorElMenuInviteMember]);
 
   const [isClickGenerateLink, setIsClickGenerateLink] = useState(false);
   const [publicInvitationLink, setPublicInvitationLink] = useState("");
@@ -401,47 +442,6 @@ function BoardBar({
         deleteBoard();
       })
       .catch(() => {});
-  };
-
-  // ================================================================================================
-  // ================================================================================================
-  //
-  const [anchorElMenuInviteMember, setAnchorElMenuInviteMember] =
-    useState(null);
-
-  const handleOpenMenuInviteMember = (event) => {
-    setAnchorElMenuInviteMember(event.currentTarget);
-  };
-
-  const handleCloseMenuInviteMember = () => {
-    setRecipientEmail("");
-    setAnchorElMenuInviteMember(null);
-  };
-
-  //
-  const [anchorElModalMembersInBoard, setAnchorElModalMembersInBoard] =
-    useState(null);
-
-  const handleOpenModalMembersInBoard = (event) => {
-    setAnchorElModalMembersInBoard(event.currentTarget);
-  };
-
-  const handleCloseModalMembersInBoard = () => {
-    setSearchQueryMembersInBoard("");
-    setAnchorElModalMembersInBoard(null);
-  };
-
-  //
-  const [anchorElModalMoreOptions, setAnchorElModalMoreOptions] =
-    useState(null);
-
-  const handleOpenModalMoreOptions = (event) => {
-    setAnchorElModalMoreOptions(event.currentTarget);
-  };
-
-  const handleCloseModalMoreOptions = () => {
-    setRecipientEmail("");
-    setAnchorElModalMoreOptions(null);
   };
 
   // ================================================================================================
@@ -1193,14 +1193,19 @@ function BoardBar({
                             alignItems: "center",
                             justifyContent: "center",
                             borderRadius: "50%",
+
+                            border: (theme) =>
+                              theme.palette.mode === "dark"
+                                ? `2px solid ${theme.trelloCustom.COLOR_7236AE}`
+                                : `2px solid ${theme.trelloCustom.COLOR_B469FF}`,
                             color: (theme) =>
                               theme.palette.mode === "dark"
-                                ? theme.trelloCustom.COLOR_F8F8F8
-                                : theme.trelloCustom.COLOR_F8F8F8,
+                                ? theme.trelloCustom.COLOR_B469FF
+                                : theme.trelloCustom.COLOR_7236AE,
                             bgcolor: (theme) =>
                               theme.palette.mode === "dark"
-                                ? theme.trelloCustom.COLOR_C200D3
-                                : theme.trelloCustom.COLOR_C0C0C0,
+                                ? theme.trelloCustom.COLOR_3A135F
+                                : theme.trelloCustom.COLOR_EDDAFF,
                           }}
                         >
                           {/* A */}

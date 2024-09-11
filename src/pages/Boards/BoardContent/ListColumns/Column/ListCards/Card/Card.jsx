@@ -17,7 +17,6 @@ import Avatar from "@mui/material/Avatar";
 import { TbFileDescription } from "react-icons/tb";
 import { CgAttachment } from "react-icons/cg";
 import { CiCalendar } from "react-icons/ci";
-import QuestionAnswerIcon from "@mui/icons-material/QuestionAnswer";
 
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -25,14 +24,15 @@ import { CSS } from "@dnd-kit/utilities";
 import { useAuth } from "~/hooks/useAuth";
 import socket from "~/utils/socket/socket";
 
-import { getCommentsAPI } from "~/apis";
-
 const ClipTypography = styled(Typography)(() => ({
   overflow: "hidden",
   textOverflow: "clip",
 }));
 
 function Card({
+  startClickingCard,
+  stopClickingCard,
+
   roleOfBoard,
   card,
 
@@ -56,40 +56,12 @@ function Card({
   // ============================================================================
   useEffect(() => {
     if (card.members && loggedInUser) {
-      // const isMemberOfCard = card.members.some(
-      //   (member) => member.userId === loggedInUser._id
-      // );
-      // setUserIsMemberOfCard(isMemberOfCard);
-
       checkUserIsMemberOfCard(card.members);
     }
   }, []);
 
   // ============================================================================
-  const [comments, setComments] = useState([]);
-
-  // load comments' data
-  useEffect(() => {
-    if (card && !card._id.includes("placeholder-card")) {
-      getCommentsAPI(card._id, card.boardId).then((resComments) => {
-        setComments(resComments);
-      });
-    }
-  }, [card]);
-
-  // ============================================================================
   //socket
-
-  // new-comment
-  useEffect(() => {
-    if (card && !card._id.includes("placeholder-card")) {
-      socket.on("new-comment", () => {
-        getCommentsAPI(card._id, card.boardId).then((resComments) => {
-          setComments(resComments);
-        });
-      });
-    }
-  }, [card]);
 
   useEffect(() => {
     // add-user-into-card
@@ -139,11 +111,7 @@ function Card({
   };
 
   const shouldShowIconRepresenting = () => {
-    return (
-      !!card?.description?.length ||
-      !!card?.attachments?.length ||
-      !!comments?.length
-    );
+    return !!card?.description?.length || !!card?.attachments?.length;
   };
 
   const shouldShowDateAndMember = () => {
@@ -210,6 +178,8 @@ function Card({
     <div>
       <div
         key={card}
+        onMouseDown={startClickingCard}
+        onMouseUp={stopClickingCard}
         onContextMenu={
           roleOfBoard != "member" || userIsMemberOfCard
             ? handleContextMenu(card)
@@ -246,6 +216,11 @@ function Card({
                 theme.palette.mode === "dark"
                   ? `0px 2px 10px ${theme.trelloCustom.COLOR_1E252A}`
                   : `0px 2px 10px ${theme.trelloCustom.COLOR_CBCBCB}`,
+            },
+
+            "&.MuiPaper-root.MuiCard-root": {
+              transition: "transform linear",
+              transform: "translate3d(0, 0, 0)",
             },
           }}
         >
@@ -350,14 +325,6 @@ function Card({
                   <CgAttachment
                     style={{
                       fontSize: ".9rem",
-                    }}
-                  />
-                )}
-
-                {!!comments.length && (
-                  <QuestionAnswerIcon
-                    sx={{
-                      width: "1rem",
                     }}
                   />
                 )}

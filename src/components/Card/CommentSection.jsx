@@ -9,7 +9,7 @@ import en_short from "timeago.js/lib/lang/en_short";
 // register
 timeago.register("en_US", en_short);
 
-import { TextField, Box, Paper, List, ListItem } from "@mui/material";
+import { TextField, Box, Paper, ListItem, Popper } from "@mui/material";
 
 import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";
 import SendIcon from "@mui/icons-material/Send";
@@ -29,22 +29,19 @@ const CommentSection = ({ card, userIsMemberOfCard }) => {
   const [newComment, setNewComment] = useState("");
   const [replyContent, setReplyContent] = useState("");
   const [currentReplyId, setCurrentReplyId] = useState(null);
-  const [currentReply, setCurrentReply] = useState(null);
   // ============================================================================
   const [mentions, setMentions] = useState([]);
-  const [autocompleteQuery, setAutocompleteQuery] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [mentionIndex, setMentionIndex] = useState(-1); // Track the selected suggestion index
-  const [suggestionPosition, setSuggestionPosition] = useState({
-    top: 0,
-    left: 0,
-  });
   const [isComment, setIsComment] = useState(false);
 
   // ============================================================================
   const newCommentRef = useRef(null);
   const replyRef = useRef(null);
   const commentsListRef = useRef(null);
+
+  const [showMenu, setShowMenu] = useState(false);
+  const [anchorEl, setAnchorEl] = useState(null);
 
   // ============================================================================
   // load comments' data
@@ -119,42 +116,43 @@ const CommentSection = ({ card, userIsMemberOfCard }) => {
 
   // ============================================================================
   const handleCommentChange = (e) => {
-    const value = e.target.value;
-    setNewComment(value);
-    updateSuggestionPosition(e.target);
-    handleMentions(value, setNewComment);
-
     if (currentReplyId !== null) {
       setReplyContent("");
       replyRef.current?.blur();
       setCurrentReplyId(null);
-      setCurrentReply(null);
     }
+
+    const value = e.target.value;
+    setAnchorEl(e.target);
+    setNewComment(value);
+    handleMentions(value);
   };
 
   const handleReplyChange = (e) => {
-    const value = e.target.value;
-    setReplyContent(value);
-    updateSuggestionPosition(e.target);
-    handleMentions(value, setReplyContent);
-
     if (newComment.trim() !== "") {
       setNewComment("");
-      newCommentRef.current?.blur(); // Close comment field
+      newCommentRef.current?.blur();
     }
+
+    const value = e.target.value;
+    setAnchorEl(e.target);
+    setReplyContent(value);
+    handleMentions(value);
   };
 
   // ============================================================================
-  const handleMentions = (value, setContent) => {
+  const handleMentions = (value) => {
     const atIndex = value.lastIndexOf("@");
     if (atIndex !== -1) {
+      setShowMenu(true);
+
       const query = value.substring(atIndex + 1);
-      setAutocompleteQuery(query);
       findMentionedUser(query).then((users) => {
         setSuggestions(users);
         setMentionIndex(-1);
       });
     } else {
+      setShowMenu(false);
       setSuggestions([]);
     }
 
@@ -173,31 +171,6 @@ const CommentSection = ({ card, userIsMemberOfCard }) => {
     }
 
     return mentions;
-  };
-
-  // ============================================================================
-  const handleKeyDown = (e) => {
-    if (suggestions.length === 0) return;
-
-    switch (e.key) {
-      case "ArrowDown":
-        setMentionIndex((prev) => (prev + 1) % suggestions.length);
-        break;
-      case "ArrowUp":
-        setMentionIndex(
-          (prev) => (prev - 1 + suggestions.length) % suggestions.length
-        );
-        break;
-      case "Enter":
-        e.preventDefault();
-        selectUser(suggestions[mentionIndex]);
-        break;
-      case "Escape":
-        setSuggestions([]);
-        break;
-      default:
-        break;
-    }
   };
 
   // ============================================================================
@@ -227,18 +200,7 @@ const CommentSection = ({ card, userIsMemberOfCard }) => {
     setMentions((prev) => [...prev, user.username]);
     setSuggestions([]);
     setMentionIndex(-1);
-  };
-
-  // ============================================================================
-  const updateSuggestionPosition = (target) => {
-    if (target) {
-      const rect = target.getBoundingClientRect();
-      setSuggestionPosition({
-        top: rect.bottom + window.scrollY + 6 - 80,
-        // left: rect.left + window.scrollX - 1115,
-        left: rect.left + window.scrollX - 280,
-      });
-    }
+    setAnchorEl(null);
   };
 
   // ============================================================================
@@ -270,7 +232,8 @@ const CommentSection = ({ card, userIsMemberOfCard }) => {
       "new-comment",
       card.boardId,
       savedComment,
-      resNewComment.listNotiForAllMembersOfCard
+      resNewComment.listNotiForAllMembersOfCard,
+      loggedInUser._id
     );
 
     setComments((prevComments) => [savedComment, ...prevComments]);
@@ -344,7 +307,6 @@ const CommentSection = ({ card, userIsMemberOfCard }) => {
     setReplyContent("");
     setMentions([]);
     setCurrentReplyId(null);
-    setCurrentReply(null);
     setIsComment(false);
   };
 
@@ -360,11 +322,24 @@ const CommentSection = ({ card, userIsMemberOfCard }) => {
               key={index}
               component="span"
               sx={{
+                mr: 0,
+                px: 1,
+                pt: 0.35,
+                pb: 0.4,
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: ".9rem",
                 fontWeight: "bold",
+                borderRadius: "4px",
                 color: (theme) =>
                   theme.palette.mode === "dark"
-                    ? theme.trelloCustom.COLOR_D7D7D7
-                    : theme.trelloCustom.COLOR_313131,
+                    ? theme.trelloCustom.COLOR_CE85FB
+                    : theme.trelloCustom.COLOR_7236AE,
+                bgcolor: (theme) =>
+                  theme.palette.mode === "dark"
+                    ? theme.trelloCustom.COLOR_463666
+                    : theme.trelloCustom.COLOR_EDDAFF,
               }}
             >
               @{part}{" "}
@@ -415,9 +390,10 @@ const CommentSection = ({ card, userIsMemberOfCard }) => {
               ? 1
               : "1px"
             : 0,
-          px: !isReplies ? 1 : 3,
-          pt: !isReplies ? 1 : 0.5,
-          pb: !isReplies ? 0.5 : 0.5,
+          pl: !isReplies ? 1 : 3,
+          pr: !isReplies ? 2 : 0,
+          pt: !isReplies ? 1 : 0.25,
+          pb: !isReplies ? 0.5 : 0.25,
           borderRadius: "10px",
           border: (theme) =>
             theme.palette.mode === "dark"
@@ -445,10 +421,31 @@ const CommentSection = ({ card, userIsMemberOfCard }) => {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
+              fontSize: !isReplies ? "1rem" : ".8rem",
+              WebkitUserSelect: "none",
+              MsUserSelect: "none",
+              userSelect: "none",
+
               borderRadius: "50%",
-              bgcolor: "#ddd",
+              border: (theme) =>
+                theme.palette.mode === "dark"
+                  ? `2px solid ${theme.trelloCustom.COLOR_7236AE}`
+                  : `2px solid ${theme.trelloCustom.COLOR_B469FF}`,
+              color: (theme) =>
+                theme.palette.mode === "dark"
+                  ? theme.trelloCustom.COLOR_B469FF
+                  : theme.trelloCustom.COLOR_7236AE,
+              bgcolor: (theme) =>
+                theme.palette.mode === "dark"
+                  ? theme.trelloCustom.COLOR_3A135F
+                  : theme.trelloCustom.COLOR_EDDAFF,
             }}
-          ></Box>
+          >
+            {card.members
+              .find((user) => user.userId === comment.author)
+              ?.username.charAt(0)
+              .toUpperCase()}
+          </Box>
 
           <Box
             sx={{
@@ -494,9 +491,11 @@ const CommentSection = ({ card, userIsMemberOfCard }) => {
                     theme.palette.mode === "dark"
                       ? theme.trelloCustom.COLOR_818181
                       : theme.trelloCustom.COLOR_818181,
+                  WebkitUserSelect: "none",
+                  MsUserSelect: "none",
+                  userSelect: "none",
                 }}
               >
-                {/* {DateTime.fromISO(comment.createdAt).toRelative()} */}
                 <TimeAgo datetime={comment.createdAt} locale="en" />
               </Box>
 
@@ -519,13 +518,14 @@ const CommentSection = ({ card, userIsMemberOfCard }) => {
                   onClick={() => {
                     if (currentReplyId !== comment._id) {
                       setCurrentReplyId(comment._id);
-                      setCurrentReply(comment);
                       setReplyContent("");
+                      setSuggestions([]);
 
+                      setNewComment("");
                       newCommentRef.current?.blur();
                     } else {
                       setCurrentReplyId(null);
-                      setCurrentReply(null);
+                      setSuggestions([]);
                     }
                   }}
                   sx={{
@@ -534,6 +534,10 @@ const CommentSection = ({ card, userIsMemberOfCard }) => {
                     py: 0.25,
                     fontSize: "0.8rem",
                     fontWeight: "bold",
+                    WebkitUserSelect: "none",
+                    MsUserSelect: "none",
+                    userSelect: "none",
+
                     color: (theme) =>
                       theme.palette.mode === "dark"
                         ? theme.trelloCustom.COLOR_818181
@@ -562,7 +566,7 @@ const CommentSection = ({ card, userIsMemberOfCard }) => {
           }}
         >
           {currentReplyId === comment._id && (
-            <Box sx={{ mt: 0, ml: 3 }}>
+            <Box sx={{ mt: 0, pt: 0.25, pb: 0.25, ml: 3 }}>
               <Box
                 sx={{
                   height: "35px",
@@ -580,10 +584,24 @@ const CommentSection = ({ card, userIsMemberOfCard }) => {
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
+                    fontSize: ".8rem",
                     borderRadius: "50%",
-                    bgcolor: "#ddd",
+                    border: (theme) =>
+                      theme.palette.mode === "dark"
+                        ? `2px solid ${theme.trelloCustom.COLOR_7236AE}`
+                        : `2px solid ${theme.trelloCustom.COLOR_B469FF}`,
+                    color: (theme) =>
+                      theme.palette.mode === "dark"
+                        ? theme.trelloCustom.COLOR_B469FF
+                        : theme.trelloCustom.COLOR_7236AE,
+                    bgcolor: (theme) =>
+                      theme.palette.mode === "dark"
+                        ? theme.trelloCustom.COLOR_3A135F
+                        : theme.trelloCustom.COLOR_EDDAFF,
                   }}
-                ></Box>
+                >
+                  {loggedInUser.username.charAt(0).toUpperCase()}
+                </Box>
 
                 <TextField
                   autoFocus
@@ -592,7 +610,11 @@ const CommentSection = ({ card, userIsMemberOfCard }) => {
                   maxRows={1}
                   value={replyContent}
                   onChange={handleReplyChange}
-                  onKeyDown={handleKeyDown}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      submitReply();
+                    }
+                  }}
                   placeholder="Write a reply..."
                   ref={replyRef}
                   sx={{
@@ -696,134 +718,6 @@ const CommentSection = ({ card, userIsMemberOfCard }) => {
         justifyContent: "space-between",
       }}
     >
-      <Box
-        ref={commentsListRef}
-        sx={{
-          minHeight: loading ? "100px" : 0,
-          // maxHeight: "400px",
-          flex: 1,
-          overflowY: "auto",
-
-          "&::-webkit-scrollbar": {
-            width: "5px",
-            height: "0",
-          },
-          "&::-webkit-scrollbar-thumb": {
-            backgroundColor: (theme) =>
-              theme.palette.mode === "dark"
-                ? theme.trelloCustom.COLOR_463666
-                : theme.trelloCustom.COLOR_C0C0C0,
-          },
-          "&::-webkit-scrollbar-thumb:hover": {
-            backgroundColor: (theme) =>
-              theme.palette.mode === "dark"
-                ? theme.trelloCustom.COLOR_7236AE
-                : theme.trelloCustom.COLOR_818181,
-          },
-        }}
-      >
-        {!loading ? (
-          !comments.length ? (
-            <Box
-              sx={{
-                height: "100px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-
-                borderRadius: "10px",
-                border: (theme) =>
-                  theme.palette.mode === "dark"
-                    ? `2px solid ${theme.trelloCustom.COLOR_3C0E5E}`
-                    : `2px solid ${theme.trelloCustom.COLOR_D7D7D7}`,
-              }}
-            >
-              Comment is empty
-            </Box>
-          ) : (
-            renderComments(comments, false)
-          )
-        ) : (
-          <Box
-            sx={{
-              minHeight: loading ? "100px" : 0,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-
-              borderRadius: "10px",
-              border: (theme) =>
-                theme.palette.mode === "dark"
-                  ? `2px solid ${theme.trelloCustom.COLOR_3C0E5E}`
-                  : `2px solid ${theme.trelloCustom.COLOR_D7D7D7}`,
-            }}
-          >
-            {"Loading..."}
-          </Box>
-        )}
-      </Box>
-
-      {suggestions.length > 0 && (
-        <Paper
-          elevation={3}
-          sx={{
-            position: "absolute",
-            top: suggestionPosition.top,
-            left: suggestionPosition.left,
-            zIndex: 2,
-            maxHeight: "200px",
-            overflowY: "auto",
-            borderRadius: "12px",
-            color: (theme) =>
-              theme.palette.mode === "dark"
-                ? theme.trelloCustom.COLOR_E6E6E6
-                : theme.trelloCustom.COLOR_313131,
-            bgcolor: (theme) =>
-              theme.palette.mode === "dark"
-                ? theme.trelloCustom.COLOR_13091B
-                : theme.trelloCustom.COLOR_F8F8F8,
-          }}
-        >
-          <List
-            sx={{
-              maxHeight: "150px",
-              overflowY: "auto",
-              overflowX: "hidden",
-
-              "&.MuiList-root": {
-                mx: 1,
-              },
-            }}
-          >
-            {suggestions.map((user, index) => (
-              <ListItem
-                key={user.userId}
-                onClick={() => selectUser(user)}
-                selected={mentionIndex === index}
-                sx={{
-                  "&:hover": {
-                    cursor: "pointer",
-                    bgcolor: "#ddd",
-                  },
-
-                  "&.MuiListItem-root": {
-                    borderRadius: "8px",
-                  },
-                  "&.MuiListItem-root:hover": {
-                    bgcolor: (theme) =>
-                      theme.palette.mode === "dark"
-                        ? theme.trelloCustom.COLOR_463666
-                        : theme.trelloCustom.COLOR_E6E6E6,
-                  },
-                }}
-              >
-                {user.username}
-              </ListItem>
-            ))}
-          </List>
-        </Paper>
-      )}
-
       {userIsMemberOfCard && (
         <Box
           sx={{
@@ -832,10 +726,8 @@ const CommentSection = ({ card, userIsMemberOfCard }) => {
             alignItems: "center",
             justifyContent: "space-between",
             gap: 1,
-            mt: 1.5,
-            // mx: 1,
-            // mt: 0.5,
-            // mb: 1.5,
+            // mt: 1.5,
+            mb: 1.5,
           }}
         >
           <Box
@@ -846,9 +738,22 @@ const CommentSection = ({ card, userIsMemberOfCard }) => {
               alignItems: "center",
               justifyContent: "center",
               borderRadius: "50%",
-              bgcolor: "#ddd",
+              border: (theme) =>
+                theme.palette.mode === "dark"
+                  ? `2px solid ${theme.trelloCustom.COLOR_7236AE}`
+                  : `2px solid ${theme.trelloCustom.COLOR_B469FF}`,
+              color: (theme) =>
+                theme.palette.mode === "dark"
+                  ? theme.trelloCustom.COLOR_B469FF
+                  : theme.trelloCustom.COLOR_7236AE,
+              bgcolor: (theme) =>
+                theme.palette.mode === "dark"
+                  ? theme.trelloCustom.COLOR_3A135F
+                  : theme.trelloCustom.COLOR_EDDAFF,
             }}
-          ></Box>
+          >
+            {loggedInUser.username.charAt(0).toUpperCase()}
+          </Box>
 
           <TextField
             multiline
@@ -856,9 +761,19 @@ const CommentSection = ({ card, userIsMemberOfCard }) => {
             maxRows={2}
             value={newComment}
             onChange={handleCommentChange}
-            onKeyDown={handleKeyDown}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                submitComment();
+              }
+            }}
             placeholder="Write a comment..."
             ref={newCommentRef}
+            onClick={() => {
+              setCurrentReplyId(null);
+              setSuggestions([]);
+
+              replyRef.current?.blur();
+            }}
             sx={{
               flex: 1,
               "& .MuiInputBase-root.MuiOutlinedInput-root": {
@@ -937,6 +852,124 @@ const CommentSection = ({ card, userIsMemberOfCard }) => {
             }}
           />
         </Box>
+      )}
+
+      <Box
+        ref={commentsListRef}
+        sx={{
+          minHeight: loading ? "100px" : 0,
+          // maxHeight: "400px",
+          flex: 1,
+          overflowY: "auto",
+
+          "&::-webkit-scrollbar": {
+            width: "5px",
+            height: "0",
+          },
+          "&::-webkit-scrollbar-thumb": {
+            backgroundColor: (theme) =>
+              theme.palette.mode === "dark"
+                ? theme.trelloCustom.COLOR_463666
+                : theme.trelloCustom.COLOR_C0C0C0,
+          },
+          "&::-webkit-scrollbar-thumb:hover": {
+            backgroundColor: (theme) =>
+              theme.palette.mode === "dark"
+                ? theme.trelloCustom.COLOR_7236AE
+                : theme.trelloCustom.COLOR_818181,
+          },
+        }}
+      >
+        {!loading ? (
+          !comments.length ? (
+            <Box
+              sx={{
+                height: "100px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+
+                borderRadius: "10px",
+                border: (theme) =>
+                  theme.palette.mode === "dark"
+                    ? `2px solid ${theme.trelloCustom.COLOR_3C0E5E}`
+                    : `2px solid ${theme.trelloCustom.COLOR_D7D7D7}`,
+              }}
+            >
+              Comment is empty
+            </Box>
+          ) : (
+            renderComments(comments, false)
+          )
+        ) : (
+          <Box
+            sx={{
+              // minHeight: loading ? "100px" : 0,
+              minHeight: "100px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+
+              borderRadius: "10px",
+              border: (theme) =>
+                theme.palette.mode === "dark"
+                  ? `2px solid ${theme.trelloCustom.COLOR_3C0E5E}`
+                  : `2px solid ${theme.trelloCustom.COLOR_D7D7D7}`,
+            }}
+          >
+            {"Loading..."}
+          </Box>
+        )}
+      </Box>
+
+      {suggestions.length > 0 && (
+        <Popper
+          open={showMenu}
+          anchorEl={anchorEl}
+          placement="bottom-start"
+          modifiers={[{ name: "offset", options: { offset: [0, 5] } }]}
+          sx={{
+            zIndex: 1300,
+
+            maxHeight: "200px",
+            overflowY: "auto",
+            boxShadow: 6,
+            borderRadius: "12px",
+          }}
+        >
+          <Paper
+            sx={{
+              padding: "8px",
+              border: "1px solid transparent",
+            }}
+          >
+            {suggestions.map((user, index) => (
+              <ListItem
+                key={user.userId}
+                onClick={() => selectUser(user)}
+                selected={mentionIndex === index}
+                sx={{
+                  "&:hover": {
+                    cursor: "pointer",
+                    bgcolor: "#eee",
+                  },
+
+                  "&.MuiListItem-root": {
+                    borderRadius: "8px",
+                  },
+                  "&.MuiListItem-root:hover": {
+                    bgcolor: (theme) =>
+                      theme.palette.mode === "dark"
+                        ? theme.trelloCustom.COLOR_463666
+                        : theme.trelloCustom.COLOR_E6E6E6,
+                  },
+                }}
+              >
+                {user.username}
+              </ListItem>
+            ))}
+          </Paper>
+        </Popper>
       )}
     </Box>
   );

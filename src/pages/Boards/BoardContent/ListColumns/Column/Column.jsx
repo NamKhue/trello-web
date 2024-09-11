@@ -36,6 +36,9 @@ import ListCards from "./ListCards/ListCards";
 import socket from "~/utils/socket/socket";
 
 function Column({
+  startClickingCard,
+  stopClickingCard,
+
   isDraggingDnD,
 
   roleOfBoard,
@@ -534,6 +537,9 @@ function Column({
 
         {/* list card */}
         <ListCards
+          startClickingCard={startClickingCard}
+          stopClickingCard={stopClickingCard}
+          isDraggingDnD={isDraggingDnD}
           openNewCardForm={openNewCardForm}
           roleOfBoard={roleOfBoard}
           cards={orderedCards}
@@ -700,10 +706,10 @@ function Column({
                         },
                       },
 
-                      //
-                      "& .MuiInputBase-input.MuiOutlinedInput-input": {
-                        color: "black",
-                      },
+                      // //
+                      // "& .MuiInputBase-input.MuiOutlinedInput-input": {
+                      //   color: "black",
+                      // },
                     }}
                   />
 

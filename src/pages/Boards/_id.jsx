@@ -51,11 +51,83 @@ function Board() {
   // ============================================================================
   const { id } = useParams();
   const boardId = id;
+
+  // // ============================================================================
+  // // ============================================================================
+  // const [boardLoadedCount, setBoardLoadedCount] = useState(0);
+  // const [loadedOtherDataCount, setLoadedOtherDataCount] = useState(0);
+  // const [loading, setLoading] = useState(true);
+
+  // const [board, setBoard] = useState(null);
+  // const [roleOfBoard, setRoleOfBoard] = useState("");
+  // const [allMembersInBoard, setAllMembersInBoard] = useState([]);
+
+  // // ============================================================================
+  // // load data of board
+  // useEffect(() => {
+  //   if (boardLoadedCount < 1) {
+  //     setBoardLoadedCount(boardLoadedCount + 1);
+
+  //     fetchBoardDetailsAPI(boardId)
+  //       .then((board) => {
+  //         // sắp xếp dữ liệu columns
+  //         board.columns = mapOrder(board.columns, board.columnOrderIds, "_id");
+  //         // console.log('board:', board)
+
+  //         board.columns.forEach((column) => {
+  //           // cần xử lý vấn đề kéo thả khi đưa vào 1 column rỗng
+  //           if (isEmpty(column.cards)) {
+  //             column.cards = [generatePlaceholderCard(column)];
+  //             column.cardOrderIds = [generatePlaceholderCard(column)._id];
+  //           } else {
+  //             // sắp xếp dữ liệu cards
+  //             column.cards = mapOrder(column.cards, column.cardOrderIds, "_id");
+  //             // console.log('column.cards:', column.cards)
+  //           }
+  //         });
+
+  //         // console.log("board:", board);
+
+  //         setBoard(board);
+  //       })
+  //       .catch((error) => {
+  //         toast.error(error.response.data.message);
+  //         navigate("/homepage");
+  //       });
+  //   }
+  // }, [boardLoadedCount, boardId, roleOfBoard, board, navigate]);
+
+  // // load more other data
+  // useEffect(() => {
+  //   if (loadedOtherDataCount < 1 && board != null) {
+  //     setLoadedOtherDataCount(loadedOtherDataCount + 1);
+
+  //     // load role of user in board
+  //     // lấy dữ liệu vai trò của bảng từ boardUser qua api
+  //     // get the user's role in current board
+  //     fetchRoleOfBoardsAPI(board._id).then((res) => {
+  //       setRoleOfBoard(res);
+  //     });
+
+  //     // load all members in board
+  //     fetchAllMembersAPI(board._id).then((res) => {
+  //       setAllMembersInBoard(res);
+  //     });
+
+  //     setLoading(false);
+  //   }
+  // }, [loadedOtherDataCount, board]);
+
   // ============================================================================
   // ============================================================================
-  const [boardLoadedCount, setBoardLoadedCount] = useState(0);
-  const [loadedOtherDataCount, setLoadedOtherDataCount] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const MAX_RETRY_LOAD_MORE = 20;
+  const [retryCount, setRetryCount] = useState(0);
+  // const [boardLoadedCount, setBoardLoadedCount] = useState(0);
+  // const [loadedOtherDataCount, setLoadedOtherDataCount] = useState(0);
+
+  // const [loading, setLoading] = useState(true);
+  const [boardLoading, setBoardLoading] = useState(true);
+  const [allLoading, setAllLoading] = useState(true);
 
   const [board, setBoard] = useState(null);
   const [roleOfBoard, setRoleOfBoard] = useState("");
@@ -65,45 +137,64 @@ function Board() {
   // const [error, setError] = useState(null);
 
   // ============================================================================
+
+  // ============================================================================
   // load data of board
   useEffect(() => {
-    if (boardLoadedCount < 1) {
-      setBoardLoadedCount(boardLoadedCount + 1);
+    if (retryCount < MAX_RETRY_LOAD_MORE && boardLoading) {
+      // console.log("refresh board");
 
-      fetchBoardDetailsAPI(boardId)
-        .then((board) => {
-          // sắp xếp dữ liệu columns
-          board.columns = mapOrder(board.columns, board.columnOrderIds, "_id");
-          // console.log('board:', board)
+      const interval = setInterval(() => {
+        setRetryCount((prevCount) => prevCount + 1);
 
-          board.columns.forEach((column) => {
-            // cần xử lý vấn đề kéo thả khi đưa vào 1 column rỗng
-            if (isEmpty(column.cards)) {
-              column.cards = [generatePlaceholderCard(column)];
-              column.cardOrderIds = [generatePlaceholderCard(column)._id];
-            } else {
-              // sắp xếp dữ liệu cards
-              column.cards = mapOrder(column.cards, column.cardOrderIds, "_id");
-              // console.log('column.cards:', column.cards)
+        fetchBoardDetailsAPI(boardId)
+          .then((board) => {
+            // sắp xếp dữ liệu columns
+            board.columns = mapOrder(
+              board.columns,
+              board.columnOrderIds,
+              "_id"
+            );
+            // console.log('board:', board)
+
+            board.columns.forEach((column) => {
+              // cần xử lý vấn đề kéo thả khi đưa vào 1 column rỗng
+              if (isEmpty(column.cards)) {
+                column.cards = [generatePlaceholderCard(column)];
+                column.cardOrderIds = [generatePlaceholderCard(column)._id];
+              } else {
+                // sắp xếp dữ liệu cards
+                column.cards = mapOrder(
+                  column.cards,
+                  column.cardOrderIds,
+                  "_id"
+                );
+                // console.log('column.cards:', column.cards)
+              }
+            });
+
+            // console.log("board:", board);
+
+            setBoard(board);
+
+            setBoardLoading(false);
+          })
+          .catch((error) => {
+            if (!boardLoading) {
+              toast.error(error.response.data.message);
+              navigate("/homepage");
             }
           });
+        //
+      }, 2000);
 
-          // console.log("board:", board);
-
-          setBoard(board);
-        })
-        .catch((error) => {
-          toast.error(error.response.data.message);
-          navigate("/homepage");
-        });
+      return () => clearInterval(interval);
     }
-  }, [boardLoadedCount, boardId, roleOfBoard, board, navigate]);
+  }, [MAX_RETRY_LOAD_MORE, boardId, retryCount, boardLoading]);
 
   // load more other data
   useEffect(() => {
-    if (loadedOtherDataCount < 1 && board != null) {
-      setLoadedOtherDataCount(loadedOtherDataCount + 1);
-
+    if (!boardLoading) {
       // load role of user in board
       // lấy dữ liệu vai trò của bảng từ boardUser qua api
       // get the user's role in current board
@@ -116,9 +207,9 @@ function Board() {
         setAllMembersInBoard(res);
       });
 
-      setLoading(false);
+      setAllLoading(false);
     }
-  }, [loadedOtherDataCount, board]);
+  }, [boardLoading, board]);
 
   // ============================================================================
   // socket when board is change
@@ -892,7 +983,8 @@ function Board() {
   return (
     <div>
       {/* {!board ? ( */}
-      {loading ? (
+      {/* {loading ? ( */}
+      {allLoading ? (
         <Box
           sx={{
             display: "flex",
@@ -913,7 +1005,16 @@ function Board() {
           <Typography>Loading Board...</Typography>
         </Box>
       ) : (
-        <Container disableGutters maxWidth={false} sx={{ height: "100vh" }}>
+        <Container
+          disableGutters
+          maxWidth={false}
+          sx={{
+            height: "100vh",
+            WebkitUserSelect: "none",
+            MsUserSelect: "none",
+            userSelect: "none",
+          }}
+        >
           {/* ============================================================================ */}
           {/* APP BAR */}
           <AppBar socket={socket} />
