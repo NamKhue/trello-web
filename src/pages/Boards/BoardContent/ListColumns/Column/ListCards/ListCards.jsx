@@ -9,8 +9,13 @@ import {
 } from "@dnd-kit/sortable";
 
 function ListCards({
-  roleOfBoard,
+  startClickingCard,
+  stopClickingCard,
+
+  isDraggingDnD,
   openNewCardForm,
+
+  roleOfBoard,
 
   cards,
   deleteCardDetails,
@@ -62,7 +67,7 @@ function ListCards({
             )`,
 
           "&::-webkit-scrollbar": {
-            width: "4px",
+            width: !isDraggingDnD ? "4px" : "0px",
             height: "5px",
           },
           "&::-webkit-scrollbar-thumb": {
@@ -79,6 +84,8 @@ function ListCards({
         {cards?.map((card) => (
           <Card
             key={card._id}
+            startClickingCard={startClickingCard}
+            stopClickingCard={stopClickingCard}
             roleOfBoard={roleOfBoard}
             card={card}
             deleteCardDetails={deleteCardDetails}

@@ -466,6 +466,56 @@ const Notification = () => {
   };
 
   // ============================================================================
+  const renderCommentContent = (content) => {
+    const mentionPattern = /@(\w+)/g;
+    return content.split(mentionPattern).map((part, index) => {
+      if (index % 2 === 1) {
+        return (
+          <Box
+            key={index}
+            component="span"
+            sx={{
+              mr: 0,
+              px: 1,
+              pt: 0.35,
+              pb: 0.4,
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: ".9rem",
+              fontWeight: "bold",
+              borderRadius: "4px",
+              color: (theme) =>
+                theme.palette.mode === "dark"
+                  ? theme.trelloCustom.COLOR_CE85FB
+                  : theme.trelloCustom.COLOR_7236AE,
+              bgcolor: (theme) =>
+                theme.palette.mode === "dark" ? "#4f3386" : "#DEB9FF",
+            }}
+          >
+            @{part}{" "}
+          </Box>
+        );
+      }
+      return (
+        <Box
+          key={index}
+          component="span"
+          sx={{
+            fontSize: ".9rem",
+            color: (theme) =>
+              theme.palette.mode === "dark"
+                ? theme.trelloCustom.COLOR_D7D7D7
+                : theme.trelloCustom.COLOR_313131,
+          }}
+        >
+          {part}
+        </Box>
+      );
+    });
+  };
+
+  // ============================================================================
   // ============================================================================
   return (
     <Box>
@@ -946,7 +996,7 @@ const Notification = () => {
                                   : theme.trelloCustom.COLOR_EDDAFF,
                             }}
                           >
-                            {notification.contentComment}
+                            {renderCommentContent(notification.contentComment)}
                           </Box>
                         )}
 

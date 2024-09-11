@@ -18,7 +18,7 @@ import Select from "@mui/material/Select";
 import InputLabel from "@mui/material/InputLabel";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
-import Dialog from "@mui/material/Dialog";
+import Modal from "@mui/material/Modal";
 
 import IconButton from "@mui/material/IconButton";
 import ClearIcon from "@mui/icons-material/Clear";
@@ -1291,21 +1291,13 @@ const CardModal = ({
   // ============================================================================
   // ============================================================================
   return (
-    <Dialog
-      open={true}
-      onClose={onCloseModalCard}
-      sx={{
-        "& .MuiDialog-paper": {
-          // maxWidth: "sm",
-          maxWidth: "fit-content",
-          maxHeight: "fit-content",
-          borderRadius: 2,
-          margin: 0,
-        },
-      }}
-    >
+    <Modal open={true} onClose={onCloseModalCard}>
       <Box
         sx={{
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
           width: (theme) => theme.trelloCustom.MODAL_CARD_WIDTH,
 
           pt: 2,
@@ -2444,14 +2436,19 @@ const CardModal = ({
                                         alignItems: "center",
                                         justifyContent: "center",
                                         borderRadius: "50%",
+
+                                        border: (theme) =>
+                                          theme.palette.mode === "dark"
+                                            ? `2px solid ${theme.trelloCustom.COLOR_7236AE}`
+                                            : `2px solid ${theme.trelloCustom.COLOR_B469FF}`,
                                         color: (theme) =>
                                           theme.palette.mode === "dark"
-                                            ? theme.trelloCustom.COLOR_F8F8F8
-                                            : theme.trelloCustom.COLOR_F8F8F8,
+                                            ? theme.trelloCustom.COLOR_B469FF
+                                            : theme.trelloCustom.COLOR_7236AE,
                                         bgcolor: (theme) =>
                                           theme.palette.mode === "dark"
-                                            ? theme.trelloCustom.COLOR_C200D3
-                                            : theme.trelloCustom.COLOR_C0C0C0,
+                                            ? theme.trelloCustom.COLOR_3A135F
+                                            : theme.trelloCustom.COLOR_EDDAFF,
                                       }}
                                     >
                                       {/* A */}
@@ -2619,14 +2616,19 @@ const CardModal = ({
                                         alignItems: "center",
                                         justifyContent: "center",
                                         borderRadius: "50%",
+
+                                        border: (theme) =>
+                                          theme.palette.mode === "dark"
+                                            ? `2px solid ${theme.trelloCustom.COLOR_7236AE}`
+                                            : `2px solid ${theme.trelloCustom.COLOR_B469FF}`,
                                         color: (theme) =>
                                           theme.palette.mode === "dark"
-                                            ? theme.trelloCustom.COLOR_F8F8F8
-                                            : theme.trelloCustom.COLOR_F8F8F8,
+                                            ? theme.trelloCustom.COLOR_B469FF
+                                            : theme.trelloCustom.COLOR_7236AE,
                                         bgcolor: (theme) =>
                                           theme.palette.mode === "dark"
-                                            ? theme.trelloCustom.COLOR_C200D3
-                                            : theme.trelloCustom.COLOR_C0C0C0,
+                                            ? theme.trelloCustom.COLOR_3A135F
+                                            : theme.trelloCustom.COLOR_EDDAFF,
                                       }}
                                     >
                                       {user.username.charAt(0).toUpperCase()}
@@ -3328,7 +3330,7 @@ const CardModal = ({
           </Box>
         )}
       </Box>
-    </Dialog>
+    </Modal>
   );
 };
 

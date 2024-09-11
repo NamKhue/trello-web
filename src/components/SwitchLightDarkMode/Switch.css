@@ -11,29 +11,29 @@
 .toggle-switch .switch {
   position: absolute;
   cursor: pointer;
-  background-color: #ddadf0;
+  background-color: #b469ff;
   border-radius: 25px;
   top: 0;
   right: 0;
   bottom: 0;
   left: 0;
-  transition: background-color 0.2s ease;
+  transition: background-color 0.3s ease;
 }
 .toggle-switch .switch::before {
   position: absolute;
   content: "";
-  left: 3px;
+  left: 4px;
   top: 3px;
   width: 18px;
   height: 18px;
-  background-color: #c200d3;
+  background-color: #eddaff;
   border-radius: 50%;
-  transition: transform 0.3s ease;
+  transition: transform 0.5s ease;
 }
 .toggle-switch input[type="checkbox"]:checked + .switch::before {
-  transform: translateX(20px);
-  background-color: #1e0734;
+  transform: translateX(14px);
+  background-color: #51247c;
 }
 .toggle-switch input[type="checkbox"]:checked + .switch {
-  background-color: #51247c;
+  background-color: #1e0734;
 }

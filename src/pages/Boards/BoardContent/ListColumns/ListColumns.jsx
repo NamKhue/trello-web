@@ -29,7 +29,19 @@ function ListColumns({
   handleCardClick,
 }) {
   // ============================================================================
+  //
+  const [isClickOnAnyCard, setIsClickOnAnyCard] = useState(false);
+  const startClickingCard = () => {
+    setIsClickOnAnyCard(true);
+  };
+
+  const stopClickingCard = () => {
+    setIsClickOnAnyCard(false);
+  };
+
+  //
   const [mouseDown, setMouseDown] = useState(false);
+
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
 
@@ -48,7 +60,7 @@ function ListColumns({
   };
 
   const move = (e) => {
-    if (isDraggingDnD) return;
+    if (isDraggingDnD || isClickOnAnyCard) return;
     if (!mouseDown) return;
 
     const x = e.pageX - sliderRef.current.offsetLeft;
@@ -152,6 +164,8 @@ function ListColumns({
             {columns?.map((column) => (
               <Column
                 key={column._id}
+                startClickingCard={startClickingCard}
+                stopClickingCard={stopClickingCard}
                 isDraggingDnD={isDraggingDnD}
                 roleOfBoard={roleOfBoard}
                 // columns={columns}
