@@ -84,16 +84,59 @@ function HomePage() {
   const [memberBoards, setMemberBoards] = useState([]);
 
   // ============================================================================
-  const [loadedCount, setLoadedCount] = useState(0);
-  // const [loading, setLoading] = useState(true);
+  const MAX_RETRY_LOAD_MORE = 50;
+  const [retryCount, setRetryCount] = useState(0);
+
+  const [loading, setLoading] = useState(true);
+  const [allBoardsLoading, setAllBoardsLoading] = useState(true);
 
   // load data
   useEffect(() => {
-    if (loadedCount < 1) {
-      reloadHomepageWhenThereAreChanges();
-      setLoadedCount(loadedCount + 1);
+    console.log("attempt to refresh homepage: ", retryCount + 1);
+
+    if (retryCount < MAX_RETRY_LOAD_MORE && loading) {
+      const interval = setInterval(() => {
+        setRetryCount((prevCount) => prevCount + 1);
+
+        // fetch again all board
+        fetchAllBoardsAPI().then(async (board) => {
+          // set for all boards
+          setAllBoards(sortListViaCreatedOrUpdatedTime(board));
+
+          // first set boards be all boards with ALL ROLES
+          setBoards(sortListViaCreatedOrUpdatedTime(board));
+
+          setAllBoardsLoading(false);
+        });
+        //
+      }, 2000);
+
+      return () => clearInterval(interval);
     }
-  }, [loadedCount]);
+  }, [MAX_RETRY_LOAD_MORE, retryCount, loading]);
+
+  // load data
+  useEffect(() => {
+    if (!allBoardsLoading) {
+      // set boards with ROLE `CREATOR`
+      fetchMyBoardsAPI().then(async (board) => {
+        setMyBoards(sortListViaCreatedOrUpdatedTime(board));
+      });
+
+      // set boards with ROLE `OWNER` - đồng sáng lập or cùng sở hữu
+      fetchOwnerBoardsAPI().then(async (board) => {
+        setOwnerBoards(sortListViaCreatedOrUpdatedTime(board));
+      });
+
+      // set boards with ROLE `MEMBER`
+      fetchMemberBoardsAPI().then(async (board) => {
+        setMemberBoards(sortListViaCreatedOrUpdatedTime(board));
+
+        setLoading(false);
+      });
+    }
+  }, [allBoardsLoading]);
+
   // ============================================================================
 
   // ============================================================================
@@ -359,7 +402,7 @@ function HomePage() {
     <div>
       {/* loading page */}
       {/* {!(boards.length > 0) ? ( */}
-      {!loggedInUser ? (
+      {loading ? (
         <Box
           sx={{
             display: "flex",

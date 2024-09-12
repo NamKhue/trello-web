@@ -120,12 +120,9 @@ function Board() {
 
   // ============================================================================
   // ============================================================================
-  const MAX_RETRY_LOAD_MORE = 20;
+  const MAX_RETRY_LOAD_MORE = 50;
   const [retryCount, setRetryCount] = useState(0);
-  // const [boardLoadedCount, setBoardLoadedCount] = useState(0);
-  // const [loadedOtherDataCount, setLoadedOtherDataCount] = useState(0);
 
-  // const [loading, setLoading] = useState(true);
   const [boardLoading, setBoardLoading] = useState(true);
   const [allLoading, setAllLoading] = useState(true);
 
@@ -133,16 +130,13 @@ function Board() {
   const [roleOfBoard, setRoleOfBoard] = useState("");
   const [allMembersInBoard, setAllMembersInBoard] = useState([]);
 
-  // const [loading, setLoading] = useState(true);
-  // const [error, setError] = useState(null);
-
   // ============================================================================
 
   // ============================================================================
   // load data of board
   useEffect(() => {
     if (retryCount < MAX_RETRY_LOAD_MORE && boardLoading) {
-      // console.log("refresh board");
+      console.log("attempt to refresh board: ", retryCount + 1);
 
       const interval = setInterval(() => {
         setRetryCount((prevCount) => prevCount + 1);
@@ -190,7 +184,7 @@ function Board() {
 
       return () => clearInterval(interval);
     }
-  }, [MAX_RETRY_LOAD_MORE, boardId, retryCount, boardLoading]);
+  }, [MAX_RETRY_LOAD_MORE, retryCount, boardLoading, boardId]);
 
   // load more other data
   useEffect(() => {
